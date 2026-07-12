@@ -3,6 +3,7 @@
 /* Default font settings and scrollbar helpers */
 body {
   font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  padding-bottom: 5.5rem; /* Ensure bottom navigation never covers content */
 }
 
 /* Hide scrollbars for sliders but allow scroll */

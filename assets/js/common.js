@@ -178,129 +178,64 @@ function renderBottomNav() {
   if (!container) return;
 
   const currentPath = window.location.pathname;
-  const isHome = currentPath.includes('index.html') || currentPath === '/' || currentPath.endsWith('/');
+  const isHome = currentPath.includes('index.html') || currentPath === '/' || currentPath.endsWith('/') || (!currentPath.includes('.html') && !currentPath.includes('categories') && !currentPath.includes('cart') && !currentPath.includes('wishlist') && !currentPath.includes('account') && !currentPath.includes('checkout') && !currentPath.includes('product'));
   const isCategories = currentPath.includes('categories.html');
+  const isCart = currentPath.includes('cart.html');
   const isWishlist = currentPath.includes('wishlist.html');
   const isAccount = currentPath.includes('account.html');
 
   container.innerHTML = `
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f1e36] border-t border-slate-800 flex items-center justify-around py-2 px-1 z-40 shadow-2xl pb-[safe]" id="mobile-bottom-navigation">
-      <a href="index.html" class="flex flex-col items-center justify-center flex-1 py-1 px-2.5 transition-all relative ${isHome ? 'text-brand-orange scale-105 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
-        <div class="relative">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex items-center justify-around py-2.5 px-2 z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] pb-[safe] font-sans" id="mobile-bottom-navigation" style="font-family: 'Montserrat', sans-serif;">
+      <a href="index.html" class="flex flex-col items-center justify-center flex-1 py-1 px-1.5 transition-all duration-200 active:scale-95 group ${isHome ? 'text-[#F68B1E] font-bold' : 'text-slate-600 hover:text-[#F68B1E]'}" id="nav-item-home">
+        <div class="relative flex items-center justify-center p-1 rounded-full group-hover:bg-orange-50 group-active:bg-orange-100 transition-colors">
           <i data-lucide="home" class="w-5 h-5 ${isHome ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}"></i>
         </div>
-        <span class="text-[10px] tracking-wide mt-1">Home</span>
-        ${isHome ? '<span class="absolute bottom-0 w-5 h-[2px] bg-brand-orange rounded-full"></span>' : ''}
+        <span class="text-[10px] tracking-wide mt-0.5">Home</span>
+        ${isHome ? '<span class="absolute bottom-0 w-6 h-[2.5px] bg-[#F68B1E] rounded-full"></span>' : ''}
       </a>
 
-      <a href="categories.html" class="flex flex-col items-center justify-center flex-1 py-1 px-2.5 transition-all relative ${isCategories ? 'text-brand-orange scale-105 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
-        <div class="relative">
+      <a href="categories.html" class="flex flex-col items-center justify-center flex-1 py-1 px-1.5 transition-all duration-200 active:scale-95 group ${isCategories ? 'text-[#F68B1E] font-bold' : 'text-slate-600 hover:text-[#F68B1E]'}" id="nav-item-categories">
+        <div class="relative flex items-center justify-center p-1 rounded-full group-hover:bg-orange-50 group-active:bg-orange-100 transition-colors">
           <i data-lucide="grid" class="w-5 h-5 ${isCategories ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}"></i>
         </div>
-        <span class="text-[10px] tracking-wide mt-1">Categories</span>
-        ${isCategories ? '<span class="absolute bottom-0 w-5 h-[2px] bg-brand-orange rounded-full"></span>' : ''}
+        <span class="text-[10px] tracking-wide mt-0.5">Categories</span>
+        ${isCategories ? '<span class="absolute bottom-0 w-6 h-[2.5px] bg-[#F68B1E] rounded-full"></span>' : ''}
       </a>
 
-      <button id="mobile-bottom-cart-btn" class="flex flex-col items-center justify-center flex-1 py-1 px-2.5 transition-all relative text-slate-400 hover:text-slate-200 cursor-pointer">
-        <div class="relative">
-          <i data-lucide="shopping-cart" class="w-5 h-5 stroke-[1.8px]"></i>
-          <span id="bottom-cart-badge" class="hidden absolute -top-1.5 -right-2 bg-brand-orange text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#0f1e36] animate-pulse">0</span>
+      <a href="cart.html" class="flex flex-col items-center justify-center flex-1 py-1 px-1.5 transition-all duration-200 active:scale-95 group ${isCart ? 'text-[#F68B1E] font-bold' : 'text-slate-600 hover:text-[#F68B1E]'}" id="mobile-bottom-cart-btn">
+        <div class="relative flex items-center justify-center p-1 rounded-full group-hover:bg-orange-50 group-active:bg-orange-100 transition-colors">
+          <i data-lucide="shopping-cart" class="w-5 h-5 ${isCart ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}"></i>
+          <span id="bottom-cart-badge" class="hidden absolute -top-1 -right-1.5 bg-[#F68B1E] text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-xs">0</span>
         </div>
-        <span class="text-[10px] tracking-wide mt-1">Cart</span>
-      </button>
+        <span class="text-[10px] tracking-wide mt-0.5">Cart</span>
+        ${isCart ? '<span class="absolute bottom-0 w-6 h-[2.5px] bg-[#F68B1E] rounded-full"></span>' : ''}
+      </a>
 
-      <a href="wishlist.html" class="flex flex-col items-center justify-center flex-1 py-1 px-2.5 transition-all relative ${isWishlist ? 'text-brand-orange scale-105 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
-        <div class="relative">
+      <a href="wishlist.html" class="flex flex-col items-center justify-center flex-1 py-1 px-1.5 transition-all duration-200 active:scale-95 group ${isWishlist ? 'text-[#F68B1E] font-bold' : 'text-slate-600 hover:text-[#F68B1E]'}" id="nav-item-wishlist">
+        <div class="relative flex items-center justify-center p-1 rounded-full group-hover:bg-orange-50 group-active:bg-orange-100 transition-colors">
           <i data-lucide="heart" class="w-5 h-5 ${isWishlist ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}"></i>
-          <span id="bottom-wishlist-badge" class="hidden absolute -top-1.5 -right-2 bg-brand-orange text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#0f1e36]">0</span>
+          <span id="bottom-wishlist-badge" class="hidden absolute -top-1 -right-1.5 bg-[#F68B1E] text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-xs">0</span>
         </div>
-        <span class="text-[10px] tracking-wide mt-1">Saved</span>
-        ${isWishlist ? '<span class="absolute bottom-0 w-5 h-[2px] bg-brand-orange rounded-full"></span>' : ''}
+        <span class="text-[10px] tracking-wide mt-0.5">Wishlist</span>
+        ${isWishlist ? '<span class="absolute bottom-0 w-6 h-[2.5px] bg-[#F68B1E] rounded-full"></span>' : ''}
       </a>
 
-      <a href="account.html" class="flex flex-col items-center justify-center flex-1 py-1 px-2.5 transition-all relative ${isAccount ? 'text-brand-orange scale-105 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
-        <div class="relative">
+      <a href="account.html" class="flex flex-col items-center justify-center flex-1 py-1 px-1.5 transition-all duration-200 active:scale-95 group ${isAccount ? 'text-[#F68B1E] font-bold' : 'text-slate-600 hover:text-[#F68B1E]'}" id="nav-item-account">
+        <div class="relative flex items-center justify-center p-1 rounded-full group-hover:bg-orange-50 group-active:bg-orange-100 transition-colors">
           <i data-lucide="user" class="w-5 h-5 ${isAccount ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}"></i>
         </div>
-        <span class="text-[10px] tracking-wide mt-1">Account</span>
-        ${isAccount ? '<span class="absolute bottom-0 w-5 h-[2px] bg-brand-orange rounded-full"></span>' : ''}
+        <span class="text-[10px] tracking-wide mt-0.5">Account</span>
+        ${isAccount ? '<span class="absolute bottom-0 w-6 h-[2.5px] bg-[#F68B1E] rounded-full"></span>' : ''}
       </a>
     </div>
   `;
 }
 
-// 3. Footer Injected HTML
+// 3. Footer Injected HTML - Cleared for Jumia experience
 function renderFooter() {
   const container = document.getElementById('footer-container');
   if (!container) return;
-
-  container.innerHTML = `
-    <footer class="w-full bg-[#0f1e36] text-slate-400 text-xs py-10 px-4 border-t border-slate-800 mt-12 mb-16 md:mb-0">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
-        <!-- Brand identity -->
-        <div class="flex flex-col gap-3">
-          <h4 class="font-extrabold text-white font-display text-lg tracking-tight">
-            GR <span class="text-brand-orange">STORE</span>
-          </h4>
-          <p class="text-[11px] text-slate-400 font-medium tracking-wide -mt-2">
-            Powered by Gold & Rock Leather Craft
-          </p>
-          <p class="text-slate-400 font-light leading-relaxed max-w-xs mx-auto md:mx-0">
-            Premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Built for durability, quality, and timeless style.
-          </p>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="flex flex-col gap-2.5">
-          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Quick Links</h4>
-          <ul class="flex flex-col gap-1.5 font-light">
-            <li><a href="index.html" class="hover:text-brand-orange transition-colors">Home</a></li>
-            <li><a href="categories.html" class="hover:text-brand-orange transition-colors">Browse Catalogue</a></li>
-            <li><a href="wishlist.html" class="hover:text-brand-orange transition-colors">Saved Wishlist</a></li>
-            <li><a href="account.html" class="hover:text-brand-orange transition-colors">My Profile Account</a></li>
-          </ul>
-        </div>
-
-        <!-- Support & Policies -->
-        <div class="flex flex-col gap-2.5">
-          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Policies & Info</h4>
-          <ul class="flex flex-col gap-1.5 font-light">
-            <li><a href="#about" class="hover:text-brand-orange transition-colors">About Us</a></li>
-            <li><a href="#contact" class="hover:text-brand-orange transition-colors">Contact Support</a></li>
-            <li><a href="#privacy" class="hover:text-brand-orange transition-colors">Privacy Policy</a></li>
-            <li><a href="#terms" class="hover:text-brand-orange transition-colors">Terms & Conditions</a></li>
-          </ul>
-        </div>
-
-        <!-- Connect with Us -->
-        <div class="flex flex-col gap-3">
-          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Get in Touch</h4>
-          <div class="flex flex-col gap-2 font-light">
-            <a href="https://wa.me/2348123456789" target="_blank" class="flex items-center gap-2 justify-center md:justify-start hover:text-[#25D366] transition-colors">
-              <i data-lucide="message-circle" class="w-4 h-4 text-[#25D366]"></i>
-              <span>Chat on WhatsApp</span>
-            </a>
-            <a href="tel:+2348123456789" class="flex items-center gap-2 justify-center md:justify-start hover:text-brand-orange transition-colors">
-              <i data-lucide="phone" class="w-4 h-4 text-brand-orange"></i>
-              <span>+234 812 345 6789</span>
-            </a>
-            <p class="text-slate-500 text-[11px] mt-1">
-              Victoria Island, Lagos State, Nigeria
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Copyright Area -->
-      <div class="max-w-7xl mx-auto border-t border-slate-800/80 mt-8 pt-5 text-center text-[10px] text-slate-500 flex flex-col sm:flex-row sm:justify-between items-center gap-2">
-        <span>&copy; ${new Date().getFullYear()} GR STORE. Powered by Gold & Rock Leather Craft.</span>
-        <span class="flex items-center gap-1.5 justify-center">
-          <i data-lucide="heart" class="w-3.5 h-3.5 text-brand-orange fill-brand-orange"></i>
-          <span>Handcrafted in Nigeria with Leather & Code</span>
-        </span>
-      </div>
-    </footer>
-  `;
+  container.innerHTML = '';
 }
 
 // 4. Cart Drawer Injected HTML & UI
