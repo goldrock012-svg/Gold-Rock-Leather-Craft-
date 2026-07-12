@@ -65,16 +65,16 @@ function renderProductDetails() {
   const discountBadge = document.getElementById('prod-discount-badge');
 
   if (product.isFlashSale && product.originalPrice) {
-    originalPriceEl.textContent = `$${product.originalPrice}`;
+    originalPriceEl.textContent = `₦${product.originalPrice.toLocaleString()}`;
     originalPriceEl.classList.remove('hidden');
-    priceEl.textContent = `$${product.price}`;
+    priceEl.textContent = `₦${product.price.toLocaleString()}`;
     
     const disc = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
     discountBadge.innerHTML = `<i data-lucide="percent" class="w-2.5 h-2.5 stroke-[3.5px]"></i> ${disc}% OFF`;
     discountBadge.classList.remove('hidden');
   } else {
     originalPriceEl.classList.add('hidden');
-    priceEl.textContent = `$${product.price}`;
+    priceEl.textContent = `₦${product.price.toLocaleString()}`;
     discountBadge.classList.add('hidden');
   }
 
@@ -230,7 +230,7 @@ function setupQuantityCounter() {
   if (!minus || !plus || !input || !priceDisplay) return;
 
   input.textContent = quantity;
-  priceDisplay.textContent = `$${product.price * quantity}`;
+  priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
 
   // Reset Listeners by cloning (simplifies multiple redraw bindings)
   const newMinus = minus.cloneNode(true);
@@ -242,14 +242,14 @@ function setupQuantityCounter() {
     if (quantity > 1) {
       quantity--;
       input.textContent = quantity;
-      priceDisplay.textContent = `$${product.price * quantity}`;
+      priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
     }
   });
 
   newPlus.addEventListener('click', () => {
     quantity++;
     input.textContent = quantity;
-    priceDisplay.textContent = `$${product.price * quantity}`;
+    priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
   });
 }
 
@@ -311,7 +311,7 @@ function setupProductActions() {
       newCartBtn.innerHTML = `SOLD OUT`;
     } else {
       newCartBtn.classList.remove('opacity-40', 'pointer-events-none');
-      newCartBtn.innerHTML = `Add to Cart - <span id="total-cost-preview" class="font-mono">$${product.price * quantity}</span>`;
+      newCartBtn.innerHTML = `Add to Cart - <span id="total-cost-preview" class="font-mono">₦${(product.price * quantity).toLocaleString()}</span>`;
     }
 
     newCartBtn.addEventListener('click', () => {
@@ -326,14 +326,14 @@ function setupProductActions() {
     waBtn.parentNode.replaceChild(newWaBtn, waBtn);
 
     newWaBtn.addEventListener('click', () => {
-      const phoneNumber = '+2348123456789';
+      const phoneNumber = '2348126730784';
       const message = `*GR STORE INQUIRY*\n` +
                       `Hello Gold & Rock Leather Craft, I'm interested in buying your premium leather item:\n\n` +
                       `*Item:* ${product.name}\n` +
                       `*Color:* ${selectedColor}\n` +
                       `*Quantity:* ${quantity}\n` +
-                      `*Price:* $${product.price} each\n` +
-                      `*Total:* $${product.price * quantity}\n\n` +
+                      `*Price:* ₦${product.price.toLocaleString()} each\n` +
+                      `*Total:* ₦${(product.price * quantity).toLocaleString()}\n\n` +
                       `Is this item available? How long would shipping take? Thanks!`;
       const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');

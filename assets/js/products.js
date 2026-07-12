@@ -47,14 +47,14 @@ const PRODUCTS = [
   // ===================== FLASH SALES (8 PRODUCTS) =====================
   {
     id: 'gr-01',
-    productName: 'The Obsidian Bifold Wallet',
-    name: 'The Obsidian Bifold Wallet',
+    productName: "Gold & Rock Men's Leather Wallet",
+    name: "Gold & Rock Men's Leather Wallet",
     category: 'mens-purses',
-    price: 45,
-    oldPrice: 60,
-    originalPrice: 60,
-    discountPercentage: 25,
-    flashSaleDiscount: 25,
+    price: 12500,
+    oldPrice: 16000,
+    originalPrice: 16000,
+    discountPercentage: 22,
+    flashSaleDiscount: 22,
     image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800',
@@ -67,29 +67,29 @@ const PRODUCTS = [
     isNew: false,
     stock: 12,
     soldCount: 8,
-    description: 'A sleek, classic bifold wallet crafted from full-grain vegetable-tanned leather. Features an ultra-slim profile with hand-painted burnished edges and heavy-duty polyester stitching. Built to last a lifetime and age beautifully.',
+    description: "A premium slim bifold wallet handcrafted by Gold & Rock Leather Craft using 100% genuine vegetable-tanned leather. Features fine hand-painted burnished edges and durable heavy-duty stitching designed to age into a beautiful patina.",
     details: [
-      '100% Full-grain vegetable-tanned leather',
-      '6 card slots + 1 central cash pocket',
-      'Sleek bifold profile (11cm x 8.5cm x 1.2cm)',
+      '100% Full-grain vegetable-tanned Nigerian leather',
+      '6 secure card slots + 1 central compartment for cash notes',
+      'Ultra-slim bifold profile (11cm x 8.5cm x 1.2cm)',
       'Hand-burnished edges for a premium durable finish',
-      'Premium gift-box packaging included'
+      'Packaged in an elegant Gold & Rock presentation box'
     ],
     reviews: [
-      { id: 'r1', userName: 'Adebayo O.', rating: 5, date: '2026-06-25', comment: 'The quality of the leather is unmatched. Stiff at first but breaking in nicely. Excellent craftsmanship!' },
-      { id: 'r2', userName: 'Sarah M.', rating: 4, date: '2026-06-18', comment: 'Bought this as a gift for my husband. He absolutely loves it. Packaging was beautiful.' }
+      { id: 'r1', userName: 'Adebayo Alabi', rating: 5, date: '2026-06-25', comment: 'The quality of this genuine leather is superb. It feels robust and has that signature high-end leather scent. Highly recommended!' },
+      { id: 'r2', userName: 'Chioma Nwachukwu', rating: 5, date: '2026-06-18', comment: 'Bought this bifold wallet as a gift for my husband. He is extremely pleased with the hand-stitched detailing.' }
     ]
   },
   {
     id: 'gr-02',
-    productName: 'Apex Slim Pocket Purse',
-    name: 'Apex Slim Pocket Purse',
+    productName: 'Gold & Rock Slim Pocket Purse',
+    name: 'Gold & Rock Slim Pocket Purse',
     category: 'mens-purses',
-    price: 25,
-    oldPrice: 35,
-    originalPrice: 35,
-    discountPercentage: 28,
-    flashSaleDiscount: 28,
+    price: 8500,
+    oldPrice: 12000,
+    originalPrice: 12000,
+    discountPercentage: 29,
+    flashSaleDiscount: 29,
     image: 'https://images.unsplash.com/photo-1588444839799-eb0850009161?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1588444839799-eb0850009161?auto=format&fit=crop&q=80&w=800'
@@ -101,26 +101,26 @@ const PRODUCTS = [
     isNew: false,
     stock: 15,
     soldCount: 12,
-    description: 'Crafted from premium distress-finish leather, this front pocket purse features a clever pull-tab for instant card extraction and holds cash notes securely.',
+    description: "Crafted from premium distress-finish leather, this slim pocket purse by Gold & Rock Leather Craft features an elegant layout for secure card and folded note carry.",
     details: [
-      'Top-grain oil-waxed leather',
-      'Holds up to 8 cards + 5 folded bills',
+      'Top-grain oil-waxed Nigerian leather',
+      'Holds up to 8 cards and folded naira notes safely',
       'Super flat minimalist design'
     ],
     reviews: [
-      { id: 'r4', userName: 'Chidi E.', rating: 5, date: '2026-07-02', comment: 'Perfect front pocket carry wallet. Fits cards nicely.' }
+      { id: 'r4', userName: 'Chinedu O.', rating: 5, date: '2026-07-02', comment: 'Perfect front pocket carry wallet. Fits cards nicely.' }
     ]
   },
   {
     id: 'gr-03',
-    productName: 'The Executive Briefcase',
-    name: 'The Executive Briefcase',
+    productName: 'Executive Leather Laptop Bag',
+    name: 'Executive Leather Laptop Bag',
     category: 'laptop-bags',
-    price: 189,
-    oldPrice: 270,
-    originalPrice: 270,
-    discountPercentage: 30,
-    flashSaleDiscount: 30,
+    price: 45000,
+    oldPrice: 60000,
+    originalPrice: 60000,
+    discountPercentage: 25,
+    flashSaleDiscount: 25,
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800'
@@ -132,27 +132,27 @@ const PRODUCTS = [
     isNew: false,
     stock: 5,
     soldCount: 10,
-    description: 'The ultimate professional companion, crafted with full-grain cowhide leather, dedicated laptop compartment, and heavy-duty brass zippers.',
+    description: "The ultimate business companion, crafted with full-grain thick Nigerian leather, featuring a padded laptop compartment and heavy-duty premium brass zippers.",
     details: [
-      'Fits up to 16-inch laptops with dense internal padding',
+      'Fits up to 16-inch laptops with dense internal shockproof padding',
       'Detachable and adjustable leather shoulder strap',
       'Front quick-access magnetic flap pockets',
       'Organized interior slots for cards, pens, and notebook'
     ],
     reviews: [
-      { id: 'r101', userName: 'Olawale T.', rating: 5, date: '2026-07-01', comment: 'Outstanding craftsmanship. Perfectly fits my MacBook and looks super professional in board meetings.' }
+      { id: 'r101', userName: 'Ibrahim Bello', rating: 5, date: '2026-07-01', comment: 'Outstanding craftsmanship. Perfectly fits my laptop and looks super professional in board meetings.' }
     ]
   },
   {
     id: 'gr-04',
-    productName: 'Bespoke Meeting Folio',
-    name: 'Bespoke Meeting Folio',
+    productName: 'Gold & Rock Office Messenger Bag',
+    name: 'Gold & Rock Office Messenger Bag',
     category: 'office-bags',
-    price: 35,
-    oldPrice: 50,
-    originalPrice: 50,
-    discountPercentage: 30,
-    flashSaleDiscount: 30,
+    price: 18500,
+    oldPrice: 25000,
+    originalPrice: 25000,
+    discountPercentage: 26,
+    flashSaleDiscount: 26,
     image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800'
@@ -164,10 +164,10 @@ const PRODUCTS = [
     isNew: false,
     stock: 20,
     soldCount: 15,
-    description: 'A premium top-grain leather folio that adds immediate elegance to your business meetings. Perfect for legal pads, business cards, and digital tablets.',
+    description: "A premium top-grain leather messenger bag that adds immediate elegance to your daily office commutes and business meetings. Handcrafted by Gold & Rock Leather Craft.",
     details: [
-      'Genuine oiled cowhide leather surface',
-      'Universal writing pad slot',
+      'Genuine oiled leather surface',
+      'Wide main compartment for documents and tablets',
       'Integrated stitched pen and phone loop organizer'
     ],
     reviews: [
@@ -176,14 +176,14 @@ const PRODUCTS = [
   },
   {
     id: 'gr-05',
-    productName: 'Vintage Leather Weekender',
-    name: 'Vintage Leather Weekender',
+    productName: 'Classic Travel Duffel',
+    name: 'Classic Travel Duffel',
     category: 'travelling-bags',
-    price: 220,
-    oldPrice: 315,
-    originalPrice: 315,
-    discountPercentage: 30,
-    flashSaleDiscount: 30,
+    price: 55000,
+    oldPrice: 75000,
+    originalPrice: 75000,
+    discountPercentage: 26,
+    flashSaleDiscount: 26,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800'
@@ -195,9 +195,9 @@ const PRODUCTS = [
     isNew: false,
     stock: 7,
     soldCount: 9,
-    description: 'Spacious and ruggedly luxurious, this weekender duffel is made of oil-waxed pull-up leather that develops beautiful scratch patinas.',
+    description: "Spacious and ruggedly luxurious, this travel duffel is made of oil-waxed leather by Gold & Rock Leather Craft. It develops a rich vintage character over time.",
     details: [
-      'Generous 45L volume capacity - perfect for 3-5 day trips',
+      'Generous volume capacity - perfect for weekend and business trips',
       'Reinforced riveted carry handles + heavy-duty shoulder strap',
       'Dedicated side shoe compartment with breathable metal eyelets',
       'Inner security zipped pocket and dual quick-grab slip slots'
@@ -208,14 +208,14 @@ const PRODUCTS = [
   },
   {
     id: 'gr-06',
-    productName: 'The Empress Tote Bag',
-    name: 'The Empress Tote Bag',
+    productName: 'Luxury Ladies Handbag',
+    name: 'Luxury Ladies Handbag',
     category: 'ladies-hand-bags',
-    price: 125,
-    oldPrice: 180,
-    originalPrice: 180,
-    discountPercentage: 30,
-    flashSaleDiscount: 30,
+    price: 35000,
+    oldPrice: 48000,
+    originalPrice: 48000,
+    discountPercentage: 27,
+    flashSaleDiscount: 27,
     image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800'
@@ -227,26 +227,26 @@ const PRODUCTS = [
     isNew: false,
     stock: 30,
     soldCount: 25,
-    description: 'A stylish and structured tote bag designed to turn heads. Spaciously holds tablet, cosmetics, and accessories with hand-stitched leather panels.',
+    description: "A stylish and structured leather handbag designed to turn heads. Handcrafted with beautiful premium panels by Gold & Rock Leather Craft.",
     details: [
-      'Full-grain textured calfskin',
-      'Spacious main compartment + brass clasp closure',
+      'Full-grain textured premium calfskin',
+      'Spacious main compartment + brass secure lock closure',
       'Comfortable dual shoulder straps'
     ],
     reviews: [
-      { id: 'r104', userName: 'Halima A.', rating: 4, date: '2026-06-29', comment: 'So elegant! I love using it for lunch dates and events.' }
+      { id: 'r104', userName: 'Halima A.', rating: 4, date: '2026-06-29', comment: 'So elegant! I love using it for office events and weekend outings.' }
     ]
   },
   {
     id: 'gr-07',
-    productName: 'Classic Scholar Backpack',
-    name: 'Classic Scholar Backpack',
+    productName: 'Premium School Backpack',
+    name: 'Premium School Backpack',
     category: 'school-bags',
-    price: 65,
-    oldPrice: 90,
-    originalPrice: 90,
-    discountPercentage: 27,
-    flashSaleDiscount: 27,
+    price: 22000,
+    oldPrice: 30000,
+    originalPrice: 30000,
+    discountPercentage: 26,
+    flashSaleDiscount: 26,
     image: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&q=80&w=800'
@@ -258,10 +258,10 @@ const PRODUCTS = [
     isNew: false,
     stock: 45,
     soldCount: 40,
-    description: 'An elegant handcrafted student backpack featuring heavy-duty canvas reinforced with thick premium leather trims and buckled flaps.',
+    description: "An elegant handcrafted student backpack featuring heavy-duty canvas reinforced with thick premium leather trims and buckled flaps.",
     details: [
-      'Thick water-resistant wax canvas + bridle leather straps',
-      'Fits up to 15" laptops + text books comfortably',
+      'Thick water-resistant wax canvas + leather straps',
+      'Fits up to 15" laptops + textbooks comfortably',
       'Ergonomic padded shoulder straps'
     ],
     reviews: [
@@ -270,14 +270,14 @@ const PRODUCTS = [
   },
   {
     id: 'gr-08',
-    productName: 'Gourmet Insulated Lunch Tote',
-    name: 'Gourmet Insulated Lunch Tote',
+    productName: 'Executive Lunch Bag',
+    name: 'Executive Lunch Bag',
     category: 'lunch-bags',
-    price: 28,
-    oldPrice: 40,
-    originalPrice: 40,
-    discountPercentage: 30,
-    flashSaleDiscount: 30,
+    price: 12000,
+    oldPrice: 16000,
+    originalPrice: 16000,
+    discountPercentage: 25,
+    flashSaleDiscount: 25,
     image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800'
@@ -289,10 +289,10 @@ const PRODUCTS = [
     isNew: false,
     stock: 18,
     soldCount: 12,
-    description: 'A luxurious leather-shelled lunch box with thick food-grade thermal insulation to keep your meals fresh in absolute style.',
+    description: "A luxurious leather-shelled lunch box with thick food-grade thermal insulation to keep your meals fresh in absolute style.",
     details: [
       'Thermal reflective premium insulating lining',
-      'Splash-proof leather exterior with sturdy brass buckle handle',
+      'Splash-proof leather exterior with sturdy hand-stitched handle',
       'Perfect size for lunch containers and drink flasks'
     ],
     reviews: [
@@ -303,12 +303,12 @@ const PRODUCTS = [
   // ===================== BEST SELLERS (8 PRODUCTS) =====================
   {
     id: 'gr-09',
-    productName: 'The Sovereign Hobo Bag',
-    name: 'The Sovereign Hobo Bag',
+    productName: 'Gold & Rock Sovereign Ladies Bag',
+    name: 'Gold & Rock Sovereign Ladies Bag',
     category: 'ladies-hand-bags',
-    price: 150,
-    oldPrice: 150,
-    originalPrice: 150,
+    price: 38000,
+    oldPrice: 38000,
+    originalPrice: 38000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc15a490?auto=format&fit=crop&q=80&w=800',
@@ -322,9 +322,9 @@ const PRODUCTS = [
     isNew: false,
     stock: 14,
     soldCount: 45,
-    description: 'A luxurious everyday ladies leather hobo handbag designed to hold all your essentials with absolute class. Exquisitely crafted with sturdy leather handles and secure zip closures.',
+    description: "A luxurious everyday ladies leather handbag designed to hold all your essentials with absolute class. Exquisitely crafted by Gold & Rock Leather Craft with sturdy leather handles and secure zip closures.",
     details: [
-      'Premium oil-waxed pull-up leather that develops a unique vintage character',
+      'Premium oil-waxed leather that develops a unique vintage character',
       'Spacious main compartment - easily fits cosmetic kit, notebook, and personal items',
       'Inner zippered floating pocket for phone and cards'
     ],
@@ -334,14 +334,14 @@ const PRODUCTS = [
   },
   {
     id: 'gr-10',
-    productName: 'Saddle Stitch Credit Cardholder',
-    name: 'Saddle Stitch Credit Cardholder',
+    productName: 'Saddle Stitch Leather Cardholder',
+    name: 'Saddle Stitch Leather Cardholder',
     category: 'mens-purses',
-    price: 20,
-    oldPrice: 25,
-    originalPrice: 25,
-    discountPercentage: 20,
-    flashSaleDiscount: 20,
+    price: 7500,
+    oldPrice: 10000,
+    originalPrice: 10000,
+    discountPercentage: 25,
+    flashSaleDiscount: 25,
     image: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&q=80&w=800',
     images: [
       'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&q=80&w=800'
@@ -353,14 +353,14 @@ const PRODUCTS = [
     isNew: false,
     stock: 22,
     soldCount: 88,
-    description: 'The perfect front-pocket companion for low-footprint, comfortable card carry. Traditional hand-stitched using thick waxed linen thread.',
+    description: "The perfect front-pocket companion for low-footprint, comfortable card carry. Traditional hand-stitching with thick waxed thread.",
     details: [
       'Ultra-slim, front-pocket friendly footprint',
       '4 outer card pockets + 1 central multi-use pocket',
       'Hand-stitched using traditional heavy saddle-stitch method'
     ],
     reviews: [
-      { id: 'r9', userName: 'Michael S.', rating: 5, date: '2026-06-11', comment: 'Holds my 4 cards and driver license perfectly. Extremely flat!' }
+      { id: 'r9', userName: 'Yusuf B.', rating: 5, date: '2026-06-11', comment: 'Holds my cards and driver license perfectly. Extremely flat!' }
     ]
   },
   {
@@ -368,9 +368,9 @@ const PRODUCTS = [
     productName: 'Gold & Rock Document Folder',
     name: 'Gold & Rock Document Folder',
     category: 'office-bags',
-    price: 40,
-    oldPrice: 40,
-    originalPrice: 40,
+    price: 14500,
+    oldPrice: 14500,
+    originalPrice: 14500,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800',
@@ -384,10 +384,10 @@ const PRODUCTS = [
     isNew: false,
     stock: 25,
     soldCount: 62,
-    description: 'Elevate your workspace. Custom-crafted leather document envelope designed to protect and store legal documents, tablets, and notes with premium brass clasp.',
+    description: "Elevate your professional workspace. Custom-crafted leather document envelope designed to protect and store legal papers, tablets, and notes with secure brass stud clasp.",
     details: [
       'Genuine full-grain leather outer shell',
-      'Holds A4/Legal papers easily',
+      'Holds A4 and Legal documents easily',
       'Secure brass stud locking system'
     ],
     reviews: [
@@ -396,12 +396,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-12',
-    productName: 'Heritage Student Knapsack',
-    name: 'Heritage Student Knapsack',
+    productName: 'Gold & Rock Premium Student Backpack',
+    name: 'Gold & Rock Premium Student Backpack',
     category: 'school-bags',
-    price: 75,
-    oldPrice: 75,
-    originalPrice: 75,
+    price: 24000,
+    oldPrice: 24000,
+    originalPrice: 24000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&q=80&w=800',
@@ -415,7 +415,7 @@ const PRODUCTS = [
     isNew: false,
     stock: 19,
     soldCount: 38,
-    description: 'Features high-density stitching on premium vegetable-tanned cowhide leather. A durable design that easily stores books, devices, and stationery.',
+    description: "Features high-density stitching on premium vegetable-tanned Nigerian leather. A durable design that easily stores books, devices, and stationery.",
     details: [
       'Premium heavy cowhide shoulder leather',
       'Padded internal tablet compartment',
@@ -427,12 +427,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-13',
-    productName: 'Vanguard Laptop Messenger',
-    name: 'Vanguard Laptop Messenger',
+    productName: 'Gold & Rock Laptop Messenger Bag',
+    name: 'Gold & Rock Laptop Messenger Bag',
     category: 'laptop-bags',
-    price: 165,
-    oldPrice: 165,
-    originalPrice: 165,
+    price: 42000,
+    oldPrice: 42000,
+    originalPrice: 42000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800',
@@ -446,10 +446,10 @@ const PRODUCTS = [
     isNew: false,
     stock: 8,
     soldCount: 21,
-    description: 'Classic laptop messenger bag with modern organization partitions, padded notebook sleeve, and comfortable sliding shoulder pad.',
+    description: "Classic laptop messenger bag with modern organization partitions, padded notebook sleeve, and comfortable sliding shoulder pad.",
     details: [
       'Genuine distressed oil-waxed leather',
-      'Padded compartment fits laptops up to 15.6"',
+      'Padded compartment fits laptops up to 15.6 inches',
       'Durable copper-finished zinc hardware'
     ],
     reviews: [
@@ -458,12 +458,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-14',
-    productName: 'Artisan Lunchbox Companion',
-    name: 'Artisan Lunchbox Companion',
+    productName: 'Gold & Rock Lunchbox Companion',
+    name: 'Gold & Rock Lunchbox Companion',
     category: 'lunch-bags',
-    price: 30,
-    oldPrice: 30,
-    originalPrice: 30,
+    price: 11000,
+    oldPrice: 11000,
+    originalPrice: 11000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&q=80&w=800',
@@ -477,7 +477,7 @@ const PRODUCTS = [
     isNew: false,
     stock: 16,
     soldCount: 30,
-    description: 'High capacity lunchbox bag with thick foil insulating interior and easy-wipe premium leather exterior. Sturdy carry handle for commuting convenience.',
+    description: "High capacity lunchbox bag with thick foil insulating interior and easy-wipe premium leather exterior. Sturdy carry handle for commuting convenience.",
     details: [
       'High density thermal lining',
       'Waterproof interior makes it leak proof and easy to clean',
@@ -489,12 +489,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-15',
-    productName: 'The Nomad Voyager Duffle',
-    name: 'The Nomad Voyager Duffle',
+    productName: 'Gold & Rock Voyager Travel Duffel',
+    name: 'Gold & Rock Voyager Travel Duffel',
     category: 'travelling-bags',
-    price: 210,
-    oldPrice: 210,
-    originalPrice: 210,
+    price: 52000,
+    oldPrice: 52000,
+    originalPrice: 52000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800',
@@ -508,7 +508,7 @@ const PRODUCTS = [
     isNew: false,
     stock: 33,
     soldCount: 55,
-    description: 'Heavy capacity leather travel duffle bag. Made of thick vegetable-tanned cowhide leather with a separate compartment for wet clothes and travel gear.',
+    description: "Heavy capacity leather travel duffle bag. Made of thick vegetable-tanned cowhide leather with a separate compartment for wet clothes and travel gear.",
     details: [
       '50L travel volume capacity',
       'Integrated heavy duty brass zipper rails',
@@ -520,12 +520,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-16',
-    productName: 'The Graceful Crossbody Bag',
-    name: 'The Graceful Crossbody Bag',
+    productName: 'Gold & Rock Graceful Ladies Bag',
+    name: 'Gold & Rock Graceful Ladies Bag',
     category: 'ladies-hand-bags',
-    price: 110,
-    oldPrice: 110,
-    originalPrice: 110,
+    price: 28000,
+    oldPrice: 28000,
+    originalPrice: 28000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800',
@@ -539,26 +539,26 @@ const PRODUCTS = [
     isNew: false,
     stock: 6,
     soldCount: 18,
-    description: 'Compact and fashionable ladies crossbody handbag. Soft padded leather straps, secure metal lock, and elegant interior slots for quick-access items.',
+    description: "Compact and fashionable ladies crossbody handbag. Soft padded leather straps, secure metal lock, and elegant interior slots for quick-access items.",
     details: [
       'Genuine full grain cowhide body with premium touch lining',
       'Sturdy magnetic click lock mechanism',
       'Adjustable side crossbody straps'
     ],
     reviews: [
-      { id: 'r116', userName: 'Gabriel A.', rating: 5, date: '2026-06-18', comment: 'My wife absolutely fell in love with this bag. The stitching is elite.' }
+      { id: 'r116', userName: 'Grace A.', rating: 5, date: '2026-06-18', comment: 'My wife absolutely fell in love with this bag. The stitching is elite.' }
     ]
   },
 
   // ===================== NEW ARRIVALS (8 PRODUCTS) =====================
   {
     id: 'gr-17',
-    productName: 'Elite Leather Cabin Bag',
-    name: 'Elite Leather Cabin Bag',
+    productName: 'Gold & Rock Elite Cabin Bag',
+    name: 'Gold & Rock Elite Cabin Bag',
     category: 'travelling-bags',
-    price: 245,
-    oldPrice: 245,
-    originalPrice: 245,
+    price: 58000,
+    oldPrice: 58000,
+    originalPrice: 58000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800',
@@ -572,11 +572,11 @@ const PRODUCTS = [
     isNew: true,
     stock: 11,
     soldCount: 2,
-    description: 'A luxurious leather cabin companion bag designed to meet international flight carry-on requirements. Double reinforced straps with brass lock protection.',
+    description: "A luxurious leather cabin companion bag designed to meet international flight carry-on requirements. Double reinforced straps with brass lock protection.",
     details: [
       'Distressed crazy-horse leather body',
       'Fits inside standard airline overhead bins',
-      'Side cardholder pockets + ticket dividers'
+      'Side cardholder pockets and ticket dividers'
     ],
     reviews: [
       { id: 'r8', userName: 'Tunde W.', rating: 5, date: '2026-07-10', comment: 'This bag is a true masterpiece. Smells amazing and carries a lot of gear!' }
@@ -584,12 +584,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-18',
-    productName: 'Premium Academic Leather Satchel',
-    name: 'Premium Academic Leather Satchel',
+    productName: 'Gold & Rock Academic Satchel',
+    name: 'Gold & Rock Academic Satchel',
     category: 'school-bags',
-    price: 85,
-    oldPrice: 85,
-    originalPrice: 85,
+    price: 25000,
+    oldPrice: 25000,
+    originalPrice: 25000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&q=80&w=800',
@@ -603,11 +603,11 @@ const PRODUCTS = [
     isNew: true,
     stock: 40,
     soldCount: 3,
-    description: 'Study in high fashion. Hand-dyed leather satchel bag designed with reinforced stitching to withstand textbooks, tablet weights, and heavy use.',
+    description: "Study in high fashion. Hand-dyed leather satchel bag designed with reinforced stitching by Gold & Rock Leather Craft to withstand textbooks and heavy use.",
     details: [
       'Double magnetic secure quick-tabs',
       'Padded internal device sleeves',
-      'Handcrafted using thick waxed linen thread'
+      'Handcrafted using thick waxed thread'
     ],
     reviews: [
       { id: 'r10', userName: 'Fatima Z.', rating: 5, date: '2026-05-30', comment: 'A gorgeous book bag. It keeps all my notebooks super neat.' }
@@ -615,12 +615,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-19',
-    productName: 'Pro-Insulated Leather Lunch Sack',
-    name: 'Pro-Insulated Leather Lunch Sack',
+    productName: 'Gold & Rock Pro-Insulated Lunch Sack',
+    name: 'Gold & Rock Pro-Insulated Lunch Sack',
     category: 'lunch-bags',
-    price: 32,
-    oldPrice: 32,
-    originalPrice: 32,
+    price: 11500,
+    oldPrice: 11500,
+    originalPrice: 11500,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800',
@@ -634,7 +634,7 @@ const PRODUCTS = [
     isNew: true,
     stock: 29,
     soldCount: 5,
-    description: 'Insulated lunch container bag wrapped in premium water-repellent bovine leather. Features a roll-top brass strap closure for adjustable space.',
+    description: "Insulated lunch container bag wrapped in premium water-repellent leather. Features a roll-top strap closure for adjustable space.",
     details: [
       'Alginate reflective thermal foil core',
       'Roll-top leather strap for expanding capacity',
@@ -646,12 +646,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-20',
-    productName: 'The Boardroom Attache Case',
-    name: 'The Boardroom Attache Case',
+    productName: 'Gold & Rock Boardroom Attache Case',
+    name: 'Gold & Rock Boardroom Attache Case',
     category: 'office-bags',
-    price: 195,
-    oldPrice: 195,
-    originalPrice: 195,
+    price: 45000,
+    oldPrice: 45000,
+    originalPrice: 45000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800',
@@ -665,24 +665,24 @@ const PRODUCTS = [
     isNew: true,
     stock: 24,
     soldCount: 2,
-    description: 'A traditional and solid office attache case crafted from rigid leather-wrapped wooden frame, secure mechanical dual-combination locks.',
+    description: "A traditional and solid office attache case crafted from a rigid leather-wrapped frame with secure mechanical dual-combination locks.",
     details: [
-      'Reinforced solid brass protective corners',
-      'Dual-combination gold-finished security dials',
-      'Suede-lined organizer lid panel'
+      'Reinforced solid protective corners',
+      'Dual-combination secure security dials',
+      'Premium lined organizer lid panel'
     ],
     reviews: [
-      { id: 'r120', userName: 'Kayode A.', rating: 4, date: '2026-07-08', comment: 'Extremely elegant. Old school style boardroom presence.' }
+      { id: 'r120', userName: 'Kayode A.', rating: 4, date: '2026-07-08', comment: 'Extremely elegant. Classic boardroom presence.' }
     ]
   },
   {
     id: 'gr-21',
-    productName: 'Apex Tech Folio Sleeve',
-    name: 'Apex Tech Folio Sleeve',
+    productName: 'Gold & Rock Tech Folio Sleeve',
+    name: 'Gold & Rock Tech Folio Sleeve',
     category: 'laptop-bags',
-    price: 55,
-    oldPrice: 55,
-    originalPrice: 55,
+    price: 18500,
+    oldPrice: 18500,
+    originalPrice: 18500,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800',
@@ -696,24 +696,24 @@ const PRODUCTS = [
     isNew: true,
     stock: 12,
     soldCount: 1,
-    description: 'A premium leather sleeve for 13" and 14" notebooks. Soft microsuede inner protection, and side cable organizers.',
+    description: "A premium leather sleeve for 13-inch and 14-inch notebooks. Soft scratchproof inner protection, and side cable organizers.",
     details: [
-      'Slim profile fit for MacBook Air/Pro 13" and 14"',
-      'Microsuede anti-scratch backing',
-      'Front pocket slide for smartphone and chargers'
+      'Slim profile fit for modern 13-inch and 14-inch laptops',
+      'Anti-scratch interior lining',
+      'Front pocket slide for smartphone and charger cords'
     ],
     reviews: [
-      { id: 'r121', userName: 'Soji O.', rating: 5, date: '2026-07-11', comment: 'Looks amazing and feels very slim inside my bag. Stitching is stellar.' }
+      { id: 'r121', userName: 'Soji O.', rating: 5, date: '2026-07-11', comment: 'Looks amazing and feels very slim inside my bag.' }
     ]
   },
   {
     id: 'gr-22',
-    productName: 'Phoenix Pull-Tab Card Purse',
-    name: 'Phoenix Pull-Tab Card Purse',
+    productName: 'Gold & Rock Pull-Tab Card Purse',
+    name: 'Gold & Rock Pull-Tab Card Purse',
     category: 'mens-purses',
-    price: 28,
-    oldPrice: 28,
-    originalPrice: 28,
+    price: 9500,
+    oldPrice: 9500,
+    originalPrice: 9500,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&q=80&w=800',
@@ -727,11 +727,11 @@ const PRODUCTS = [
     isNew: true,
     stock: 15,
     soldCount: 3,
-    description: 'Compact vertical card purse with pull-strap card selector, central notes slot, and secure RFID protection.',
+    description: "Compact vertical card purse with pull-strap card selector, central notes slot, and secure RFID protection. Hand-detailed design.",
     details: [
       'High capacity minimalist layout',
-      'Pull-tab strap extracts up to 6 cards instantly',
-      'Oiled vegetable tanned leather'
+      'Pull-tab strap extracts cards instantly',
+      'Premium Nigerian vegetable-tanned leather'
     ],
     reviews: [
       { id: 'r122', userName: 'Segun F.', rating: 5, date: '2026-07-04', comment: 'The card pulling mechanism is highly satisfying. Leather smells divine.' }
@@ -739,12 +739,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-23',
-    productName: 'The Artisan Dopp Kit Washbag',
-    name: 'The Artisan Dopp Kit Washbag',
+    productName: 'Gold & Rock Travel Dopp Kit',
+    name: 'Gold & Rock Travel Dopp Kit',
     category: 'travelling-bags',
-    price: 45,
-    oldPrice: 45,
-    originalPrice: 45,
+    price: 13500,
+    oldPrice: 13500,
+    originalPrice: 13500,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=800',
@@ -758,10 +758,10 @@ const PRODUCTS = [
     isNew: true,
     stock: 35,
     soldCount: 4,
-    description: 'Waterproof-lined leather toiletry washbag. Features wide-mouth design for immediate access, heavy brass zippers.',
+    description: "Waterproof-lined leather toiletry washbag. Features wide-mouth design for immediate access and heavy-duty premium zippers.",
     details: [
       'Spacious main compartment with waterproof protective layer',
-      'Wide-mouth opening frame stays open',
+      'Wide-mouth opening frame stays open during use',
       'Sturdy leather wrist grab loop'
     ],
     reviews: [
@@ -770,12 +770,12 @@ const PRODUCTS = [
   },
   {
     id: 'gr-24',
-    productName: 'Signature Executive Planner Cover',
-    name: 'Signature Executive Planner Cover',
+    productName: 'Gold & Rock Executive Planner Cover',
+    name: 'Gold & Rock Executive Planner Cover',
     category: 'office-bags',
-    price: 38,
-    oldPrice: 38,
-    originalPrice: 38,
+    price: 12000,
+    oldPrice: 12000,
+    originalPrice: 12000,
     discountPercentage: 0,
     flashSaleDiscount: 0,
     image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800',
@@ -789,11 +789,11 @@ const PRODUCTS = [
     isNew: true,
     stock: 50,
     soldCount: 2,
-    description: 'A beautiful refillable leather cover for standard notebooks or A5 planners. Sturdy wrap strap with pen loop.',
+    description: "A beautiful refillable leather cover for standard notebooks or A5 planners. Sturdy wrap strap with pen loop.",
     details: [
       'Refillable A5 sleeve fit',
       'Built-in pen holder slot',
-      'Crafted from thick pull-up bridle leather'
+      'Crafted from thick premium bridle leather'
     ],
     reviews: [
       { id: 'r124', userName: 'Chinedu W.', rating: 5, date: '2026-07-09', comment: 'Extremely elegant notebook protector. Smells wonderful.' }

@@ -76,7 +76,7 @@ function renderCartPage() {
           <!-- Total sub-price -->
           <div class="flex flex-col items-end min-w-[70px]">
             <span class="text-[10px] text-slate-400 font-mono leading-none sm:hidden">Subtotal:</span>
-            <span class="font-mono font-bold text-slate-800 text-sm mt-0.5">$${itemTotal}</span>
+            <span class="font-mono font-bold text-slate-800 text-sm mt-0.5">₦${itemTotal.toLocaleString()}</span>
           </div>
 
           <!-- Delete Bin icon -->
@@ -90,8 +90,8 @@ function renderCartPage() {
   });
 
   container.innerHTML = itemsHTML;
-  subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-  totalEl.textContent = `$${(subtotal + 10).toFixed(2)}`;
+  subtotalEl.textContent = `₦${subtotal.toLocaleString()}`;
+  totalEl.textContent = `₦${(subtotal + 1500).toLocaleString()}`;
 
   if (window.lucide) window.lucide.createIcons();
 

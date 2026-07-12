@@ -33,7 +33,7 @@ function initCommonUI() {
   const waBtn = document.getElementById('whatsapp-floating-btn');
   if (waBtn) {
     waBtn.addEventListener('click', () => {
-      window.open('https://wa.me/2348123456789?text=Hello%20Gold%20%26%20Rock%20Leather%20Craft%2C%20I%20would%20like%20to%20inquire%20about%20your%20custom%20leather%20crafts!', '_blank');
+      window.open('https://wa.me/2348126730784?text=Hello%20Gold%20%26%20Rock%20Leather%20Craft%2C%20I%20would%20like%20to%20inquire%20about%20your%20custom%20leather%20crafts!', '_blank');
     });
   }
 }
@@ -56,7 +56,7 @@ function renderNavbar() {
       <!-- Top Promotional Bar -->
       <div class="w-full bg-[#f68b1e] text-white py-1.5 px-4 text-xs font-medium text-center flex items-center justify-center gap-1.5 md:gap-2 shadow-sm">
         <i data-lucide="sparkles" class="w-3.5 h-3.5 animate-pulse text-white"></i>
-        <span>Free local delivery on orders over $100! Handcrafted in nigeria's premium leather.</span>
+        <span>Free delivery on orders over ₦30,000! Handcrafted in Nigeria's premium leather.</span>
       </div>
 
       <!-- Main Header -->
@@ -269,11 +269,11 @@ function renderCartDrawer() {
       <div class="p-4 border-t bg-slate-50 flex flex-col gap-3">
         <div class="flex items-center justify-between text-sm text-slate-500">
           <span>Shipping delivery fee</span>
-          <span class="font-mono font-medium">$10.00</span>
+          <span class="font-mono font-medium">₦1,500</span>
         </div>
         <div class="flex items-center justify-between border-t border-slate-200 pt-2 mb-2">
           <span class="font-sans font-bold text-slate-800 text-sm">Order Total</span>
-          <span id="cart-drawer-total" class="font-mono font-extrabold text-brand-orange text-lg">$0.00</span>
+          <span id="cart-drawer-total" class="font-mono font-extrabold text-brand-orange text-lg">₦0</span>
         </div>
         <a href="checkout.html" id="cart-drawer-checkout-btn" class="w-full bg-[#0f1e36] hover:bg-[#162a4d] text-white py-3 rounded-xl font-bold text-center text-xs tracking-wider uppercase transition-colors shadow-lg cursor-pointer">
           Proceed To Checkout
@@ -361,7 +361,7 @@ function renderCartItems() {
         <button id="drawer-shop-btn" class="mt-4 text-xs font-bold text-brand-orange hover:underline cursor-pointer">Explore Products</button>
       </div>
     `;
-    totalEl.textContent = '$0.00';
+    totalEl.textContent = '₦0';
     if (checkoutBtn) checkoutBtn.classList.add('pointer-events-none', 'opacity-50');
     
     // Add event click
@@ -408,7 +408,7 @@ function renderCartItems() {
               <button class="px-2 py-0.5 hover:bg-slate-200 text-slate-500 text-xs font-bold cursor-pointer transition-colors plus-btn" data-id="${item.id}">+</button>
             </div>
             
-            <span class="font-mono text-xs font-extrabold text-slate-800">$${itemTotal}</span>
+            <span class="font-mono text-xs font-extrabold text-slate-800">₦${itemTotal.toLocaleString()}</span>
           </div>
         </div>
 
@@ -421,7 +421,7 @@ function renderCartItems() {
   });
 
   container.innerHTML = itemsHTML;
-  totalEl.textContent = `$${(subtotal + 10).toFixed(2)}`;
+  totalEl.textContent = `₦${(subtotal + 1500).toLocaleString()}`;
 
   if (window.lucide) window.lucide.createIcons();
 
@@ -652,9 +652,9 @@ function getProductCardHtml(prod) {
       <div class="mt-3.5 pt-2.5 border-t border-slate-50 flex items-center justify-between">
         <div class="flex flex-col">
           ${isFlash ? `
-            <span class="text-[10px] text-slate-400 line-through font-mono font-medium leading-none">$${prod.originalPrice}</span>
+            <span class="text-[10px] text-slate-400 line-through font-mono font-medium leading-none">₦${prod.originalPrice.toLocaleString()}</span>
           ` : ''}
-          <span class="font-mono font-extrabold text-[#0f1e36] text-xs md:text-sm leading-tight">$${prod.price}</span>
+          <span class="font-mono font-extrabold text-[#0f1e36] text-xs md:text-sm leading-tight">₦${prod.price.toLocaleString()}</span>
         </div>
 
         <!-- Add to cart instant buttons -->

@@ -158,7 +158,7 @@ function getRegisterFormHtml() {
 
       <div class="flex flex-col gap-1">
         <label for="reg-phone" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
-        <input type="tel" id="reg-phone" placeholder="+234 812 345 6789" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-brand-orange">
+        <input type="tel" id="reg-phone" placeholder="08126730784" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-brand-orange">
       </div>
 
       <div class="flex flex-col gap-1">
@@ -322,7 +322,7 @@ function getOrdersListHtml(orders) {
     const itemsSummary = order.items.map(it => `
       <div class="flex items-center gap-2 justify-between text-xs mt-1 last:border-b-0 pb-1 border-b border-dashed border-slate-100">
         <span class="text-slate-600 line-clamp-1">${it.product.name} ${it.selectedColor ? `(${it.selectedColor})` : ''} x ${it.quantity}</span>
-        <span class="font-mono text-slate-800 font-bold shrink-0">$${it.product.price * it.quantity}</span>
+        <span class="font-mono text-slate-800 font-bold shrink-0">₦${(it.product.price * it.quantity).toLocaleString()}</span>
       </div>
     `).join('');
 
@@ -346,7 +346,7 @@ function getOrdersListHtml(orders) {
         <div class="border-t border-slate-200/80 pt-2.5 mt-0.5 flex items-center justify-between gap-4 flex-wrap">
           <div class="flex items-center gap-1">
             <span class="text-xs text-slate-500 font-light">Total Paid:</span>
-            <span class="font-mono text-sm font-extrabold text-[#0f1e36]">$${order.total}</span>
+            <span class="font-mono text-sm font-extrabold text-[#0f1e36]">₦${order.total.toLocaleString()}</span>
           </div>
 
           <!-- WhatsApp instant click confirmation bypass -->

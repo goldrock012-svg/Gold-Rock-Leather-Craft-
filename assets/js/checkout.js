@@ -24,7 +24,7 @@ function renderCheckoutForm() {
 
   // Calculate totals
   const subtotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-  const deliveryFee = 10;
+  const deliveryFee = 1500;
   const total = subtotal + deliveryFee;
 
   // Set up initial form data
@@ -57,7 +57,7 @@ function renderCheckoutForm() {
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number *</label>
-              <input type="tel" id="chk-phone" value="${initialData.phoneNumber}" required placeholder="+234 812 345 6789" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
+              <input type="tel" id="chk-phone" value="${initialData.phoneNumber}" required placeholder="08126730784" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
             </div>
           </div>
 
@@ -154,7 +154,7 @@ function renderCheckoutForm() {
                   <h4 class="text-xs font-bold text-slate-800 line-clamp-1">${item.product.name}</h4>
                   <p class="text-[10px] text-slate-400 mt-0.5 capitalize">Qty: ${item.quantity} ${item.selectedColor ? `| ${item.selectedColor}` : ''}</p>
                 </div>
-                <span class="font-mono text-xs font-bold text-slate-700 shrink-0">$${item.product.price * item.quantity}</span>
+                <span class="font-mono text-xs font-bold text-slate-700 shrink-0">₦${(item.product.price * item.quantity).toLocaleString()}</span>
               </div>
             `).join('')}
           </div>
@@ -163,17 +163,17 @@ function renderCheckoutForm() {
           <div class="flex flex-col gap-3 border-b pb-4 text-xs text-slate-500 font-light">
             <div class="flex justify-between items-center">
               <span>Subtotal</span>
-              <span class="font-mono font-medium text-slate-800">$${subtotal.toFixed(2)}</span>
+              <span class="font-mono font-medium text-slate-800">₦${subtotal.toLocaleString()}</span>
             </div>
             <div class="flex justify-between items-center">
               <span>Standard priority delivery</span>
-              <span class="font-mono font-medium text-slate-800">$10.00</span>
+              <span class="font-mono font-medium text-slate-800">₦1,500</span>
             </div>
           </div>
 
           <div class="flex justify-between items-center py-0.5">
             <span class="font-sans font-bold text-slate-900 text-sm">Grand Total</span>
-            <span class="font-mono font-extrabold text-brand-orange text-base md:text-lg">$${total.toFixed(2)}</span>
+            <span class="font-mono font-extrabold text-brand-orange text-base md:text-lg">₦${total.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -255,10 +255,10 @@ function renderSuccessState() {
             <i data-lucide="landmark" class="w-4 h-4 text-brand-orange"></i> Direct Bank Transfer instructions
           </h4>
           <div class="flex flex-col gap-1.5 text-xs font-light text-slate-300">
-            <p>Please make your payment of <span class="text-brand-orange font-bold font-mono">$${placedOrder.total}</span> to:</p>
+            <p>Please make your payment of <span class="text-brand-orange font-bold font-mono">₦${placedOrder.total.toLocaleString()}</span> to:</p>
             <div class="bg-slate-900/60 p-2.5 rounded border border-slate-800 text-[11px] flex flex-col gap-1">
-              <p>🏦 <span class="font-semibold text-white">Bank:</span> Rock Steady Trust Bank Ltd.</p>
-              <p>🔢 <span class="font-semibold text-white">Account Number:</span> 1204481230</p>
+              <p>🏦 <span class="font-semibold text-white">Bank:</span> Zenith Bank PLC</p>
+              <p>🔢 <span class="font-semibold text-white">Account Number:</span> 1017307844</p>
               <p>👤 <span class="font-semibold text-white">Account Name:</span> Gold & Rock Leather Craft Ltd.</p>
             </div>
             <p class="text-[10px] text-slate-400 mt-1 italic">Note: Please send a screenshot of the transaction receipt via WhatsApp after making payment.</p>

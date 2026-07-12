@@ -16,7 +16,7 @@ const initializeMockDB = () => {
   } else {
     try {
       const parsed = JSON.parse(storedProducts);
-      if (!Array.isArray(parsed) || parsed.length < PRODUCTS.length) {
+      if (!Array.isArray(parsed) || parsed.length < PRODUCTS.length || (parsed[0] && parsed[0].price < 1000)) {
         needsProductReset = true;
       }
     } catch (e) {
@@ -178,8 +178,8 @@ const loginMockUser = (email, password = null) => {
   const defaultProfile = {
     fullName: email.split('@')[0].toUpperCase(),
     email: email,
-    phoneNumber: '+234 812 345 6789',
-    address: '15 Rock Steady Crescent, Victoria Island',
+    phoneNumber: '08126730784',
+    address: 'Victoria Island, Lagos State',
     city: 'Lagos',
     state: 'Lagos State',
   };
@@ -216,7 +216,7 @@ const getMockOrders = () => {
 const placeMockOrder = (shippingDetails, paymentMethod) => {
   const cartItems = getMockCart();
   const subtotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-  const deliveryFee = 10;
+  const deliveryFee = 1500;
   const total = subtotal + deliveryFee;
 
   const newOrder = {
@@ -255,7 +255,7 @@ const placeMockOrder = (shippingDetails, paymentMethod) => {
 
 // WhatsApp Order Formatting Helper
 const generateWhatsAppOrderLink = (order) => {
-  const phoneNumber = '+2348123456789';
+  const phoneNumber = '2348126730784';
   let message = `*GR STORE - NEW ORDER CONFIRMATION*\n`;
   message += `============================\n`;
   message += `*Order ID:* ${order.id}\n`;
@@ -268,12 +268,12 @@ const generateWhatsAppOrderLink = (order) => {
 
   order.items.forEach((item, index) => {
     const options = item.selectedColor ? ` (${item.selectedColor})` : '';
-    message += `${index + 1}. ${item.product.name}${options} x ${item.quantity} - $${item.product.price * item.quantity}\n`;
+    message += `${index + 1}. ${item.product.name}${options} x ${item.quantity} - ₦${item.product.price * item.quantity}\n`;
   });
 
   message += `============================\n`;
-  message += `*Delivery Fee:* $10\n`;
-  message += `*TOTAL AMOUNT:* $${order.total}\n\n`;
+  message += `*Delivery Fee:* ₦1,500\n`;
+  message += `*TOTAL AMOUNT:* ₦${order.total}\n\n`;
   message += `Hello Gold & Rock Leather Craft, I just placed an order on your website and would like to confirm it!`;
 
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
