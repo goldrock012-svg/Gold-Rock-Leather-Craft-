@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Favorites | GR STORE</title>
+  <link class="stylesheet" rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
+
+  <!-- Headers -->
+  <div id="header-container"></div>
+
+  <!-- Main Content area -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs md:text-sm mb-6">
+      <a href="index.html" class="text-slate-400 hover:text-brand-orange font-semibold flex items-center gap-1">
+        <i data-lucide="home" class="w-4 h-4"></i> Home
+      </a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-bold">Saved Favorites</span>
+    </div>
+
+    <!-- Page titles -->
+    <div class="border-b pb-4 mb-6">
+      <h2 class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight">
+        Saved Items & Wishlist
+      </h2>
+      <p class="text-xs text-slate-400 font-medium mt-1">
+        Your personally selected premium handcrafted favorites.
+      </p>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="wishlist-empty-state" class="hidden flex flex-col items-center justify-center text-center py-16 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs max-w-md mx-auto">
+      <div class="p-4 bg-slate-50 text-slate-300 rounded-full mb-4 border border-slate-100 shadow-inner">
+        <i data-lucide="heart" class="w-12 h-12 stroke-[1.2px]"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-lg">No saved items</h3>
+      <p class="text-xs text-slate-400 font-light mt-1 max-w-xs leading-normal">
+        Your favorites list is currently empty. Start exploring Gold & Rock's catalogs and save your favorite items.
+      </p>
+      <a href="categories.html" class="mt-6 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-bold px-6 py-3 rounded-xl shadow-md transition-colors uppercase tracking-wider">
+        Browse Collections
+      </a>
+    </div>
+
+    <!-- FILLED STATE -->
+    <div id="wishlist-filled-state" class="hidden flex flex-col gap-6">
+      <!-- Grid items list -->
+      <div id="wishlist-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Reusable Floating WhatsApp Button -->
+  <button id="whatsapp-floating-btn" class="fixed bottom-24 md:bottom-8 right-6 z-30 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-all hover:scale-110 cursor-pointer border border-[#1ebd54]" title="Contact Support via WhatsApp">
+    <i data-lucide="message-circle" class="w-6 h-6 fill-white text-white"></i>
+  </button>
+
+  <!-- Footers -->
+  <div id="footer-container"></div>
+  <div id="bottom-nav-container"></div>
+  <div id="cart-drawer-container"></div>
+  <div id="toast-container"></div>
+
+  <!-- Lucide icons script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Script handler -->
+  <script type="module" src="/assets/js/wishlist.js"></script>
+</body>
+</html>

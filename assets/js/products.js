@@ -1,6 +1,4 @@
-import { Product, Category } from '../types';
-
-export const CATEGORIES: Category[] = [
+export const CATEGORIES = [
   {
     id: 'bags',
     name: 'Bags & Folios',
@@ -27,7 +25,7 @@ export const CATEGORIES: Category[] = [
   }
 ];
 
-export const PRODUCTS: Product[] = [
+export const PRODUCTS = [
   {
     id: 'gr-01',
     name: 'The Obsidian Bifold Wallet',

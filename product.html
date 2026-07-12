@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details | GR STORE</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
+
+  <!-- Headers -->
+  <div id="header-container"></div>
+
+  <!-- Main Content area -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs md:text-sm mb-6">
+      <a href="index.html" class="text-slate-400 hover:text-brand-orange font-semibold flex items-center gap-1">
+        <i data-lucide="home" class="w-4 h-4"></i> Home
+      </a>
+      <span class="text-slate-300">/</span>
+      <a href="categories.html" id="prod-details-cat-link" class="text-slate-400 hover:text-brand-orange font-semibold capitalize">Categories</a>
+      <span class="text-slate-300">/</span>
+      <span id="prod-details-title" class="text-slate-600 font-bold truncate">Loading...</span>
+    </div>
+
+    <!-- Product layout wrapper -->
+    <div class="relative bg-white w-full rounded-2xl shadow-sm border border-slate-100 p-4 md:p-8 flex flex-col gap-6 md:gap-8">
+      
+      <!-- Top Section: Split on desktop -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
+        
+        <!-- Images Grid -->
+        <div class="flex flex-col gap-3">
+          <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-white border border-slate-200 shadow-inner">
+            <img id="prod-active-image" src="" alt="" class="w-full h-full object-cover transition-all">
+            
+            <!-- Gallery buttons -->
+            <button id="gallery-prev-btn" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors cursor-pointer" title="Previous Image">
+              <i data-lucide="chevron-left" class="w-4 h-4 text-white"></i>
+            </button>
+            <button id="gallery-next-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors cursor-pointer" title="Next Image">
+              <i data-lucide="chevron-right" class="w-4 h-4 text-white"></i>
+            </button>
+
+            <!-- Flash Sale discount badge -->
+            <span id="prod-discount-badge" class="hidden absolute top-3 left-3 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-md flex items-center gap-1">
+              ⚡ FLASH SALE
+            </span>
+          </div>
+
+          <!-- Thumbnails grid -->
+          <div id="prod-thumbnails-row" class="flex gap-2.5 overflow-x-auto py-1 no-scrollbar hidden">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Product descriptions panel -->
+        <div class="flex flex-col gap-4">
+          <div>
+            <span id="prod-details-cat" class="text-xs text-brand-orange font-mono font-bold uppercase tracking-widest">CATEGORIES</span>
+            <h1 id="prod-details-name" class="text-xl md:text-3xl font-extrabold font-display text-slate-900 mt-1">Product Title</h1>
+            
+            <!-- Ratings and verify counts -->
+            <div class="flex items-center gap-2 mt-2">
+              <div class="flex items-center text-amber-400">
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400"></i>
+                <span id="prod-details-rating" class="text-sm font-bold text-slate-800 ml-1">4.8</span>
+              </div>
+              <span id="prod-details-count" class="text-xs text-slate-400">Loading...</span>
+            </div>
+          </div>
+
+          <!-- Price grid block -->
+          <div class="flex items-baseline gap-2.5 border-y border-slate-100 py-3.5 my-1">
+            <span id="prod-price" class="text-2xl md:text-3xl font-mono font-extrabold text-[#0f1e36]">$0.00</span>
+            <span id="prod-original-price" class="text-sm text-slate-400 line-through font-mono font-medium hidden">$0.00</span>
+          </div>
+
+          <!-- Flash sale alert metrics -->
+          <div id="flash-sale-stock-alert" class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex flex-col gap-2.5 hidden">
+            <div class="flex justify-between items-center text-xs">
+              <span id="prod-stock-percent" class="text-brand-orange font-extrabold">25% SOLD</span>
+              <span id="prod-stock-text" class="text-slate-500">Stocks Left: 12 items</span>
+            </div>
+            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div id="prod-stock-progressbar" class="bg-brand-orange h-full rounded-full" style="width: 25%"></div>
+            </div>
+          </div>
+
+          <!-- Color selector custom radio -->
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Select Stitching Leather Color: <span id="selected-color-label" class="text-slate-800 font-extrabold capitalize">Tan Gold</span>
+            </span>
+            <div id="prod-colors-row" class="flex gap-2.5 mt-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Product description summary text -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</h4>
+            <p id="prod-details-desc" class="text-xs md:text-sm text-slate-600 leading-relaxed font-light">Product description will be rendered here...</p>
+          </div>
+
+          <!-- Detailed points -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Specifications</h4>
+            <ul id="prod-details-bullets" class="flex flex-col gap-2.5">
+              <!-- Dynamically populated -->
+            </ul>
+          </div>
+
+          <!-- Action block with quantity counters and buttons -->
+          <div class="border-t border-slate-100 pt-5 mt-3 flex flex-col gap-3.5">
+            <div class="flex items-center gap-4">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quantity</span>
+              <div class="flex items-center border border-slate-300 rounded-lg bg-slate-50 overflow-hidden shadow-inner">
+                <button id="qty-minus-btn" class="px-3.5 py-1.5 hover:bg-slate-200 text-slate-600 font-bold text-base cursor-pointer transition-colors">-</button>
+                <span id="qty-input-val" class="px-4 text-sm font-mono font-extrabold text-slate-800">1</span>
+                <button id="qty-plus-btn" class="px-3.5 py-1.5 hover:bg-slate-200 text-slate-600 font-bold text-base cursor-pointer transition-colors">+</button>
+              </div>
+            </div>
+
+            <!-- Main Button controls -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1.5">
+              <!-- Add to Cart -->
+              <button id="prod-add-to-cart-action" class="w-full bg-[#0f1e36] hover:bg-[#152a4d] text-white py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg text-xs tracking-wider uppercase">
+                <i data-lucide="shopping-bag" class="w-4 h-4 text-white"></i> Add to Cart
+              </button>
+
+              <!-- WhatsApp Quick order -->
+              <button id="prod-whatsapp-action" class="w-full bg-[#25D366] hover:bg-[#1ebd54] text-white py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg text-xs tracking-wider uppercase border border-[#1fbf55]">
+                <i data-lucide="message-square" class="w-4 h-4 fill-white text-white"></i> WhatsApp Fast Inquiry
+              </button>
+            </div>
+
+            <!-- Wishlist Heart Save toggle button option -->
+            <button id="prod-wishlist-action" class="w-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+              <i id="wishlist-heart-icon" data-lucide="heart" class="w-5 h-5 text-slate-500"></i>
+              Save to Favorites List
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Bottom Reviews container -->
+      <div class="border-t border-slate-100 pt-8 mt-4 flex flex-col gap-5">
+        <h3 id="reviews-title-count" class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="message-square" class="w-4.5 h-4.5 text-brand-orange"></i>
+          Customer Reviews
+        </h3>
+        
+        <!-- Individual reviews -->
+        <div id="prod-reviews-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footers -->
+  <div id="footer-container"></div>
+  <div id="bottom-nav-container"></div>
+  <div id="cart-drawer-container"></div>
+  <div id="toast-container"></div>
+
+  <!-- Lucide script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Product details code -->
+  <script type="module" src="/assets/js/product.js"></script>
+</body>
+</html>

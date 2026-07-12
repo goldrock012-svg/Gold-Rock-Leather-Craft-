@@ -1,7 +1,5 @@
-import { Product, Category, CartItem, Order, UserProfile, ShippingDetails } from '../types';
-import { PRODUCTS, CATEGORIES } from '../data/productsData';
+import { PRODUCTS, CATEGORIES } from './products.js';
 
-// Constants for LocalStorage keys (can be swapped for Firebase Collections later)
 const KEYS = {
   PRODUCTS: 'gr_store_products',
   CATEGORIES: 'gr_store_categories',
@@ -31,38 +29,37 @@ export const initializeMockDB = () => {
 };
 
 // Products API
-export const getMockProducts = (): Product[] => {
+export const getMockProducts = () => {
   initializeMockDB();
   const productsJSON = localStorage.getItem(KEYS.PRODUCTS);
   return productsJSON ? JSON.parse(productsJSON) : PRODUCTS;
 };
 
-export const getMockProductById = (id: string): Product | undefined => {
+export const getMockProductById = (id) => {
   const products = getMockProducts();
   return products.find(p => p.id === id);
 };
 
 // Categories API
-export const getMockCategories = (): Category[] => {
+export const getMockCategories = () => {
   initializeMockDB();
   const categoriesJSON = localStorage.getItem(KEYS.CATEGORIES);
   return categoriesJSON ? JSON.parse(categoriesJSON) : CATEGORIES;
 };
 
 // Cart API
-export const getMockCart = (): CartItem[] => {
+export const getMockCart = () => {
   initializeMockDB();
   const cartJSON = localStorage.getItem(KEYS.CART);
   return cartJSON ? JSON.parse(cartJSON) : [];
 };
 
-export const saveMockCart = (cart: CartItem[]) => {
+export const saveMockCart = (cart) => {
   localStorage.setItem(KEYS.CART, JSON.stringify(cart));
-  // Dispatch a custom event to notify components about the cart update
   window.dispatchEvent(new Event('cartUpdated'));
 };
 
-export const addToMockCart = (product: Product, quantity: number, color?: string): CartItem[] => {
+export const addToMockCart = (product, quantity, color = null) => {
   const cart = getMockCart();
   const itemId = `${product.id}-${color || 'default'}`;
   const existingIndex = cart.findIndex(item => item.id === itemId);
@@ -82,14 +79,14 @@ export const addToMockCart = (product: Product, quantity: number, color?: string
   return cart;
 };
 
-export const removeFromMockCart = (itemId: string): CartItem[] => {
+export const removeFromMockCart = (itemId) => {
   let cart = getMockCart();
   cart = cart.filter(item => item.id !== itemId);
   saveMockCart(cart);
   return cart;
 };
 
-export const updateMockCartQuantity = (itemId: string, quantity: number): CartItem[] => {
+export const updateMockCartQuantity = (itemId, quantity) => {
   const cart = getMockCart();
   const existingItem = cart.find(item => item.id === itemId);
   if (existingItem) {
@@ -104,18 +101,18 @@ export const clearMockCart = () => {
 };
 
 // Wishlist API
-export const getMockWishlist = (): Product[] => {
+export const getMockWishlist = () => {
   initializeMockDB();
   const wishlistJSON = localStorage.getItem(KEYS.WISHLIST);
   return wishlistJSON ? JSON.parse(wishlistJSON) : [];
 };
 
-export const saveMockWishlist = (wishlist: Product[]) => {
+export const saveMockWishlist = (wishlist) => {
   localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
   window.dispatchEvent(new Event('wishlistUpdated'));
 };
 
-export const toggleMockWishlist = (product: Product): boolean => {
+export const toggleMockWishlist = (product) => {
   const wishlist = getMockWishlist();
   const index = wishlist.findIndex(item => item.id === product.id);
   let added = false;
@@ -131,25 +128,24 @@ export const toggleMockWishlist = (product: Product): boolean => {
   return added;
 };
 
-export const isProductInWishlist = (productId: string): boolean => {
+export const isProductInWishlist = (productId) => {
   const wishlist = getMockWishlist();
   return wishlist.some(item => item.id === productId);
 };
 
 // Authentication & User Profile Mocks
-export const getMockCurrentUser = (): UserProfile | null => {
+export const getMockCurrentUser = () => {
   const userJSON = localStorage.getItem(KEYS.CURRENT_USER);
   return userJSON ? JSON.parse(userJSON) : null;
 };
 
-export const loginMockUser = (email: string, password?: string): UserProfile => {
-  // Simple simulator: create a user profile using email, use localStorage for persistence
+export const loginMockUser = (email, password = null) => {
   const existingUser = getMockCurrentUser();
   if (existingUser && existingUser.email === email) {
     return existingUser;
   }
 
-  const defaultProfile: UserProfile = {
+  const defaultProfile = {
     fullName: email.split('@')[0].toUpperCase(),
     email: email,
     phoneNumber: '+234 812 345 6789',
@@ -163,13 +159,13 @@ export const loginMockUser = (email: string, password?: string): UserProfile => 
   return defaultProfile;
 };
 
-export const registerMockUser = (profile: UserProfile): UserProfile => {
+export const registerMockUser = (profile) => {
   localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(profile));
   window.dispatchEvent(new Event('authUpdated'));
   return profile;
 };
 
-export const updateMockUserProfile = (profile: UserProfile): UserProfile => {
+export const updateMockUserProfile = (profile) => {
   localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(profile));
   window.dispatchEvent(new Event('authUpdated'));
   return profile;
@@ -180,20 +176,20 @@ export const logoutMockUser = () => {
   window.dispatchEvent(new Event('authUpdated'));
 };
 
-// Orders API (Mock Firestore Order collection)
-export const getMockOrders = (): Order[] => {
+// Orders API
+export const getMockOrders = () => {
   initializeMockDB();
   const ordersJSON = localStorage.getItem(KEYS.ORDERS);
   return ordersJSON ? JSON.parse(ordersJSON) : [];
 };
 
-export const placeMockOrder = (shippingDetails: ShippingDetails, paymentMethod: 'cash_on_delivery' | 'bank_transfer'): Order => {
+export const placeMockOrder = (shippingDetails, paymentMethod) => {
   const cartItems = getMockCart();
   const subtotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-  const deliveryFee = 10; // Standard shipping
+  const deliveryFee = 10;
   const total = subtotal + deliveryFee;
 
-  const newOrder: Order = {
+  const newOrder = {
     id: `GR-${Math.floor(100000 + Math.random() * 900000)}`,
     date: new Date().toISOString().split('T')[0],
     items: cartItems,
@@ -204,7 +200,7 @@ export const placeMockOrder = (shippingDetails: ShippingDetails, paymentMethod: 
   };
 
   const orders = getMockOrders();
-  orders.unshift(newOrder); // Newest orders first
+  orders.unshift(newOrder);
   localStorage.setItem(KEYS.ORDERS, JSON.stringify(orders));
 
   // Reduce stock if flash sale
@@ -228,8 +224,8 @@ export const placeMockOrder = (shippingDetails: ShippingDetails, paymentMethod: 
 };
 
 // WhatsApp Order Formatting Helper
-export const generateWhatsAppOrderLink = (order: Order): string => {
-  const phoneNumber = '+2348123456789'; // Business phone number
+export const generateWhatsAppOrderLink = (order) => {
+  const phoneNumber = '+2348123456789';
   let message = `*GR STORE - NEW ORDER CONFIRMATION*\n`;
   message += `============================\n`;
   message += `*Order ID:* ${order.id}\n`;

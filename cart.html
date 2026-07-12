@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart | GR STORE</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
+
+  <!-- Headers -->
+  <div id="header-container"></div>
+
+  <!-- Main Content wrapper -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs md:text-sm mb-6">
+      <a href="index.html" class="text-slate-400 hover:text-brand-orange font-semibold flex items-center gap-1">
+        <i data-lucide="home" class="w-4 h-4"></i> Home
+      </a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-bold">Shopping Cart</span>
+    </div>
+
+    <!-- Title Header -->
+    <div class="border-b pb-4 mb-6">
+      <h2 class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight">
+        Your Shopping Cart
+      </h2>
+      <p class="text-xs text-slate-400 font-medium mt-1">
+        Review your handcrafted items before securing dispatch.
+      </p>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="cart-page-empty-state" class="hidden flex flex-col items-center justify-center text-center py-16 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs max-w-md mx-auto">
+      <div class="p-4 bg-slate-50 text-slate-300 rounded-full mb-4 border border-slate-100 shadow-inner">
+        <i data-lucide="shopping-cart" class="w-12 h-12 stroke-[1.2px]"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-lg">Your cart is empty</h3>
+      <p class="text-xs text-slate-400 font-light mt-1 max-w-xs leading-normal">
+        It looks like you haven't added any luxury leather products to your cart yet.
+      </p>
+      <a href="index.html" class="mt-6 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-bold px-6 py-3 rounded-xl shadow-md transition-colors uppercase tracking-wider">
+        Discover Collections
+      </a>
+    </div>
+
+    <!-- FILLED STATE -->
+    <div id="cart-page-filled-state" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 items-start">
+      
+      <!-- Table list container -->
+      <div class="lg:col-span-2 bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+        <div class="hidden sm:grid sm:grid-cols-3 bg-slate-50/50 p-4 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <span class="col-span-2">Leather Product details</span>
+          <span class="text-right">Price and controls</span>
+        </div>
+
+        <div id="cart-page-items" class="flex flex-col">
+          <!-- Dynamically populated rows -->
+        </div>
+      </div>
+
+      <!-- Order summary sidebar card -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-xs flex flex-col gap-4">
+          <h3 class="font-sans font-bold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-2 border-b pb-3.5">
+            <i data-lucide="shield-check" class="w-4.5 h-4.5 text-brand-orange"></i>
+            Order Summary
+          </h3>
+
+          <div class="flex flex-col gap-3 border-b pb-4 text-xs md:text-sm text-slate-500 font-light">
+            <div class="flex justify-between items-center">
+              <span>Cart Subtotal</span>
+              <span id="cart-page-subtotal" class="font-mono font-medium text-slate-800">$0.00</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span>Standard delivery fee</span>
+              <span class="font-mono font-medium text-slate-800">$10.00</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center py-1">
+            <span class="font-sans font-bold text-slate-900 text-sm md:text-base">Order Total Amount</span>
+            <span id="cart-page-total" class="font-mono font-extrabold text-brand-orange text-lg md:text-xl">$0.00</span>
+          </div>
+
+          <!-- Checkout actions -->
+          <a href="checkout.html" id="cart-page-checkout-btn" class="w-full bg-[#0f1e36] hover:bg-[#152a4d] text-white py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg text-xs tracking-wider uppercase mt-2">
+            Secure Checkout <i data-lucide="chevron-right" class="w-4 h-4 text-white"></i>
+          </a>
+
+          <a href="index.html" class="w-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+            Continue Shopping
+          </a>
+        </div>
+
+        <!-- Trust seals info -->
+        <div class="bg-[#0f1e36] text-slate-300 rounded-xl p-4 border border-slate-800 flex gap-3 shadow-md">
+          <i data-lucide="shield-check" class="w-5 h-5 text-brand-orange shrink-0 mt-0.5"></i>
+          <div class="flex flex-col">
+            <h4 class="font-bold text-white text-xs leading-none">Standard Secure Escrow Processing</h4>
+            <p class="text-[10px] text-slate-400 font-light mt-1.5 leading-relaxed">
+              Orders are double checked by Gold & Rock Leather Craft masters in Victoria Island, ensuring zero defaults.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Reusable Floating WhatsApp Button -->
+  <button id="whatsapp-floating-btn" class="fixed bottom-24 md:bottom-8 right-6 z-30 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-all hover:scale-110 cursor-pointer border border-[#1ebd54]" title="Contact Support via WhatsApp">
+    <i data-lucide="message-circle" class="w-6 h-6 fill-white text-white"></i>
+  </button>
+
+  <!-- Footers -->
+  <div id="footer-container"></div>
+  <div id="bottom-nav-container"></div>
+  <div id="cart-drawer-container"></div>
+  <div id="toast-container"></div>
+
+  <!-- Lucide script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Cart page code -->
+  <script type="module" src="/assets/js/cart.js"></script>
+</body>
+</html>

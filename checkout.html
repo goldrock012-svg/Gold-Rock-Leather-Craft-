@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Checkout | GR STORE</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
+
+  <!-- Headers -->
+  <div id="header-container"></div>
+
+  <!-- Main Checkout frame -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs md:text-sm mb-6">
+      <a href="index.html" class="text-slate-400 hover:text-brand-orange font-semibold flex items-center gap-1">
+        <i data-lucide="home" class="w-4 h-4"></i> Home
+      </a>
+      <span class="text-slate-300">/</span>
+      <a href="cart.html" class="text-slate-400 hover:text-brand-orange font-semibold">Cart</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-bold">Secure Checkout</span>
+    </div>
+
+    <!-- Page Title -->
+    <div class="border-b pb-4 mb-6">
+      <h2 class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight">
+        Secure Escrow Checkout
+      </h2>
+      <p class="text-xs text-slate-400 font-medium mt-1">
+        Input standard shipping details to queue workshop line priority dispatch.
+      </p>
+    </div>
+
+    <!-- Inner dynamic block -->
+    <div id="checkout-page-container" class="max-w-5xl mx-auto py-2">
+      <!-- Dynamically filled with Forms or Success State card -->
+    </div>
+
+  </main>
+
+  <!-- Reusable Floating WhatsApp Button -->
+  <button id="whatsapp-floating-btn" class="fixed bottom-24 md:bottom-8 right-6 z-30 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-all hover:scale-110 cursor-pointer border border-[#1ebd54]" title="Contact Support via WhatsApp">
+    <i data-lucide="message-circle" class="w-6 h-6 fill-white text-white"></i>
+  </button>
+
+  <!-- Footers -->
+  <div id="footer-container"></div>
+  <div id="bottom-nav-container"></div>
+  <div id="cart-drawer-container"></div>
+  <div id="toast-container"></div>
+
+  <!-- Lucide script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Controller script -->
+  <script type="module" src="/assets/js/checkout.js"></script>
+</body>
+</html>

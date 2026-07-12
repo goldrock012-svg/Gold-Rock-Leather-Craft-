@@ -1,13 +1,274 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GR STORE | Gold & Rock Leather Craft</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GR STORE | Gold & Rock Leather Craft</title>
+  
+  <!-- Common style sheets (including Tailwind) -->
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
 
+  <!-- Header Placeholder -->
+  <div id="header-container"></div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    
+    <!-- SEARCH/RESULTS OVERRIDE SECTION (Hidden by default, shown by search script) -->
+    <div id="search-results-content" class="hidden flex flex-col gap-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-4">
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight">
+            Search Results for <span id="search-query-text" class="text-brand-orange">""</span>
+          </h2>
+          <p id="search-results-count" class="text-xs text-slate-400 font-medium mt-1">
+            Found 0 handcrafted leather crafts
+          </p>
+        </div>
+        <button id="clear-filters-btn" class="mt-3 sm:mt-0 text-xs font-semibold text-slate-500 hover:text-slate-800 border px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 cursor-pointer">
+          Clear Search Filters
+        </button>
+      </div>
+
+      <!-- Search grid -->
+      <div id="search-results-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+
+    <!-- MAIN HOMEPAGE WRAPPER -->
+    <div id="main-homepage-content" class="flex flex-col gap-8 md:gap-12">
+      
+      <!-- HERO SLIDER SECTION -->
+      <div class="relative w-full h-[280px] md:h-[420px] bg-[#0f1e36] overflow-hidden rounded-xl shadow-lg border border-slate-800" id="hero-slider-container">
+        <!-- Slide Background & Overlay -->
+        <div id="hero-slider-bg" class="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-500 scale-105" style="opacity: 0.4;"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent"></div>
+
+        <!-- Slide Content -->
+        <div class="absolute inset-0 flex flex-col justify-center px-6 md:px-16 text-white max-w-2xl z-10">
+          <span id="hero-slide-accent" class="text-xs md:text-sm font-semibold tracking-wider text-brand-orange uppercase bg-brand-orange/15 border border-brand-orange/30 px-3 py-1 rounded-full w-fit mb-3">
+            Loading...
+          </span>
+          <h2 id="hero-slide-title" class="text-2xl md:text-4xl font-bold font-display tracking-tight leading-tight mb-2 text-white">
+            Artisanal Leather Bags
+          </h2>
+          <p id="hero-slide-desc" class="text-xs md:text-base text-slate-300 font-light max-w-lg mb-6 line-clamp-2 md:line-clamp-none">
+            Handcrafted from 100% full-grain vegetable tanned leather.
+          </p>
+          <a id="hero-slide-cta" href="#" class="bg-brand-orange hover:bg-brand-orange-dark text-white font-semibold text-xs md:text-sm px-6 py-3 rounded-lg w-fit shadow-md transition-colors flex items-center gap-2 cursor-pointer border border-brand-orange">
+            Explore Collection
+          </a>
+        </div>
+
+        <!-- Arrows -->
+        <button id="hero-slider-prev-btn" class="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/60 text-white p-1.5 md:p-2.5 rounded-full backdrop-blur-sm transition-all focus:outline-none hidden md:block" aria-label="Previous Slide">
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+        <button id="hero-slider-next-btn" class="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/60 text-white p-1.5 md:p-2.5 rounded-full backdrop-blur-sm transition-all focus:outline-none hidden md:block" aria-label="Next Slide">
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Pagination Indicators -->
+        <div id="hero-indicators" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2"></div>
+      </div>
+
+
+      <!-- QUICK CATEGORIES BAR -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-sans font-bold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-4.5 h-4.5 text-brand-orange"></i>
+            Explore Collections
+          </h3>
+          <a href="categories.html" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-0.5 cursor-pointer">
+            See All <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar md:grid md:grid-cols-4">
+          <!-- Bags quicklink -->
+          <div id="quick-cat-bar-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
+            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
+              <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Bags & Folios</h4>
+              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock Craft</span>
+            </div>
+          </div>
+
+          <!-- Wallets quicklink -->
+          <div id="quick-cat-bar-wallets" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
+            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
+              <img src="https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Wallets & Cardholders</h4>
+              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock Craft</span>
+            </div>
+          </div>
+
+          <!-- Belts quicklink -->
+          <div id="quick-cat-bar-belts" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
+            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
+              <img src="https://images.unsplash.com/photo-1624222247344-550fb8ec5b01?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Classic Belts</h4>
+              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock Craft</span>
+            </div>
+          </div>
+
+          <!-- Accessories quicklink -->
+          <div id="quick-cat-bar-accessories" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
+            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
+              <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Accessories</h4>
+              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock Craft</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- FLASH SALES SECTION -->
+      <div class="bg-[#0f1e36] text-white rounded-2xl p-4 md:p-6 border border-slate-800 shadow-xl overflow-hidden relative">
+        <!-- Glowing decorative ambient corner -->
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-brand-orange/15 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-4 mb-5">
+          <div class="flex items-center gap-2">
+            <span class="bg-brand-orange text-white p-1.5 rounded-lg shadow-md animate-pulse">
+              <i data-lucide="zap" class="w-4 h-4 fill-white text-white"></i>
+            </span>
+            <h3 class="font-sans font-extrabold text-white text-base md:text-xl uppercase tracking-wider">
+              ⚡ Flash Sales
+            </h3>
+          </div>
+
+          <!-- Countdown timer widget -->
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-400 font-mono font-semibold flex items-center gap-1">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+              ENDING IN:
+            </span>
+            <div class="flex gap-1.5 font-mono">
+              <span id="timer-hours" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">08h</span>
+              <span class="text-slate-500 font-bold">:</span>
+              <span id="timer-minutes" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">42m</span>
+              <span class="text-slate-500 font-bold">:</span>
+              <span id="timer-seconds" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">15s</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="flash-sale-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- BEST SELLERS SECTION -->
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-2">
+          <span class="bg-amber-100 text-amber-600 p-1 rounded-md border border-amber-200">
+            <i data-lucide="award" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Best Sellers
+          </h3>
+        </div>
+
+        <div id="best-sellers-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- NEW ARRIVALS -->
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-50 text-brand-blue-light p-1 rounded-md border border-blue-100">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            New Arrivals
+          </h3>
+        </div>
+
+        <div id="new-arrivals-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- Brand Trust Bento Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 pt-8 pb-4">
+        <div class="bg-white border rounded-xl p-4 flex gap-3.5 shadow-xs items-start">
+          <div class="p-2.5 bg-brand-orange/10 text-brand-orange rounded-lg border border-brand-orange/20">
+            <i data-lucide="shield-check" class="w-5 h-5 text-brand-orange"></i>
+          </div>
+          <div class="flex flex-col">
+            <h4 class="font-bold text-slate-900 text-xs md:text-sm">Artisanal Lifetime Guarantee</h4>
+            <p class="text-slate-500 text-xs font-light mt-1 leading-normal">
+              We use 100% genuine full-grain leather. Built for decades, certified with a durability guarantee.
+            </p>
+          </div>
+        </div>
+        <div class="bg-white border rounded-xl p-4 flex gap-3.5 shadow-xs items-start">
+          <div class="p-2.5 bg-brand-orange/10 text-brand-orange rounded-lg border border-brand-orange/20">
+            <i data-lucide="sparkles" class="w-5 h-5 text-brand-orange"></i>
+          </div>
+          <div class="flex flex-col">
+            <h4 class="font-bold text-slate-900 text-xs md:text-sm">Bespoke Custom Tailoring</h4>
+            <p class="text-slate-500 text-xs font-light mt-1 leading-normal">
+              Add laser monograms, choose stitching threads, or adapt custom sizes via our WhatsApp live line!
+            </p>
+          </div>
+        </div>
+        <div class="bg-white border rounded-xl p-4 flex gap-3.5 shadow-xs items-start">
+          <div class="p-2.5 bg-brand-orange/10 text-brand-orange rounded-lg border border-brand-orange/20">
+            <i data-lucide="clock" class="w-5 h-5 text-brand-orange"></i>
+          </div>
+          <div class="flex flex-col">
+            <h4 class="font-bold text-slate-900 text-xs md:text-sm">Speedy Local Priority Dispatch</h4>
+            <p class="text-slate-500 text-xs font-light mt-1 leading-normal">
+              Fast courier shipping with instant tracking notifications and direct driver coordination.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Reusable Floating WhatsApp Button -->
+  <button id="whatsapp-floating-btn" class="fixed bottom-24 md:bottom-8 right-6 z-30 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-all hover:scale-110 cursor-pointer border border-[#1ebd54]" title="Contact Support via WhatsApp">
+    <i data-lucide="message-circle" class="w-6 h-6 fill-white text-white"></i>
+  </button>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-container"></div>
+
+  <!-- Bottom Nav Placeholder -->
+  <div id="bottom-nav-container"></div>
+
+  <!-- Cart Drawer Placeholder -->
+  <div id="cart-drawer-container"></div>
+
+  <!-- Toast Container Placeholder -->
+  <div id="toast-container"></div>
+
+  <!-- Lucide icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Page JS module -->
+  <script type="module" src="/assets/js/index.js"></script>
+</body>
+</html>
