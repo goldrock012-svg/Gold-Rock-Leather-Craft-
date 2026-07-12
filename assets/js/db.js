@@ -11,12 +11,44 @@ const KEYS = {
 
 // Initialize default mock data into LocalStorage if not present
 export const initializeMockDB = () => {
-  if (!localStorage.getItem(KEYS.PRODUCTS)) {
+  const storedProducts = localStorage.getItem(KEYS.PRODUCTS);
+  let needsProductReset = false;
+  if (!storedProducts) {
+    needsProductReset = true;
+  } else {
+    try {
+      const parsed = JSON.parse(storedProducts);
+      if (!Array.isArray(parsed) || parsed.length < PRODUCTS.length) {
+        needsProductReset = true;
+      }
+    } catch (e) {
+      needsProductReset = true;
+    }
+  }
+
+  if (needsProductReset) {
     localStorage.setItem(KEYS.PRODUCTS, JSON.stringify(PRODUCTS));
   }
-  if (!localStorage.getItem(KEYS.CATEGORIES)) {
+
+  const storedCategories = localStorage.getItem(KEYS.CATEGORIES);
+  let needsCategoryReset = false;
+  if (!storedCategories) {
+    needsCategoryReset = true;
+  } else {
+    try {
+      const parsed = JSON.parse(storedCategories);
+      if (!Array.isArray(parsed) || parsed.length < CATEGORIES.length) {
+        needsCategoryReset = true;
+      }
+    } catch (e) {
+      needsCategoryReset = true;
+    }
+  }
+
+  if (needsCategoryReset) {
     localStorage.setItem(KEYS.CATEGORIES, JSON.stringify(CATEGORIES));
   }
+
   if (!localStorage.getItem(KEYS.CART)) {
     localStorage.setItem(KEYS.CART, JSON.stringify([]));
   }
