@@ -1,15 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-@import "tailwindcss";
 
-@theme {
-  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Montserrat", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
-  --color-brand-blue: #0f1e36;
-  --color-brand-blue-light: #1e3a8a;
-  --color-brand-orange: #f68b1e;
-  --color-brand-orange-dark: #e07a14;
+/* Default font settings and scrollbar helpers */
+body {
+  font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Hide scrollbars for sliders but allow scroll */
@@ -20,3 +13,4 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+

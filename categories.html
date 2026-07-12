@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Collections Catalogue | GR STORE</title>
   <link rel="stylesheet" href="/assets/css/style.css">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#0f1e36',
+              'blue-light': '#1e3a8a',
+              orange: '#f68b1e',
+              'orange-dark': '#e07a14'
+            }
+          },
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            display: ['Montserrat', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
 </head>
 <body class="min-h-screen bg-slate-50 flex flex-col font-sans pb-20 md:pb-0" id="gr-store-app-root">
 
