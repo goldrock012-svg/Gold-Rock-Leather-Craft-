@@ -11,29 +11,35 @@ const SLIDES = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Gold & Rock Signature',
-    title: 'Artisanal Leather Bags',
-    subtitle: 'Handcrafted from 100% full-grain vegetable tanned leather. Engineered for durability, styled for executives.',
-    ctaUrl: 'categories.html?cat=bags',
-    ctaText: 'Explore Collection'
+    accent: 'Gold & Rock Leather Craft',
+    title: 'Premium Leather Bags for Every Lifestyle',
+    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
+    ctaUrl: 'categories.html',
+    ctaText: 'Shop Now',
+    secondaryCtaUrl: 'categories.html',
+    secondaryCtaText: 'Browse Categories'
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1588444839799-eb0850009161?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Limited Time Offer',
-    title: "Father's Day Flash Sale",
-    subtitle: 'Save up to 30% on premium hand-stitched bifold wallets and single-strap classic harness belts.',
-    ctaUrl: 'index.html?search=flash',
-    ctaText: 'Shop Flash Sales'
+    image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1600',
+    accent: 'Gold & Rock Leather Craft',
+    title: 'Premium Leather Bags for Every Lifestyle',
+    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
+    ctaUrl: 'categories.html',
+    ctaText: 'Shop Now',
+    secondaryCtaUrl: 'categories.html',
+    secondaryCtaText: 'Browse Categories'
   },
   {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Premium Custom Tailored',
-    title: 'Luxurious Smartwatch Straps',
-    subtitle: 'Elevate your Apple Watch or mechanical timepiece with our durable cowhide leather bands.',
-    ctaUrl: 'categories.html?cat=accessories',
-    ctaText: 'View Accessories'
+    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=1600',
+    accent: 'Gold & Rock Leather Craft',
+    title: 'Premium Leather Bags for Every Lifestyle',
+    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
+    ctaUrl: 'categories.html',
+    ctaText: 'Shop Now',
+    secondaryCtaUrl: 'categories.html',
+    secondaryCtaText: 'Browse Categories'
   }
 ];
 
@@ -93,6 +99,12 @@ function setupHeroSlider() {
     descEl.textContent = slide.subtitle;
     ctaEl.textContent = slide.ctaText;
     ctaEl.href = slide.ctaUrl;
+
+    const secondaryCtaEl = document.getElementById('hero-slide-secondary');
+    if (secondaryCtaEl) {
+      secondaryCtaEl.textContent = slide.secondaryCtaText || 'Browse Categories';
+      secondaryCtaEl.href = slide.secondaryCtaUrl || 'categories.html';
+    }
 
     // Update Pagination indicators
     const dots = indicatorsContainer.querySelectorAll('button');
@@ -190,7 +202,15 @@ function renderHomepage() {
   if (newArrivalsContainer) renderGrid(newArrivalsContainer, newArrivals);
 
   // Setup click handler for custom quick categories
-  const categories = ['bags', 'wallets', 'belts', 'accessories'];
+  const categories = [
+    'school-bags',
+    'ladies-hand-bags',
+    'laptop-bags',
+    'lunch-bags',
+    'office-bags',
+    'mens-purses',
+    'travelling-bags'
+  ];
   categories.forEach(cat => {
     const el = document.getElementById(`quick-cat-bar-${cat}`);
     if (el) {

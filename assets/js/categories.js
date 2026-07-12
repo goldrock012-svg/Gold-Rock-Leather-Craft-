@@ -39,10 +39,13 @@ function renderCategoryGrid() {
   const categories = getMockCategories();
 
   const descs = {
-    bags: 'Executive messenger bags, folios & spacious tote bags.',
-    wallets: 'Slim cardholders & premium hand-stitched bifold wallets.',
-    belts: 'Single piece thick harness leather straps with brass buckles.',
-    accessories: 'Watch straps, passport jackets & compact key organizers.'
+    'school-bags': 'Durable and spacious handcrafted leather backpacks designed for academic excellence.',
+    'ladies-hand-bags': 'Elegant hand-crafted shoulder bags and luxury totes for the modern woman.',
+    'laptop-bags': 'Padded protective leather sleeves and messenger bags designed for modern tech.',
+    'lunch-bags': 'Insulated, premium custom-designed lunch bags that redefine gourmet on-the-go.',
+    'office-bags': 'Sleek, organized leather briefcases and portfolios for executive presence.',
+    'mens-purses': 'Ultra-slim leather wallets, bifold organizers, and executive pocket purses.',
+    'travelling-bags': 'Rugged, high-capacity leather duffels and weekender bags built for long journeys.'
   };
 
   grid.innerHTML = categories.map(cat => `
@@ -98,10 +101,13 @@ function renderCategoryProducts(catId) {
   }
 
   const descs = {
-    bags: 'Explore our range of premium executive messenger bags, leather folios, and spacious day tote bags.',
-    wallets: 'A luxurious selection of classic bifold wallets, card sleeves, and minimal front-pocket cardholders.',
-    belts: 'High-density harness leather belts cut from single thick hides, detailed with heavy solid brass buckles.',
-    accessories: 'Bespoke cowhide Apple watch straps, travel passport jackets, and compact brass-screw key organizers.'
+    'school-bags': 'Explore our range of durable, handcrafted leather backpacks and student bookbags.',
+    'ladies-hand-bags': 'Discover elegant hand-crafted shoulder bags, luxury leather totes, and crossbody bags.',
+    'laptop-bags': 'A premium selection of padded laptop sleeves, tech-safe messengers, and folio protectors.',
+    'lunch-bags': 'Keep your meals fresh in style with our high-end insulated leather lunch bags and totes.',
+    'office-bags': 'Make a board-room statement with our sleek leather briefcases, document folders, and planners.',
+    'mens-purses': 'Refined minimalist cardholders, bifold wallets, and luxury pocket organizers.',
+    'travelling-bags': 'Travel with premium weekender duffels, cabin bags, and travel accessory dopp kits.'
   };
 
   if (descEl) {

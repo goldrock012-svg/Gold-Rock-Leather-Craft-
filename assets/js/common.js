@@ -244,37 +244,68 @@ function renderFooter() {
   if (!container) return;
 
   container.innerHTML = `
-    <footer class="w-full bg-[#0f1e36] text-slate-400 text-xs py-8 px-4 border-t border-slate-800 mt-12 mb-16 md:mb-0">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center md:text-left">
-        <div class="flex flex-col gap-2">
-          <h4 class="font-bold text-white font-display text-sm">GR STORE | Gold & Rock</h4>
+    <footer class="w-full bg-[#0f1e36] text-slate-400 text-xs py-10 px-4 border-t border-slate-800 mt-12 mb-16 md:mb-0">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+        <!-- Brand identity -->
+        <div class="flex flex-col gap-3">
+          <h4 class="font-extrabold text-white font-display text-lg tracking-tight">
+            GR <span class="text-brand-orange">STORE</span>
+          </h4>
+          <p class="text-[11px] text-slate-400 font-medium tracking-wide -mt-2">
+            Powered by Gold & Rock Leather Craft
+          </p>
           <p class="text-slate-400 font-light leading-relaxed max-w-xs mx-auto md:mx-0">
-            Nigeria's finest. We harvest premium full-grain bovine leather to design long-lasting luxury accessories, belts, and bespoke custom bags.
+            Premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Built for durability, quality, and timeless style.
           </p>
         </div>
-        <div class="flex flex-col gap-2">
-          <h4 class="font-bold text-white font-display text-sm">Client Support Hub</h4>
-          <p class="font-light leading-relaxed">
-            Open Hours: Mon - Sat (9AM - 6PM)<br />
-            Secure Hotline: +234 812 345 6789<br />
-            Email Contact: support@goldrockleather.com
-          </p>
-        </div>
+
+        <!-- Quick Links -->
         <div class="flex flex-col gap-2.5">
-          <h4 class="font-bold text-white font-display text-sm">Corporate Information</h4>
-          <p class="font-light leading-relaxed">
-            Headquarters Workshop: Victoria Island, Lagos State.<br />
-            <span class="text-brand-orange font-semibold">Standard HTML5, CSS3 & JS Architecture</span>
-          </p>
+          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Quick Links</h4>
+          <ul class="flex flex-col gap-1.5 font-light">
+            <li><a href="index.html" class="hover:text-brand-orange transition-colors">Home</a></li>
+            <li><a href="categories.html" class="hover:text-brand-orange transition-colors">Browse Catalogue</a></li>
+            <li><a href="wishlist.html" class="hover:text-brand-orange transition-colors">Saved Wishlist</a></li>
+            <li><a href="account.html" class="hover:text-brand-orange transition-colors">My Profile Account</a></li>
+          </ul>
+        </div>
+
+        <!-- Support & Policies -->
+        <div class="flex flex-col gap-2.5">
+          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Policies & Info</h4>
+          <ul class="flex flex-col gap-1.5 font-light">
+            <li><a href="#about" class="hover:text-brand-orange transition-colors">About Us</a></li>
+            <li><a href="#contact" class="hover:text-brand-orange transition-colors">Contact Support</a></li>
+            <li><a href="#privacy" class="hover:text-brand-orange transition-colors">Privacy Policy</a></li>
+            <li><a href="#terms" class="hover:text-brand-orange transition-colors">Terms & Conditions</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect with Us -->
+        <div class="flex flex-col gap-3">
+          <h4 class="font-bold text-white text-xs uppercase tracking-wider">Get in Touch</h4>
+          <div class="flex flex-col gap-2 font-light">
+            <a href="https://wa.me/2348123456789" target="_blank" class="flex items-center gap-2 justify-center md:justify-start hover:text-[#25D366] transition-colors">
+              <i data-lucide="message-circle" class="w-4 h-4 text-[#25D366]"></i>
+              <span>Chat on WhatsApp</span>
+            </a>
+            <a href="tel:+2348123456789" class="flex items-center gap-2 justify-center md:justify-start hover:text-brand-orange transition-colors">
+              <i data-lucide="phone" class="w-4 h-4 text-brand-orange"></i>
+              <span>+234 812 345 6789</span>
+            </a>
+            <p class="text-slate-500 text-[11px] mt-1">
+              Victoria Island, Lagos State, Nigeria
+            </p>
+          </div>
         </div>
       </div>
-      <div class="max-w-7xl mx-auto border-t border-slate-800/80 mt-6 pt-5 text-center text-[10px] text-slate-500 flex flex-col sm:flex-row sm:justify-between items-center gap-2">
-        <span>&copy; ${new Date().getFullYear()} GR STORE - Gold & Rock Leather Craft Ltd. All rights reserved.</span>
+
+      <!-- Copyright Area -->
+      <div class="max-w-7xl mx-auto border-t border-slate-800/80 mt-8 pt-5 text-center text-[10px] text-slate-500 flex flex-col sm:flex-row sm:justify-between items-center gap-2">
+        <span>&copy; ${new Date().getFullYear()} GR STORE. Powered by Gold & Rock Leather Craft.</span>
         <span class="flex items-center gap-1.5 justify-center">
-          <svg class="w-3.5 h-3.5 text-brand-orange fill-brand-orange" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-          Handcrafted with Leather & Code
+          <i data-lucide="heart" class="w-3.5 h-3.5 text-brand-orange fill-brand-orange"></i>
+          <span>Handcrafted in Nigeria with Leather & Code</span>
         </span>
       </div>
     </footer>

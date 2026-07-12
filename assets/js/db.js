@@ -1,8 +1,8 @@
 import { PRODUCTS, CATEGORIES } from './products.js';
 
 const KEYS = {
-  PRODUCTS: 'gr_store_products',
-  CATEGORIES: 'gr_store_categories',
+  PRODUCTS: 'gr_store_products_v2',
+  CATEGORIES: 'gr_store_categories_v2',
   CART: 'gr_store_cart',
   WISHLIST: 'gr_store_wishlist',
   CURRENT_USER: 'gr_store_current_user',
