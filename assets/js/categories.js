@@ -1,13 +1,3 @@
-import { 
-  getMockCategories, 
-  getMockProducts, 
-  addToMockCart, 
-  toggleMockWishlist, 
-  isProductInWishlist 
-} from './db.js';
-import { initCommonUI, showNotification, toggleCartDrawer } from './common.js';
-import { getProductCardHtml, setupCardEvents } from './index.js';
-
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 

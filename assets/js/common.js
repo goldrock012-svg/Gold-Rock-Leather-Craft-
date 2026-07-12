@@ -1,14 +1,5 @@
-import { 
-  getMockCart, 
-  getMockWishlist, 
-  getMockCurrentUser, 
-  logoutMockUser, 
-  removeFromMockCart, 
-  updateMockCartQuantity 
-} from './db.js';
-
 // Common UI Injection & Logic
-export function initCommonUI() {
+function initCommonUI() {
   renderNavbar();
   renderBottomNav();
   renderFooter();
@@ -374,7 +365,7 @@ function renderToastContainer() {
 }
 
 // 6. Floating notification toast function
-export function showNotification(message, type = 'success') {
+function showNotification(message, type = 'success') {
   const toast = document.getElementById('toast-notification-popup');
   const toastText = document.getElementById('toast-text');
   const indicator = document.getElementById('toast-indicator');
@@ -402,7 +393,7 @@ export function showNotification(message, type = 'success') {
 }
 
 // Helper: Open/Close Drawer
-export function toggleCartDrawer(open) {
+function toggleCartDrawer(open) {
   const panel = document.getElementById('cart-drawer-panel');
   const backdrop = document.getElementById('cart-drawer-backdrop');
 
@@ -419,7 +410,7 @@ export function toggleCartDrawer(open) {
 }
 
 // Render dynamic items in Cart Drawer
-export function renderCartItems() {
+function renderCartItems() {
   const container = document.getElementById('cart-drawer-items');
   const totalEl = document.getElementById('cart-drawer-total');
   const checkoutBtn = document.getElementById('cart-drawer-checkout-btn');
@@ -644,3 +635,142 @@ function setupCartDrawerListeners() {
   if (continueBtn) continueBtn.addEventListener('click', () => toggleCartDrawer(false));
   if (backdrop) backdrop.addEventListener('click', () => toggleCartDrawer(false));
 }
+
+// Global registrations
+window.initCommonUI = initCommonUI;
+window.toggleCartDrawer = toggleCartDrawer;
+window.renderCartItems = renderCartItems;
+window.showNotification = showNotification;
+
+// Reusable Grid Renderer
+function renderGrid(container, list) {
+  container.innerHTML = list.map(prod => getProductCardHtml(prod)).join('');
+  setupCardEvents(container, list);
+}
+
+// Generate premium product card HTML
+function getProductCardHtml(prod) {
+  const isSaved = isProductInWishlist(prod.id);
+  const isFlash = prod.isFlashSale;
+  const isOutOfStock = prod.stock === 0;
+
+  let badgeHTML = '';
+  if (isFlash) {
+    badgeHTML = `
+      <span class="absolute top-3 left-3 bg-brand-orange text-white text-[10px] font-extrabold px-2 py-1 rounded-md flex items-center gap-0.5 shadow-sm z-10 animate-pulse">
+        <i data-lucide="percent" class="w-2.5 h-2.5 stroke-[3px]"></i>
+        ${prod.flashSaleDiscount}% OFF
+      </span>
+    `;
+  } else if (prod.isBestSeller) {
+    badgeHTML = `
+      <span class="absolute top-3 left-3 bg-amber-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded-md shadow-sm z-10 tracking-wider">
+        BEST SELLER
+      </span>
+    `;
+  } else if (prod.isNew) {
+    badgeHTML = `
+      <span class="absolute top-3 left-3 bg-[#1e3a8a] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md shadow-sm z-10 tracking-wider">
+        NEW
+      </span>
+    `;
+  }
+
+  return `
+    <div class="bg-white border border-slate-100 rounded-2xl p-2.5 md:p-3.5 relative shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between h-full group" id="product-card-${prod.id}">
+      <!-- Badge element -->
+      ${badgeHTML}
+
+      <!-- Favorite save button -->
+      <button class="absolute top-3 right-3 z-10 bg-white/90 hover:bg-white text-slate-400 hover:text-red-500 p-1.5 rounded-full border shadow-sm transition-all cursor-pointer wishlist-toggle-btn" data-id="${prod.id}" title="${isSaved ? 'Remove from Wishlist' : 'Add to Wishlist'}">
+        <i data-lucide="heart" class="w-4 h-4 ${isSaved ? 'fill-brand-orange text-brand-orange' : ''}"></i>
+      </button>
+
+      <div>
+        <!-- Image wrapper linking to details page -->
+        <a href="product.html?id=${prod.id}" class="block aspect-square w-full rounded-xl overflow-hidden relative border bg-slate-50 mb-3">
+          <img src="${prod.images[0]}" alt="${prod.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+          ${isOutOfStock ? `
+            <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center">
+              <span class="bg-red-600 text-white font-bold text-[10px] tracking-wider uppercase px-3 py-1 rounded-md shadow-md">
+                SOLD OUT
+              </span>
+            </div>
+          ` : ''}
+        </a>
+
+        <!-- Content details -->
+        <span class="text-[9px] md:text-[10px] text-slate-400 font-mono font-bold uppercase tracking-wider block">${prod.category}</span>
+        <a href="product.html?id=${prod.id}" class="font-sans font-bold text-xs md:text-sm text-slate-800 line-clamp-1 group-hover:text-brand-orange transition-colors mt-0.5 block">${prod.name}</a>
+        
+        <!-- Ratings bar -->
+        <div class="flex items-center gap-1.5 mt-1">
+          <div class="flex items-center text-amber-400">
+            <i data-lucide="star" class="w-3 h-3 fill-amber-400"></i>
+            <span class="text-[11px] font-bold text-slate-700 ml-0.5">${prod.rating}</span>
+          </div>
+          <span class="text-[10px] text-slate-400">(${prod.reviewsCount} reviews)</span>
+        </div>
+      </div>
+
+      <!-- Price & Actions row -->
+      <div class="mt-3.5 pt-2.5 border-t border-slate-50 flex items-center justify-between">
+        <div class="flex flex-col">
+          ${isFlash ? `
+            <span class="text-[10px] text-slate-400 line-through font-mono font-medium leading-none">$${prod.originalPrice}</span>
+          ` : ''}
+          <span class="font-mono font-extrabold text-[#0f1e36] text-xs md:text-sm leading-tight">$${prod.price}</span>
+        </div>
+
+        <!-- Add to cart instant buttons -->
+        <button class="bg-[#f68b1e] hover:bg-brand-orange-dark text-white p-1.5 md:p-2.5 rounded-lg md:rounded-xl shadow-xs transition-colors cursor-pointer add-to-cart-btn ${isOutOfStock ? 'opacity-40 pointer-events-none' : ''}" data-id="${prod.id}" title="Add to Cart">
+          <i data-lucide="shopping-cart" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Card Event bindings (AddToCart & Saved Wishlist)
+function setupCardEvents(container, list) {
+  // Wishlist Toggles
+  container.querySelectorAll('.wishlist-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = btn.getAttribute('data-id');
+      const prod = list.find(p => p.id === id);
+      if (prod) {
+        const added = toggleMockWishlist(prod);
+        if (added) {
+          showNotification(`Added "${prod.name}" to Saved Items!`, 'success');
+          btn.querySelector('i').classList.add('fill-brand-orange', 'text-brand-orange');
+        } else {
+          showNotification(`Removed "${prod.name}" from Saved Items.`, 'info');
+          btn.querySelector('i').classList.remove('fill-brand-orange', 'text-brand-orange');
+        }
+      }
+    });
+  });
+
+  // Add to Cart handlers
+  container.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = btn.getAttribute('data-id');
+      const prod = list.find(p => p.id === id);
+      if (prod) {
+        addToMockCart(prod, 1);
+        showNotification(`"${prod.name}" added to shopping cart!`, 'success');
+        toggleCartDrawer(true);
+      }
+    });
+  });
+}
+
+window.renderGrid = renderGrid;
+window.getProductCardHtml = getProductCardHtml;
+window.setupCardEvents = setupCardEvents;
+
+

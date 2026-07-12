@@ -1,5 +1,3 @@
-import { PRODUCTS, CATEGORIES } from './products.js';
-
 const KEYS = {
   PRODUCTS: 'gr_store_products_v2',
   CATEGORIES: 'gr_store_categories_v2',
@@ -10,7 +8,7 @@ const KEYS = {
 };
 
 // Initialize default mock data into LocalStorage if not present
-export const initializeMockDB = () => {
+const initializeMockDB = () => {
   const storedProducts = localStorage.getItem(KEYS.PRODUCTS);
   let needsProductReset = false;
   if (!storedProducts) {
@@ -61,37 +59,37 @@ export const initializeMockDB = () => {
 };
 
 // Products API
-export const getMockProducts = () => {
+const getMockProducts = () => {
   initializeMockDB();
   const productsJSON = localStorage.getItem(KEYS.PRODUCTS);
   return productsJSON ? JSON.parse(productsJSON) : PRODUCTS;
 };
 
-export const getMockProductById = (id) => {
+const getMockProductById = (id) => {
   const products = getMockProducts();
   return products.find(p => p.id === id);
 };
 
 // Categories API
-export const getMockCategories = () => {
+const getMockCategories = () => {
   initializeMockDB();
   const categoriesJSON = localStorage.getItem(KEYS.CATEGORIES);
   return categoriesJSON ? JSON.parse(categoriesJSON) : CATEGORIES;
 };
 
 // Cart API
-export const getMockCart = () => {
+const getMockCart = () => {
   initializeMockDB();
   const cartJSON = localStorage.getItem(KEYS.CART);
   return cartJSON ? JSON.parse(cartJSON) : [];
 };
 
-export const saveMockCart = (cart) => {
+const saveMockCart = (cart) => {
   localStorage.setItem(KEYS.CART, JSON.stringify(cart));
   window.dispatchEvent(new Event('cartUpdated'));
 };
 
-export const addToMockCart = (product, quantity, color = null) => {
+const addToMockCart = (product, quantity, color = null) => {
   const cart = getMockCart();
   const itemId = `${product.id}-${color || 'default'}`;
   const existingIndex = cart.findIndex(item => item.id === itemId);
@@ -111,14 +109,14 @@ export const addToMockCart = (product, quantity, color = null) => {
   return cart;
 };
 
-export const removeFromMockCart = (itemId) => {
+const removeFromMockCart = (itemId) => {
   let cart = getMockCart();
   cart = cart.filter(item => item.id !== itemId);
   saveMockCart(cart);
   return cart;
 };
 
-export const updateMockCartQuantity = (itemId, quantity) => {
+const updateMockCartQuantity = (itemId, quantity) => {
   const cart = getMockCart();
   const existingItem = cart.find(item => item.id === itemId);
   if (existingItem) {
@@ -128,23 +126,23 @@ export const updateMockCartQuantity = (itemId, quantity) => {
   return cart;
 };
 
-export const clearMockCart = () => {
+const clearMockCart = () => {
   saveMockCart([]);
 };
 
 // Wishlist API
-export const getMockWishlist = () => {
+const getMockWishlist = () => {
   initializeMockDB();
   const wishlistJSON = localStorage.getItem(KEYS.WISHLIST);
   return wishlistJSON ? JSON.parse(wishlistJSON) : [];
 };
 
-export const saveMockWishlist = (wishlist) => {
+const saveMockWishlist = (wishlist) => {
   localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
   window.dispatchEvent(new Event('wishlistUpdated'));
 };
 
-export const toggleMockWishlist = (product) => {
+const toggleMockWishlist = (product) => {
   const wishlist = getMockWishlist();
   const index = wishlist.findIndex(item => item.id === product.id);
   let added = false;
@@ -160,18 +158,18 @@ export const toggleMockWishlist = (product) => {
   return added;
 };
 
-export const isProductInWishlist = (productId) => {
+const isProductInWishlist = (productId) => {
   const wishlist = getMockWishlist();
   return wishlist.some(item => item.id === productId);
 };
 
 // Authentication & User Profile Mocks
-export const getMockCurrentUser = () => {
+const getMockCurrentUser = () => {
   const userJSON = localStorage.getItem(KEYS.CURRENT_USER);
   return userJSON ? JSON.parse(userJSON) : null;
 };
 
-export const loginMockUser = (email, password = null) => {
+const loginMockUser = (email, password = null) => {
   const existingUser = getMockCurrentUser();
   if (existingUser && existingUser.email === email) {
     return existingUser;
@@ -191,31 +189,31 @@ export const loginMockUser = (email, password = null) => {
   return defaultProfile;
 };
 
-export const registerMockUser = (profile) => {
+const registerMockUser = (profile) => {
   localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(profile));
   window.dispatchEvent(new Event('authUpdated'));
   return profile;
 };
 
-export const updateMockUserProfile = (profile) => {
+const updateMockUserProfile = (profile) => {
   localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(profile));
   window.dispatchEvent(new Event('authUpdated'));
   return profile;
 };
 
-export const logoutMockUser = () => {
+const logoutMockUser = () => {
   localStorage.removeItem(KEYS.CURRENT_USER);
   window.dispatchEvent(new Event('authUpdated'));
 };
 
 // Orders API
-export const getMockOrders = () => {
+const getMockOrders = () => {
   initializeMockDB();
   const ordersJSON = localStorage.getItem(KEYS.ORDERS);
   return ordersJSON ? JSON.parse(ordersJSON) : [];
 };
 
-export const placeMockOrder = (shippingDetails, paymentMethod) => {
+const placeMockOrder = (shippingDetails, paymentMethod) => {
   const cartItems = getMockCart();
   const subtotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const deliveryFee = 10;
@@ -256,7 +254,7 @@ export const placeMockOrder = (shippingDetails, paymentMethod) => {
 };
 
 // WhatsApp Order Formatting Helper
-export const generateWhatsAppOrderLink = (order) => {
+const generateWhatsAppOrderLink = (order) => {
   const phoneNumber = '+2348123456789';
   let message = `*GR STORE - NEW ORDER CONFIRMATION*\n`;
   message += `============================\n`;
@@ -280,3 +278,28 @@ export const generateWhatsAppOrderLink = (order) => {
 
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 };
+
+// Make them available globally
+window.KEYS = KEYS;
+window.initializeMockDB = initializeMockDB;
+window.getMockProducts = getMockProducts;
+window.getMockProductById = getMockProductById;
+window.getMockCategories = getMockCategories;
+window.getMockCart = getMockCart;
+window.saveMockCart = saveMockCart;
+window.addToMockCart = addToMockCart;
+window.removeFromMockCart = removeFromMockCart;
+window.updateMockCartQuantity = updateMockCartQuantity;
+window.clearMockCart = clearMockCart;
+window.getMockWishlist = getMockWishlist;
+window.saveMockWishlist = saveMockWishlist;
+window.toggleMockWishlist = toggleMockWishlist;
+window.isProductInWishlist = isProductInWishlist;
+window.getMockCurrentUser = getMockCurrentUser;
+window.loginMockUser = loginMockUser;
+window.registerMockUser = registerMockUser;
+window.updateMockUserProfile = updateMockUserProfile;
+window.logoutMockUser = logoutMockUser;
+window.getMockOrders = getMockOrders;
+window.placeMockOrder = placeMockOrder;
+window.generateWhatsAppOrderLink = generateWhatsAppOrderLink;

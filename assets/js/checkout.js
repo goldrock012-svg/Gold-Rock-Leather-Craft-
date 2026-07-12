@@ -1,11 +1,3 @@
-import { 
-  getMockCart, 
-  getMockCurrentUser, 
-  placeMockOrder, 
-  generateWhatsAppOrderLink 
-} from './db.js';
-import { initCommonUI, showNotification } from './common.js';
-
 let cartItems = [];
 let placedOrder = null;
 let paymentMethod = 'cash_on_delivery'; // or 'bank_transfer'

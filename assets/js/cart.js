@@ -1,10 +1,3 @@
-import { 
-  getMockCart, 
-  removeFromMockCart, 
-  updateMockCartQuantity 
-} from './db.js';
-import { initCommonUI, showNotification } from './common.js';
-
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 

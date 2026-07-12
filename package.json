@@ -1,12 +1,20 @@
 {
   "name": "gr-store",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
-    "build": "mkdir -p dist && cp -r index.html categories.html cart.html checkout.html product.html wishlist.html account.html assets dist/",
-    "start": "node server.js",
-    "lint": "echo 'No lint needed'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }

@@ -1,4 +1,4 @@
-export const CATEGORIES = [
+const CATEGORIES = [
   {
     id: 'school-bags',
     name: 'School Bags',
@@ -43,7 +43,7 @@ export const CATEGORIES = [
   }
 ];
 
-export const PRODUCTS = [
+const PRODUCTS = [
   // ===================== FLASH SALES (8 PRODUCTS) =====================
   {
     id: 'gr-01',

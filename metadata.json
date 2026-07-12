@@ -1,6 +1,0 @@
-{
-  "name": "GR STORE",
-  "description": "Premium online store for Gold & Rock Leather Craft, featuring premium handcrafted leather products like bags, wallets, belts, and accessories.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

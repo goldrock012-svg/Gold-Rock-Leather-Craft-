@@ -1,14 +1,3 @@
-import { 
-  getMockCurrentUser, 
-  loginMockUser, 
-  registerMockUser, 
-  updateMockUserProfile, 
-  logoutMockUser, 
-  getMockOrders,
-  generateWhatsAppOrderLink
-} from './db.js';
-import { initCommonUI, showNotification } from './common.js';
-
 let editMode = false;
 let authTab = 'signin'; // 'signin' or 'register'
 

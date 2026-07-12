@@ -1,11 +1,3 @@
-import { 
-  getMockProductById, 
-  addToMockCart, 
-  toggleMockWishlist, 
-  isProductInWishlist 
-} from './db.js';
-import { initCommonUI, showNotification, toggleCartDrawer } from './common.js';
-
 const COLORS = [
   { name: 'Tan Gold', code: '#d97706' },
   { name: 'Obsidian Black', code: '#1e293b' },
