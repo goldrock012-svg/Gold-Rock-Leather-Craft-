@@ -11,35 +11,35 @@ const SLIDES = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Gold & Rock Leather Craft',
-    title: 'Premium Leather Bags for Every Lifestyle',
-    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
+    accent: 'GOLD & ROCK HANDCRAFTED LUXURY',
+    title: 'Artisanal Premium Bags & Accessories',
+    subtitle: 'Sourced from the finest full-grain leather in Nigeria. Handcrafted with meticulous double-stitching and designed for a lifetime of timeless elegance and durability.',
     ctaUrl: 'categories.html',
-    ctaText: 'Shop Now',
+    ctaText: 'Shop Collections',
     secondaryCtaUrl: 'categories.html',
-    secondaryCtaText: 'Browse Categories'
+    secondaryCtaText: 'Browse Catalogue'
   },
   {
     id: 2,
     image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Gold & Rock Leather Craft',
-    title: 'Premium Leather Bags for Every Lifestyle',
-    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
-    ctaUrl: 'categories.html',
-    ctaText: 'Shop Now',
-    secondaryCtaUrl: 'categories.html',
-    secondaryCtaText: 'Browse Categories'
+    accent: 'EXECUTIVE OFFICE RANGE',
+    title: 'Luxury Laptop Bags & Meeting Folios',
+    subtitle: 'Padded protective interiors, heavy-duty brass zippers, and burnished edge-finishes. Make an unmistakable statement in every executive boardroom meeting.',
+    ctaUrl: 'categories.html?cat=laptop-bags',
+    ctaText: 'Shop Laptop Bags',
+    secondaryCtaUrl: 'categories.html?cat=office-bags',
+    secondaryCtaText: 'View Portfolios'
   },
   {
     id: 3,
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=1600',
-    accent: 'Gold & Rock Leather Craft',
-    title: 'Premium Leather Bags for Every Lifestyle',
-    subtitle: 'Discover premium handcrafted leather bags designed for school, work, travel, and everyday elegance. Quality, durability, and style—only at Gold & Rock Leather Craft.',
-    ctaUrl: 'categories.html',
-    ctaText: 'Shop Now',
+    accent: 'TRAVEL & WEEKENDER SPECIAL',
+    title: 'Rugged Duffel Bags Built to Last',
+    subtitle: 'High-capacity, oil-waxed premium pull-up leather that develops beautiful scratch patinas. Engineered with reinforced handles to endure your longest journeys.',
+    ctaUrl: 'categories.html?cat=travelling-bags',
+    ctaText: 'Explore Weekenders',
     secondaryCtaUrl: 'categories.html',
-    secondaryCtaText: 'Browse Categories'
+    secondaryCtaText: 'All Collections'
   }
 ];
 
