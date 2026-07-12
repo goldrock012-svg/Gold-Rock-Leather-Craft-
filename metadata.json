@@ -1,0 +1,8 @@
+{
+  "name": "GR STORE",
+  "description": "A premium static e-commerce store for Gold & Rock Leather Craft, built with pure HTML, CSS, and Vanilla JavaScript.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -236,6 +236,36 @@
       </div>
 
 
+      <!-- PROMOTIONAL BANNER -->
+      <div class="relative bg-gradient-to-r from-[#1e3a8a] to-[#0f1e36] text-white rounded-2xl overflow-hidden shadow-xl border border-slate-800 p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <!-- Floating shapes -->
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="max-w-xl text-center md:text-left z-10">
+          <span class="bg-brand-orange text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest">
+            LIMITED PROMO OFFER
+          </span>
+          <h3 class="font-display font-extrabold text-2xl md:text-3.5xl text-white tracking-tight mt-3 leading-tight">
+            Handcrafted Luxury, <br class="hidden md:inline" />Nigeria's Premium Heritage
+          </h3>
+          <p class="text-slate-300 text-xs md:text-sm font-light mt-3 leading-relaxed">
+            Get an extra <strong class="text-brand-orange font-bold font-mono text-base">15% OFF</strong> on all custom laptop briefcases & travel duffels. Hand-stitched with 100% genuine vegetable-tanned leather.
+          </p>
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
+            <span class="bg-slate-900/60 border border-slate-700 font-mono font-bold text-xs md:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-3.5 h-3.5 text-brand-orange"></i>
+              USE CODE: <span class="text-brand-orange">GRGOLD</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden border border-slate-700 bg-slate-900/40 shrink-0 z-10 shadow-lg">
+          <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800" alt="Executive leather office bag" class="w-full h-full object-cover">
+        </div>
+      </div>
+
+
       <!-- BEST SELLERS SECTION -->
       <div class="flex flex-col gap-5">
         <div class="flex items-center gap-2">
@@ -257,7 +287,7 @@
       <div class="flex flex-col gap-5">
         <div class="flex items-center gap-2">
           <span class="bg-blue-50 text-brand-blue-light p-1 rounded-md border border-blue-100">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <i data-lucide="sparkles" class="w-4 h-4 text-[#1e3a8a]"></i>
           </span>
           <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
             New Arrivals
@@ -266,6 +296,134 @@
 
         <div id="new-arrivals-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- CUSTOMER REVIEWS -->
+      <div class="flex flex-col gap-6 mt-4">
+        <div class="flex items-center gap-2">
+          <span class="bg-orange-50 text-brand-orange p-1 rounded-md border border-orange-100">
+            <i data-lucide="message-square-quote" class="w-4 h-4 text-brand-orange"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            What Our Customers Say
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Testimonial 1 -->
+          <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+            <div>
+              <div class="flex items-center gap-1 text-amber-400 mb-3.5">
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm font-light italic leading-relaxed">
+                "The craftsmanship on the Obsidian Bifold Wallet is absolute world-class. It is slim, fits perfectly in my pocket, and the leather smells incredible. Proudly handcrafted in Nigeria!"
+              </p>
+            </div>
+            <div class="flex items-center gap-3 mt-5 pt-3.5 border-t border-slate-50">
+              <div class="w-9 h-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                AA
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">Adebayo Alabi</h4>
+                <span class="text-[10px] text-slate-400">School Teacher, Lagos</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 2 -->
+          <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+            <div>
+              <div class="flex items-center gap-1 text-amber-400 mb-3.5">
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm font-light italic leading-relaxed">
+                "I ordered the Ladies Hand Bag in Chestnut Rock. I am amazed by the stitching and attention to detail. I get endless compliments at work. Will definitely order from Gold & Rock again!"
+              </p>
+            </div>
+            <div class="flex items-center gap-3 mt-5 pt-3.5 border-t border-slate-50">
+              <div class="w-9 h-9 rounded-full bg-[#f68b1e] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                CN
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">Chioma Nwachukwu</h4>
+                <span class="text-[10px] text-slate-400">Business Analyst, Abuja</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+            <div>
+              <div class="flex items-center gap-1 text-amber-400 mb-3.5">
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+              </div>
+              <p class="text-slate-600 text-xs md:text-sm font-light italic leading-relaxed">
+                "The Apex Leather Laptop Bag is exactly what I was looking for. It fits my 16-inch Macbook perfectly with dedicated compartments for my cables. Rugged, stylish, and highly professional."
+              </p>
+            </div>
+            <div class="flex items-center gap-3 mt-5 pt-3.5 border-t border-slate-50">
+              <div class="w-9 h-9 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                IB
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">Ibrahim Bello</h4>
+                <span class="text-[10px] text-slate-400">Creative Director, Kano</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- NEWSLETTER SECTION -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-10 relative overflow-hidden text-center max-w-4xl mx-auto w-full shadow-xl mt-4">
+        <div class="absolute -top-12 -left-12 w-36 h-36 bg-[#1e3a8a]/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-36 h-36 bg-brand-orange/15 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="relative z-10 max-w-lg mx-auto">
+          <span class="text-brand-orange text-[10px] font-extrabold tracking-widest uppercase">JOIN THE INSIDER CIRCLE</span>
+          <h3 class="font-display font-extrabold text-xl md:text-2xl text-white tracking-tight mt-2.5">
+            Never Miss custom Drops & Premium sales
+          </h3>
+          <p class="text-slate-400 text-xs font-light mt-2 leading-relaxed">
+            Subscribe to the GR STORE newsletter and receive a <span class="text-brand-orange font-bold font-mono">10% discount voucher</span> directly in your inbox.
+          </p>
+
+          <form id="homepage-newsletter-form" class="mt-6 flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <input 
+              type="email" 
+              id="newsletter-email" 
+              placeholder="Enter your email address..." 
+              required 
+              class="w-full bg-slate-800 border border-slate-700 hover:border-slate-600 focus:border-brand-orange text-white text-xs px-4 py-3 rounded-lg focus:outline-none transition-colors"
+            />
+            <button 
+              type="submit" 
+              class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold text-xs px-6 py-3 rounded-lg transition-all tracking-wider uppercase cursor-pointer shrink-0"
+            >
+              Subscribe
+            </button>
+          </form>
+          
+          <div id="newsletter-success-notice" class="hidden mt-4 text-xs text-[#20ba5a] bg-[#20ba5a]/10 border border-[#20ba5a]/20 px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>Success! Thank you for subscribing. Check your inbox for your 10% voucher code!</span>
+          </div>
         </div>
       </div>
 

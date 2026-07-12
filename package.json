@@ -1,20 +1,9 @@
 {
   "name": "gr-store",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "GR STORE static copy helper for preview",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "build": "mkdir -p dist && cp -r index.html categories.html product.html cart.html wishlist.html account.html checkout.html assets dist/",
+    "lint": "echo 'No lint needed'"
   }
 }

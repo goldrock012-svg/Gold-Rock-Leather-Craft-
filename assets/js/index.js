@@ -211,6 +211,28 @@ function renderHomepage() {
       });
     }
   });
+
+  // Homepage Newsletter Form handler
+  const newsletterForm = document.getElementById('homepage-newsletter-form');
+  const newsletterSuccess = document.getElementById('newsletter-success-notice');
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('newsletter-email');
+      if (emailInput && emailInput.value.trim() !== '') {
+        // Show success visual notice
+        if (newsletterSuccess) {
+          newsletterSuccess.classList.remove('hidden');
+        }
+        // Notify the user via beautiful toast notification
+        showNotification('Thank you for subscribing! Voucher code GR10 has been sent to your email.', 'success');
+        // Clear and disable form input
+        emailInput.value = '';
+        newsletterForm.querySelector('button').disabled = true;
+        newsletterForm.querySelector('button').classList.add('opacity-50', 'pointer-events-none');
+      }
+    });
+  }
 }
 
 // Render Search Results override
