@@ -70,6 +70,7 @@ function getSidebarMenuHtml(user) {
     { id: 'wishlist', label: 'Wishlist', icon: 'heart' },
     { id: 'saved-addresses', label: 'Saved Addresses', icon: 'map-pin' },
     { id: 'payment-history', label: 'Payment History', icon: 'credit-card' },
+    { id: 'admin-console', label: 'Admin Console (Verify Payments)', icon: 'shield-alert' },
     { id: 'about-us', label: 'About GR STORE', icon: 'info' },
     { id: 'contact-us', label: 'Contact Us', icon: 'phone' },
     { id: 'help-support', label: 'Help & Support', icon: 'help-circle' },
@@ -126,7 +127,7 @@ function getSidebarMenuHtml(user) {
 }
 
 function getActiveTabContentHtml(user) {
-  const isAuthRequired = ['my-orders', 'saved-addresses', 'payment-history', 'settings'].includes(activeTab) || (activeTab === 'my-profile' && !user);
+  const isAuthRequired = ['my-orders', 'saved-addresses', 'payment-history', 'settings', 'admin-console'].includes(activeTab) || (activeTab === 'my-profile' && !user);
   
   if (isAuthRequired && !user) {
     return getAuthLockedHtml();
@@ -143,6 +144,8 @@ function getActiveTabContentHtml(user) {
       return getSavedAddressesViewHtml(user);
     case 'payment-history':
       return getPaymentHistoryViewHtml(user);
+    case 'admin-console':
+      return getAdminConsoleViewHtml();
     case 'about-us':
       return getAboutUsViewHtml();
     case 'contact-us':
@@ -402,9 +405,17 @@ function getOrdersListHtml(orders) {
               <i data-lucide="message-circle" class="w-3.5 h-3.5 fill-white"></i> Confirm on WhatsApp
             </a>
             <span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg border flex items-center justify-center ${
-              ord.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+              ord.status === 'Paid Successfully' 
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                : ord.status === 'completed' || ord.status === 'Verified Dispatch'
+                  ? 'bg-blue-50 text-blue-600 border-blue-100'
+                  : 'bg-amber-50 text-amber-600 border-amber-100'
             }">
-              ${ord.status === 'completed' ? 'Verified Dispatch' : 'Awaiting Payment'}
+              ${ord.status === 'Paid Successfully' 
+                ? 'Paid Successfully' 
+                : ord.status === 'completed' || ord.status === 'Verified Dispatch'
+                  ? 'Verified Dispatch' 
+                  : 'Pending Payment Verification'}
             </span>
           </div>
         </div>
@@ -521,9 +532,17 @@ function getPaymentHistoryViewHtml(user) {
         <div class="flex flex-col items-end">
           <span class="font-mono font-extrabold text-[#0f1e36]">₦${ord.total.toLocaleString()}</span>
           <span class="text-[8px] font-bold mt-0.5 px-2 py-0.5 rounded ${
-            ord.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+            ord.status === 'Paid Successfully' 
+              ? 'bg-emerald-100 text-emerald-800' 
+              : ord.status === 'completed' || ord.status === 'Verified Dispatch'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-amber-100 text-amber-800'
           }">
-            ${ord.status === 'completed' ? 'Verified' : 'Pending Receipt'}
+            ${ord.status === 'Paid Successfully' 
+              ? 'Paid Successfully' 
+              : ord.status === 'completed' || ord.status === 'Verified Dispatch'
+                ? 'Verified Dispatch' 
+                : 'Pending Verification'}
           </span>
         </div>
       </div>
@@ -547,9 +566,9 @@ function getPaymentHistoryViewHtml(user) {
           </p>
           
           <div class="bg-[#0f1e36] text-white p-3 rounded-lg font-mono text-[10px] flex flex-col gap-1 border border-slate-800 relative">
-            <p>🏦 <span class="text-slate-400">Bank:</span> Zenith Bank PLC</p>
-            <p class="flex items-center gap-1.5">🔢 <span class="text-slate-400">Acct No:</span> <span class="text-brand-orange font-bold tracking-wider">1017307844</span></p>
-            <p>👤 <span class="text-slate-400">Acct Name:</span> Gold & Rock Leather Craft Ltd.</p>
+            <p>🏦 <span class="text-slate-400">Bank:</span> Opay</p>
+            <p class="flex items-center gap-1.5">🔢 <span class="text-slate-400">Acct No:</span> <span class="text-brand-orange font-bold tracking-wider">8126730784</span></p>
+            <p>👤 <span class="text-slate-400">Acct Name:</span> OYEWOLE TOSIN OLUMIDE</p>
           </div>
 
           <p class="text-[9px] text-slate-500 italic mt-0.5">
@@ -565,6 +584,111 @@ function getPaymentHistoryViewHtml(user) {
             ${paymentsListHTML}
           </div>
         </div>
+      </div>
+    </div>
+  `;
+}
+
+function getAdminConsoleViewHtml() {
+  const orders = getMockOrders();
+  
+  let ordersListHTML = '';
+  
+  if (orders.length === 0) {
+    ordersListHTML = `
+      <div class="text-center py-10 bg-slate-50 border border-dashed rounded-2xl p-6">
+        <p class="text-slate-400 text-xs italic">No orders logged in system database yet.</p>
+        <p class="text-slate-400 text-[10px] mt-1">Place some handcrafted leather orders in the checkout first!</p>
+      </div>
+    `;
+  } else {
+    ordersListHTML = orders.map(ord => {
+      const isPending = ord.status === 'Pending Payment Verification' || ord.status === 'pending';
+      const isPaid = ord.status === 'Paid Successfully';
+      const isCompleted = ord.status === 'completed' || ord.status === 'Verified Dispatch';
+      
+      let itemsList = ord.items.map(item => `
+        <div class="flex justify-between text-[11px] text-slate-600 font-mono">
+          <span>${item.product.name} (Qty: ${item.quantity})</span>
+          <span>₦${(item.product.price * item.quantity).toLocaleString()}</span>
+        </div>
+      `).join('');
+      
+      return `
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 shadow-xs">
+          <div class="flex justify-between items-start border-b border-slate-100 pb-2">
+            <div>
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>
+              <span class="font-mono font-bold text-xs text-[#0f1e36]">${ord.id}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
+              <span class="font-semibold text-xs text-slate-800">${ord.shippingDetails.fullName}</span>
+            </div>
+          </div>
+          
+          <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Items</span>
+            ${itemsList}
+            <div class="flex justify-between font-bold text-xs mt-1 text-slate-800">
+              <span>Total Payment:</span>
+              <span class="text-brand-orange font-mono">₦${ord.total.toLocaleString()}</span>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Current Status</span>
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                isPaid 
+                  ? 'bg-emerald-100 text-emerald-800' 
+                  : isCompleted 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-amber-100 text-amber-800'
+              }">
+                ${ord.status === 'pending' ? 'Pending Payment Verification' : ord.status}
+              </span>
+            </div>
+            
+            <div>
+              ${isPending ? `
+                <button data-order-id="${ord.id}" class="admin-approve-btn bg-[#f68b1e] hover:bg-[#e07a1b] text-white font-extrabold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide shadow-xs border-0">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Approve Payment
+                </button>
+              ` : `
+                <div class="flex items-center gap-1 text-emerald-600 font-extrabold text-[10px] uppercase">
+                  <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-500"></i>
+                  <span>Paid & Approved</span>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('<div class="h-4"></div>');
+  }
+
+  return `
+    <div class="animate-in fade-in duration-300">
+      <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-5">
+        <i data-lucide="shield-check" class="w-4 h-4 text-brand-orange"></i>
+        Administrator Verification Hub
+      </h3>
+      
+      <!-- Hub Description -->
+      <div class="bg-[#0f1e36] text-white p-4 rounded-xl border border-slate-800 text-xs mb-5 shadow-md flex flex-col gap-2">
+        <div class="flex items-center gap-2 text-brand-orange">
+          <i data-lucide="shield" class="w-4.5 h-4.5"></i>
+          <h4 class="font-extrabold uppercase tracking-wider text-[11px]">CEO Admin Controls Hub</h4>
+        </div>
+        <p class="text-slate-300 font-light leading-relaxed">
+          Welcome back, <strong class="text-white font-bold">OYEWOLE TOSIN OLUMIDE</strong>. As the administrator of Gold & Rock Leather Craft, use this panel to inspect incoming bank payments. Click <span class="text-brand-orange font-semibold">Approve Payment</span> to instantly update the customer's status to "Paid Successfully" and issue their production/dispatch queue slots.
+        </p>
+      </div>
+      
+      <!-- List -->
+      <div class="flex flex-col gap-4">
+        ${ordersListHTML}
       </div>
     </div>
   `;
@@ -846,6 +970,29 @@ function getSettingsViewHtml(user) {
 }
 
 function setupAccountListeners(user) {
+  // Admin approve buttons
+  document.querySelectorAll('.admin-approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const orderId = btn.getAttribute('data-order-id');
+      const orders = getMockOrders();
+      const oIndex = orders.findIndex(o => o.id === orderId);
+      if (oIndex !== -1) {
+        orders[oIndex].status = 'Paid Successfully';
+        localStorage.setItem(KEYS.ORDERS, JSON.stringify(orders));
+        
+        // Log automatic notification
+        addMockNotification(
+          'Payment Verified', 
+          `Payment for order ${orderId} has been successfully verified! Your order status has changed to Paid Successfully.`, 
+          'success'
+        );
+        
+        showNotification(`Order ${orderId} has been marked as Paid Successfully!`, 'success');
+        renderAccountView();
+      }
+    });
+  });
+
   // Back to Menu on mobile
   const backBtn = document.getElementById('back-to-menu-btn');
   if (backBtn) {

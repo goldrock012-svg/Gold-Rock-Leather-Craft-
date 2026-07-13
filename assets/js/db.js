@@ -201,9 +201,9 @@ const loginMockUser = (email, password = null) => {
     fullName: email.split('@')[0].toUpperCase(),
     email: email,
     phoneNumber: '08126730784',
-    address: 'Victoria Island, Lagos State',
-    city: 'Lagos',
-    state: 'Lagos State',
+    address: 'Muritala Muhammed Way, Ilorin',
+    city: 'Ilorin',
+    state: 'Kwara State',
   };
 
   localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(defaultProfile));
@@ -246,7 +246,7 @@ const placeMockOrder = (shippingDetails, paymentMethod) => {
     date: new Date().toISOString().split('T')[0],
     items: cartItems,
     total: total,
-    status: 'pending',
+    status: 'Pending Payment Verification',
     shippingDetails: shippingDetails,
     paymentMethod: paymentMethod,
   };
@@ -279,7 +279,7 @@ const placeMockOrder = (shippingDetails, paymentMethod) => {
   );
   addMockNotification(
     'Payment Pending', 
-    `Payment for order ${newOrder.id} is Pending verification. Please transfer ₦${total.toLocaleString()} to Zenith Bank 1017307844.`, 
+    `Payment for order ${newOrder.id} is Pending verification. Please transfer ₦${total.toLocaleString()} to Opay 8126730784 (OYEWOLE TOSIN OLUMIDE).`, 
     'info'
   );
 

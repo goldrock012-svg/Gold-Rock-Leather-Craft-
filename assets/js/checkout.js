@@ -68,17 +68,17 @@ function renderCheckoutForm() {
 
           <div class="flex flex-col gap-1.5 mt-4">
             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Street Delivery Address *</label>
-            <input type="text" id="chk-addr" value="${initialData.address}" required placeholder="15 Victoria Crescent" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
+            <input type="text" id="chk-addr" value="${initialData.address}" required placeholder="Muritala Muhammed Way" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
           </div>
 
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">City *</label>
-              <input type="text" id="chk-city" value="${initialData.city}" required placeholder="Victoria Island" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
+              <input type="text" id="chk-city" value="${initialData.city}" required placeholder="Ilorin" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">State *</label>
-              <input type="text" id="chk-state" value="${initialData.state}" required placeholder="Lagos State" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
+              <input type="text" id="chk-state" value="${initialData.state}" required placeholder="Kwara State" class="border border-slate-200 bg-slate-50/50 rounded-lg px-3.5 py-2.5 text-xs text-slate-800 focus:border-brand-orange focus:outline-none">
             </div>
           </div>
 
@@ -120,15 +120,15 @@ function renderCheckoutForm() {
                   <div class="bg-slate-950/50 p-3 rounded-lg border border-slate-800 text-[11px] flex flex-col gap-1.5">
                     <p class="flex justify-between">
                       <span class="text-slate-400">Bank Name:</span>
-                      <span class="font-bold text-white">Zenith Bank PLC</span>
+                      <span class="font-bold text-white">Opay</span>
                     </p>
                     <p class="flex justify-between">
                       <span class="text-slate-400">Account Number:</span>
-                      <span class="font-bold text-white font-mono tracking-wide">1017307844</span>
+                      <span class="font-bold text-white font-mono tracking-wide">8126730784</span>
                     </p>
                     <p class="flex justify-between">
                       <span class="text-slate-400">Account Name:</span>
-                      <span class="font-bold text-white">Gold & Rock Leather Craft Ltd.</span>
+                      <span class="font-bold text-white">OYEWOLE TOSIN OLUMIDE</span>
                     </p>
                   </div>
                   
@@ -252,9 +252,9 @@ function renderSuccessState() {
           <div class="flex flex-col gap-1.5 text-xs font-light text-slate-300">
             <p>Please make your payment of <span class="text-brand-orange font-bold font-mono">₦${placedOrder.total.toLocaleString()}</span> to:</p>
             <div class="bg-slate-900/60 p-2.5 rounded border border-slate-800 text-[11px] flex flex-col gap-1">
-              <p>🏦 <span class="font-semibold text-white">Bank:</span> Zenith Bank PLC</p>
-              <p>🔢 <span class="font-semibold text-white">Account Number:</span> 1017307844</p>
-              <p>👤 <span class="font-semibold text-white">Account Name:</span> Gold & Rock Leather Craft Ltd.</p>
+              <p>🏦 <span class="font-semibold text-white">Bank:</span> Opay</p>
+              <p>🔢 <span class="font-semibold text-white">Account Number:</span> 8126730784</p>
+              <p>👤 <span class="font-semibold text-white">Account Name:</span> OYEWOLE TOSIN OLUMIDE</p>
             </div>
             <p class="text-[10px] text-slate-400 mt-1 italic">Note: Please send a screenshot of the transaction receipt via WhatsApp after making payment.</p>
           </div>
