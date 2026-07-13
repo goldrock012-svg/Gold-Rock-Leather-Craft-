@@ -112,14 +112,14 @@ function renderProductDetails() {
   // Wishlist heart sync
   syncWishlistHeart();
 
+  // Bind Actions (Add to Cart, WhatsApp, Wishlist)
+  setupProductActions();
+
   // Quantity controllers
   setupQuantityCounter();
 
   // Reviews list render
   renderReviewsList();
-
-  // Bind Actions (Add to Cart, WhatsApp, Wishlist)
-  setupProductActions();
 }
 
 // 1. Dynamic Gallery renderer
@@ -227,10 +227,12 @@ function setupQuantityCounter() {
   const input = document.getElementById('qty-input-val');
   const priceDisplay = document.getElementById('total-cost-preview');
 
-  if (!minus || !plus || !input || !priceDisplay) return;
+  if (!minus || !plus || !input) return;
 
   input.textContent = quantity;
-  priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
+  if (priceDisplay) {
+    priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
+  }
 
   // Reset Listeners by cloning (simplifies multiple redraw bindings)
   const newMinus = minus.cloneNode(true);
@@ -242,14 +244,16 @@ function setupQuantityCounter() {
     if (quantity > 1) {
       quantity--;
       input.textContent = quantity;
-      priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
+      const pd = document.getElementById('total-cost-preview');
+      if (pd) pd.textContent = `₦${(product.price * quantity).toLocaleString()}`;
     }
   });
 
   newPlus.addEventListener('click', () => {
     quantity++;
     input.textContent = quantity;
-    priceDisplay.textContent = `₦${(product.price * quantity).toLocaleString()}`;
+    const pd = document.getElementById('total-cost-preview');
+    if (pd) pd.textContent = `₦${(product.price * quantity).toLocaleString()}`;
   });
 }
 

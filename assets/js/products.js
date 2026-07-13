@@ -31,7 +31,7 @@ const CATEGORIES = [
   },
   {
     id: 'mens-purses',
-    name: "Men's Purses",
+    name: "Men's Purse",
     image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800',
     count: 4
   },
