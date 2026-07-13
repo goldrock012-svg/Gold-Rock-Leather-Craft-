@@ -5,7 +5,8 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged, 
-  updateProfile 
+  updateProfile,
+  updatePassword
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { 
   getFirestore, 
@@ -70,6 +71,7 @@ export {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  updatePassword,
   // Storage exports
   ref,
   uploadBytes,

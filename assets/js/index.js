@@ -1,5 +1,5 @@
 // Slider configuration
-const SLIDES = [
+let SLIDES = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=1600',
@@ -67,6 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Header/Footer UI & Badge Updates
   initCommonUI();
 
+  // Load from dynamic homepage settings if available
+  if (window.getHomepageSettings && window.getHomepageSettings()) {
+    const settings = window.getHomepageSettings();
+    if (settings.heroSlides && settings.heroSlides.length > 0) {
+      SLIDES = settings.heroSlides;
+    }
+  }
+
   // 2. Parse Search Queries
   const params = new URLSearchParams(window.location.search);
   const searchQuery = params.get('search') || '';
@@ -79,6 +87,26 @@ document.addEventListener('DOMContentLoaded', () => {
     setupHeroSlider();
     setupCountdownTimer();
   }
+
+  // Real-time updates for homepage manager changes
+  window.addEventListener('homepageSettingsUpdated', () => {
+    if (window.getHomepageSettings && window.getHomepageSettings()) {
+      const settings = window.getHomepageSettings();
+      if (settings.heroSlides && settings.heroSlides.length > 0) {
+        SLIDES = settings.heroSlides;
+      }
+      if (!searchQuery) {
+        renderHomepage();
+        setupHeroSlider();
+      }
+    }
+  });
+
+  window.addEventListener('productsUpdated', () => {
+    if (!searchQuery) {
+      renderHomepage();
+    }
+  });
 
   // Re-run Lucide icons for page content
   if (window.lucide) window.lucide.createIcons();

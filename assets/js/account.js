@@ -4,6 +4,9 @@ let authTab = 'signin'; // 'signin' or 'register'
 let mobileShowPane = false;
 let adminSubTab = 'verify-payments'; // 'verify-payments' or 'upload-product'
 let selectedProductImageFile = null;
+let adminActiveSection = 'dashboard';
+let adminEditingProduct = null;
+let adminEditingCategory = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
@@ -37,6 +40,13 @@ function renderAccountView() {
   if (!container) return;
 
   const user = getMockCurrentUser();
+
+  // Auto-route admin to the admin dashboard
+  if (user && user.email === "goldrock012@gmail.com") {
+    if (activeTab !== 'admin-dashboard' && activeTab !== 'settings') {
+      activeTab = 'admin-dashboard';
+    }
+  }
 
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -146,7 +156,7 @@ function getActiveTabContentHtml(user) {
       return getSavedAddressesViewHtml(user);
     case 'payment-history':
       return getPaymentHistoryViewHtml(user);
-    case 'admin-console':
+    case 'admin-dashboard':
       return getAdminConsoleViewHtml();
     case 'about-us':
       return getAboutUsViewHtml();
@@ -601,193 +611,903 @@ function getPaymentHistoryViewHtml(user) {
   `;
 }
 
+function generateWhatsAppOrderLink(order) {
+  const phone = "2348126730784";
+  const text = `Hello CEO, I would like to inquire about my Gold & Rock order details:\n- *Order ID:* ${order.id}\n- *Customer:* ${order.shippingDetails.fullName}\n- *Total Amount:* ₦${order.total.toLocaleString()}\n- *Status:* ${order.status}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
+
+function getForceChangePasswordHtml() {
+  return `
+    <div class="animate-in fade-in duration-300 max-w-md mx-auto py-8">
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg flex flex-col gap-4 text-center">
+        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto text-brand-orange animate-bounce">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <h3 class="font-display font-extrabold text-lg text-[#0f1e36]">Secure Your Admin Account</h3>
+        <p class="text-xs text-slate-500 leading-normal">
+          Welcome back, <strong class="text-slate-800">OYEWOLE TOSIN OLUMIDE</strong>. For secure access, you must change the temporary password <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded font-bold text-brand-orange">promise</span> before entering the dashboard workspace.
+        </p>
+        <form id="admin-force-password-form" class="flex flex-col gap-3 mt-2 text-left">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase">New Security Password *</label>
+            <input type="password" id="admin-new-pass" required placeholder="Minimum 6 characters" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase">Confirm Password *</label>
+            <input type="password" id="admin-confirm-pass" required placeholder="Repeat new password" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+          <button type="submit" id="admin-force-password-btn" class="w-full bg-[#f68b1e] hover:bg-[#e07a1b] text-white py-2.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 mt-2">
+            Change Password & Continue
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function getInlineEditProductFormHtml(prod = null) {
+  const isEdit = !!prod;
+  const categories = getMockCategories() || [];
+  
+  const options = categories.map(c => `
+    <option value="${c.id}" ${isEdit && prod.category === c.id ? 'selected' : ''}>${c.name}</option>
+  `).join('');
+
+  return `
+    <form id="admin-edit-product-form" class="bg-white border-2 border-[#0f1e36] rounded-xl p-5 flex flex-col gap-4 shadow-md mb-5 animate-in slide-in-from-top duration-300 text-left">
+      <div class="flex items-center justify-between border-b pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="${isEdit ? 'edit-3' : 'plus-circle'}" class="w-4.5 h-4.5 text-brand-orange"></i>
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider">${isEdit ? `Modify Product Details: ${prod.name}` : 'Add New Catalog Product'}</h4>
+        </div>
+        <button type="button" id="admin-edit-product-cancel-btn" class="text-slate-400 hover:text-slate-600 bg-transparent border-0 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Name *</label>
+          <input type="text" id="edit-prod-name" required value="${isEdit ? prod.name : ''}" placeholder="e.g., Luxury Briefcase XL" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product ID (ReadOnly on Edit) *</label>
+          <input type="text" id="edit-prod-id" ${isEdit ? 'readonly' : ''} required value="${isEdit ? prod.id : ''}" placeholder="e.g., luxury-briefcase-xl" class="w-full px-3 py-2 ${isEdit ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'} border border-slate-200 rounded-lg text-xs font-mono focus:outline-none">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category *</label>
+          <select id="edit-prod-category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+            ${options}
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price (₦) *</label>
+          <input type="number" id="edit-prod-price" required value="${isEdit ? prod.price : ''}" placeholder="e.g., 45000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Description *</label>
+        <textarea id="edit-prod-description" required rows="3" placeholder="Handcrafted with vegetable-tanned leather..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">${isEdit ? (prod.description || '') : ''}</textarea>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image ${isEdit ? '(Optional replacement)' : '(Required Upload)'}</label>
+        <div id="edit-image-drag-drop-zone" class="border border-dashed border-slate-200 rounded-xl p-4 text-center flex flex-col items-center justify-center gap-1 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
+          <i data-lucide="image" class="w-6 h-6 text-slate-400"></i>
+          <span class="text-[10px] font-bold text-slate-600">Click to browse or drop product image</span>
+          <input type="file" id="edit-prod-image-file" accept="image/*" class="hidden">
+        </div>
+        <div id="edit-image-preview-container" class="${isEdit ? 'flex' : 'hidden'} items-center gap-3 bg-slate-50 border p-2 rounded-lg">
+          <img id="edit-image-preview-img" src="${isEdit ? prod.image : ''}" class="w-10 h-10 object-cover rounded border bg-white">
+          <div class="flex-1 min-w-0">
+            <p id="edit-image-preview-filename" class="text-[10px] font-bold text-slate-800 truncate">${isEdit ? 'Current Image' : 'Selected Image'}</p>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="admin-edit-product-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-xl text-xs font-bold transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 border-0 shadow-sm">
+        <i data-lucide="check" class="w-4 h-4"></i> ${isEdit ? 'Save Modifications' : 'Register New Product'}
+      </button>
+    </form>
+  `;
+}
+
+function getInlineCategoryFormHtml(cat = null) {
+  const isEdit = !!cat;
+  return `
+    <form id="admin-category-form" class="bg-white border-2 border-[#0f1e36] rounded-xl p-5 flex flex-col gap-4 shadow-md mb-5 animate-in slide-in-from-top duration-300 text-left">
+      <div class="flex items-center justify-between border-b pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="${isEdit ? 'edit-3' : 'plus-circle'}" class="w-4.5 h-4.5 text-brand-orange"></i>
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider">${isEdit ? 'Modify Category' : 'Create Custom Category'}</h4>
+        </div>
+        <button type="button" id="admin-category-form-close-btn" class="text-slate-400 hover:text-slate-600 bg-transparent border-0 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Slug ID *</label>
+          <input type="text" id="cat-slug" required ${isEdit ? 'readonly bg-slate-100 text-slate-500' : 'bg-slate-50'} value="${isEdit ? cat.id : ''}" placeholder="e.g., luxury-briefcases" class="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Display Name *</label>
+          <input type="text" id="cat-name" required value="${isEdit ? cat.name : ''}" placeholder="e.g., Luxury Briefcases" class="w-full px-3 py-2 bg-slate-50 border rounded-lg text-xs focus:outline-none">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Display Banner Image</label>
+        <div id="cat-image-zone" class="border border-dashed border-slate-200 rounded-xl p-4 text-center flex flex-col items-center justify-center gap-1 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
+          <i data-lucide="image" class="w-6 h-6 text-slate-400"></i>
+          <span class="text-[10px] font-bold text-slate-600">Click to browse or drop banner image</span>
+          <input type="file" id="cat-image-file" accept="image/*" class="hidden">
+        </div>
+        <div id="cat-preview-container" class="mt-2 ${isEdit ? 'flex' : 'hidden'} items-center gap-3 bg-slate-50 border p-2 rounded-lg">
+          <img id="cat-preview-img" src="${isEdit ? cat.image : ''}" class="w-12 h-8 object-cover rounded border bg-white">
+          <div class="flex-1 min-w-0">
+            <p id="cat-preview-filename" class="text-[10px] font-bold text-slate-800 truncate">${isEdit ? 'Existing Banner' : 'Selected Banner'}</p>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="admin-category-save-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-xl text-xs font-bold transition-colors uppercase cursor-pointer border-0 shadow-sm flex items-center justify-center gap-1.5">
+        <i data-lucide="check" class="w-4 h-4"></i> ${isEdit ? 'Update Category' : 'Register Category'}
+      </button>
+    </form>
+  `;
+}
+
 function getAdminConsoleViewHtml() {
-  const orders = getMockOrders();
-  
-  let mainContentHTML = '';
-  
-  if (adminSubTab === 'verify-payments') {
+  const user = getMockCurrentUser();
+  if (user && user.needsPasswordChange) {
+    return getForceChangePasswordHtml();
+  }
+
+  const orders = getMockOrders() || [];
+  const products = getMockProducts() || [];
+  const categories = getMockCategories() || [];
+
+  const adminTabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'home' },
+    { id: 'products', label: 'Products', icon: 'package' },
+    { id: 'categories', label: 'Categories', icon: 'folder' },
+    { id: 'orders', label: 'Orders', icon: 'shopping-cart' },
+    { id: 'customers', label: 'Customers', icon: 'users' },
+    { id: 'payments', label: 'Payments', icon: 'credit-card' },
+    { id: 'flash-sales', label: 'Flash Sales', icon: 'zap' },
+    { id: 'new-arrivals', label: 'New Arrivals', icon: 'sparkles' },
+    { id: 'featured-products', label: 'Featured', icon: 'star' },
+    { id: 'banner-manager', label: 'Banners', icon: 'image' },
+    { id: 'analytics', label: 'Analytics', icon: 'bar-chart-2' },
+    { id: 'settings', label: 'Settings', icon: 'settings' }
+  ];
+
+  const subNavHTML = `
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-5 border-b border-slate-100 scrollbar-none">
+      ${adminTabs.map(t => {
+        const active = adminActiveSection === t.id;
+        return `
+          <button data-section="${t.id}" class="admin-section-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-all border-0 ${
+            active ? 'bg-[#0f1e36] text-white shadow-xs' : 'bg-slate-50 hover:bg-slate-100 text-slate-500'
+          }">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+            <span>${t.label}</span>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  let contentHTML = '';
+
+  if (adminActiveSection === 'dashboard') {
+    const paidOrders = orders.filter(o => o.paymentStatus === 'Approved' || o.status === 'Paid Successfully' || o.status === 'completed' || o.status === 'Verified Dispatch');
+    const totalRev = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const lowStock = products.filter(p => (p.stock ?? 0) <= 3);
+    const activeCustomersCount = localStorage.getItem('gr_last_customers_count') || 12;
+
+    contentHTML = `
+      <div class="flex flex-col gap-5 text-left animate-in fade-in duration-300">
+        <div class="bg-[#0f1e36] text-white p-4 rounded-xl border border-slate-800 text-xs shadow-md">
+          <div class="flex items-center gap-2 text-brand-orange mb-1">
+            <i data-lucide="shield" class="w-4.5 h-4.5"></i>
+            <h4 class="font-extrabold uppercase tracking-wider text-[11px]">CEO Control Panel</h4>
+          </div>
+          <p class="text-slate-300 font-light leading-relaxed">
+            Welcome back, <strong class="text-white font-bold">OYEWOLE TOSIN OLUMIDE</strong>. You are securely connected to the live Gold & Rock leather database.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="bg-slate-50/50 border border-slate-100 p-3.5 rounded-xl flex flex-col gap-1">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Sales</span>
+            <span class="text-slate-900 font-extrabold text-xs font-mono">₦${totalRev.toLocaleString()}</span>
+          </div>
+          <div class="bg-slate-50/50 border border-slate-100 p-3.5 rounded-xl flex flex-col gap-1">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Orders</span>
+            <span class="text-slate-900 font-extrabold text-xs font-mono">${orders.length}</span>
+          </div>
+          <div class="bg-slate-50/50 border border-slate-100 p-3.5 rounded-xl flex flex-col gap-1">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Subscribed</span>
+            <span class="text-slate-900 font-extrabold text-xs font-mono">${activeCustomersCount}</span>
+          </div>
+          <div class="bg-amber-50 border border-amber-100 p-3.5 rounded-xl flex flex-col gap-1">
+            <span class="text-[9px] text-amber-500 font-bold uppercase tracking-wider block">Low Stock Alerts</span>
+            <span class="text-amber-700 font-extrabold text-xs font-mono">${lowStock.length}</span>
+          </div>
+        </div>
+
+        ${lowStock.length > 0 ? `
+          <div class="border border-amber-200 bg-amber-50/40 rounded-xl p-3 text-xs flex flex-col gap-2">
+            <span class="font-bold text-amber-800 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Stock Refill Required</span>
+            <div class="grid grid-cols-1 gap-2">
+              ${lowStock.map(p => `
+                <div class="flex items-center justify-between text-[11px] bg-white border border-amber-100 p-2 rounded-lg">
+                  <span class="font-semibold text-slate-700">${p.name} (Stock Left: <strong class="text-red-500 font-bold">${p.stock || 0}</strong>)</span>
+                  <div class="flex items-center gap-1.5">
+                    <input type="number" id="quick-stock-${p.id}" value="${p.stock || 0}" class="w-12 px-1.5 py-1 text-center border rounded font-mono text-[10px]">
+                    <button data-id="${p.id}" class="quick-stock-update-btn bg-brand-orange hover:bg-[#e07a1b] text-white font-bold px-2 py-1 rounded text-[9px] border-0 cursor-pointer">Refill</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="border border-slate-200 rounded-xl p-3.5">
+          <h4 class="font-sans font-bold text-slate-800 text-[10px] uppercase tracking-wider mb-2 border-b pb-1.5">
+            Recent Orders Log
+          </h4>
+          <div class="flex flex-col">
+            ${orders.length === 0 ? `
+              <div class="text-center py-6 text-slate-400 text-xs italic">No orders received yet.</div>
+            ` : orders.slice(0, 5).map(ord => `
+              <div class="flex items-center justify-between gap-4 p-2 border-b border-slate-100 last:border-b-0 text-[11px]">
+                <div class="flex flex-col">
+                  <span class="font-mono font-bold text-slate-900">${ord.id}</span>
+                  <span class="text-[9px] text-slate-400 mt-0.5">${ord.shippingDetails.fullName}</span>
+                </div>
+                <div class="flex flex-col items-end">
+                  <span class="font-mono font-extrabold text-[#0f1e36]">₦${ord.total.toLocaleString()}</span>
+                  <span class="text-[8px] font-bold uppercase mt-0.5 px-1.5 py-0.5 rounded ${
+                    ord.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                    ord.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' :
+                    ord.status === 'Shipped' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                  }">
+                    ${ord.status}
+                  </span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'products') {
+    let productRows = products.map((p, idx) => `
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
+        <td class="py-2.5 px-2 font-mono font-bold">${p.id}</td>
+        <td class="py-2.5 px-2">
+          <div class="flex items-center gap-2">
+            <img src="${p.image}" class="w-8 h-8 object-cover rounded border bg-slate-50">
+            <span class="font-semibold text-slate-950">${p.name}</span>
+          </div>
+        </td>
+        <td class="py-2.5 px-2 text-slate-500 uppercase text-[10px] font-bold">${p.category}</td>
+        <td class="py-2.5 px-2">
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="prod-price-input-${p.id}" value="${p.price}" class="w-16 px-1.5 py-0.5 border rounded font-mono text-center">
+            <button data-id="${p.id}" class="prod-price-update-btn text-brand-orange hover:underline font-bold bg-transparent border-0 cursor-pointer">Save</button>
+          </div>
+        </td>
+        <td class="py-2.5 px-2">
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="prod-stock-input-${p.id}" value="${p.stock ?? 10}" class="w-12 px-1 py-0.5 border rounded font-mono text-center">
+            <button data-id="${p.id}" class="prod-stock-update-btn text-brand-orange hover:underline font-bold bg-transparent border-0 cursor-pointer">Refill</button>
+          </div>
+        </td>
+        <td class="py-2.5 px-2">
+          <button data-id="${p.id}" class="prod-status-toggle-btn px-2 py-0.5 font-bold uppercase rounded text-[9px] border-0 cursor-pointer ${
+            p.enabled !== false ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+          }">
+            ${p.enabled !== false ? 'Enabled' : 'Disabled'}
+          </button>
+        </td>
+        <td class="py-2.5 px-2 text-right">
+          <div class="flex items-center justify-end gap-2">
+            <button data-id="${p.id}" class="prod-edit-trigger-btn text-slate-500 hover:text-blue-600 bg-transparent border-0 cursor-pointer p-1" title="Edit Product details">
+              <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+            <button data-id="${p.id}" class="prod-delete-trigger-btn text-slate-400 hover:text-red-500 bg-transparent border-0 cursor-pointer p-1" title="Delete Product">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="package" class="w-4.5 h-4.5 text-brand-orange"></i> Catalog Products (${products.length})
+          </h4>
+          <button id="admin-add-prod-btn" class="bg-[#0f1e36] hover:bg-[#1c355c] text-white font-bold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide border-0 shadow-xs">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add New Product
+          </button>
+        </div>
+
+        <div id="admin-product-crud-form-container" class="hidden"></div>
+
+        <div class="overflow-x-auto border rounded-xl bg-white max-h-[500px]">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-2.5 px-2 w-16">ID</th>
+                <th class="py-2.5 px-2">Name</th>
+                <th class="py-2.5 px-2 w-24">Category</th>
+                <th class="py-2.5 px-2 w-28">Price (₦)</th>
+                <th class="py-2.5 px-2 w-24">Stock</th>
+                <th class="py-2.5 px-2 w-24">Status</th>
+                <th class="py-2.5 px-2 w-16 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productRows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'categories') {
+    let categoryRows = categories.map((c, idx) => `
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
+        <td class="py-3 px-2 font-mono font-bold">${c.id}</td>
+        <td class="py-3 px-2">
+          <div class="flex items-center gap-2">
+            <img src="${c.image}" class="w-8 h-8 object-cover rounded border bg-slate-50">
+            <span class="font-bold text-slate-900">${c.name}</span>
+          </div>
+        </td>
+        <td class="py-3 px-2 font-mono text-slate-500 font-bold">${c.orderIndex || 0}</td>
+        <td class="py-3 px-2">
+          <div class="flex items-center gap-1">
+            <button data-idx="${idx}" class="cat-move-up-btn bg-slate-100 hover:bg-slate-200 text-slate-700 p-1 rounded border-0 cursor-pointer disabled:opacity-30" ${idx === 0 ? 'disabled' : ''}>
+              <i data-lucide="arrow-up" class="w-3 h-3"></i>
+            </button>
+            <button data-idx="${idx}" class="cat-move-down-btn bg-slate-100 hover:bg-slate-200 text-slate-700 p-1 rounded border-0 cursor-pointer disabled:opacity-30" ${idx === categories.length - 1 ? 'disabled' : ''}>
+              <i data-lucide="arrow-down" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </td>
+        <td class="py-3 px-2 text-right">
+          <div class="flex items-center justify-end gap-2">
+            <button data-id="${c.id}" class="cat-edit-trigger-btn text-slate-500 hover:text-blue-600 bg-transparent border-0 cursor-pointer p-1">
+              <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+            <button data-id="${c.id}" class="cat-delete-trigger-btn text-slate-400 hover:text-red-500 bg-transparent border-0 cursor-pointer p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="folder" class="w-4.5 h-4.5 text-brand-orange"></i> Category Manager (${categories.length})
+          </h4>
+          <button id="admin-add-cat-btn" class="bg-[#0f1e36] hover:bg-[#1c355c] text-white font-bold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide border-0 shadow-xs">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Category
+          </button>
+        </div>
+
+        <div id="admin-category-form-container" class="hidden"></div>
+
+        <div class="overflow-x-auto border rounded-xl bg-white">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-2.5 px-2">Slug ID</th>
+                <th class="py-2.5 px-2">Category Name</th>
+                <th class="py-2.5 px-2">Index</th>
+                <th class="py-2.5 px-2 w-20">Rank</th>
+                <th class="py-2.5 px-2 w-16 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${categories.length === 0 ? '<tr><td colspan="5" class="py-10 text-center text-slate-400 italic">No custom categories.</td></tr>' : categoryRows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'orders') {
     let ordersListHTML = '';
     if (orders.length === 0) {
       ordersListHTML = `
         <div class="text-center py-10 bg-slate-50 border border-dashed rounded-2xl p-6">
           <p class="text-slate-400 text-xs italic">No orders logged in system database yet.</p>
-          <p class="text-slate-400 text-[10px] mt-1">Place some handcrafted leather orders in the checkout first!</p>
         </div>
       `;
     } else {
       ordersListHTML = orders.map(ord => {
-        const isPending = ord.status === 'Pending Payment Verification' || ord.status === 'pending';
-        const isPaid = ord.status === 'Paid Successfully';
-        const isCompleted = ord.status === 'completed' || ord.status === 'Verified Dispatch';
-        
         let itemsList = ord.items.map(item => `
           <div class="flex justify-between text-[11px] text-slate-600 font-mono">
             <span>${item.product.name} (Qty: ${item.quantity})</span>
             <span>₦${(item.product.price * item.quantity).toLocaleString()}</span>
           </div>
         `).join('');
-        
+
+        const statusOptions = ["pending", "Processing", "Packaging", "Shipped", "Delivered", "Cancelled"].map(st => `
+          <option value="${st}" ${ord.status === st ? 'selected' : ''}>${st === 'pending' ? 'Pending Verification' : st}</option>
+        `).join('');
+
+        const waLink = generateWhatsAppOrderLink(ord);
+
         return `
           <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 shadow-xs">
             <div class="flex justify-between items-start border-b border-slate-100 pb-2">
               <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Order ID</span>
                 <span class="font-mono font-bold text-xs text-[#0f1e36]">${ord.id}</span>
               </div>
               <div class="text-right">
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
-                <span class="font-semibold text-xs text-slate-800">${ord.shippingDetails.fullName}</span>
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Customer Details</span>
+                <span class="font-semibold text-xs text-slate-800 block">${ord.shippingDetails.fullName}</span>
+                <span class="text-[9px] text-slate-500 font-mono">${ord.shippingDetails.phoneNumber}</span>
               </div>
             </div>
-            
+
             <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2">
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Items</span>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">Items List</span>
               ${itemsList}
               <div class="flex justify-between font-bold text-xs mt-1 text-slate-800">
-                <span>Total Payment:</span>
-                <span class="text-brand-orange font-mono">₦${ord.total.toLocaleString()}</span>
+                <span>Payment:</span>
+                <span class="text-brand-orange font-mono">₦${ord.total.toLocaleString()} (${ord.paymentMethod === 'cash_on_delivery' ? 'COD' : 'Bank Transfer'})</span>
               </div>
             </div>
-            
+
             <div class="flex justify-between items-center">
-              <div>
-                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Current Status</span>
-                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                  isPaid 
-                    ? 'bg-emerald-100 text-emerald-800' 
-                    : isCompleted 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-amber-100 text-amber-800'
-                }">
-                  ${ord.status === 'pending' ? 'Pending Payment Verification' : ord.status}
-                </span>
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Modifier</span>
+                <select data-id="${ord.id}" class="order-status-change-select px-2 py-1 text-xs border rounded bg-slate-50">
+                  ${statusOptions}
+                </select>
               </div>
-              
-              <div>
-                ${isPending ? `
-                  <button data-order-id="${ord.id}" class="admin-approve-btn bg-[#f68b1e] hover:bg-[#e07a1b] text-white font-extrabold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide shadow-xs border-0">
-                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Approve Payment
-                  </button>
-                ` : `
-                  <div class="flex items-center gap-1 text-emerald-600 font-extrabold text-[10px] uppercase">
-                    <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-500"></i>
-                    <span>Paid & Approved</span>
-                  </div>
-                `}
-              </div>
+
+              <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-[9px] px-3 py-1.5 rounded-lg flex items-center gap-1 uppercase no-underline">
+                <i data-lucide="message-square" class="w-3 h-3 fill-white"></i> WhatsApp Alert
+              </a>
             </div>
           </div>
         `;
       }).join('<div class="h-4"></div>');
     }
-    
-    mainContentHTML = `
-      <div class="flex flex-col gap-4">
-        ${ordersListHTML}
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="shopping-cart" class="w-4.5 h-4.5 text-brand-orange"></i> Live Customer Orders (${orders.length})
+        </h4>
+        <div class="flex flex-col gap-3">
+          ${ordersListHTML}
+        </div>
       </div>
     `;
-  } else if (adminSubTab === 'upload-product') {
-    mainContentHTML = `
-      <form id="admin-add-product-form" class="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-xs">
-        <div class="flex items-center gap-2 border-b pb-2 mb-2">
-          <i data-lucide="plus-circle" class="w-4 h-4 text-[#f68b1e]"></i>
-          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider">Add New Product Catalog</h4>
-        </div>
+  }
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Name *</label>
-            <input type="text" id="prod-name" required placeholder="Gold & Rock Vintage Briefcase" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product ID *</label>
-            <input type="text" id="prod-id" required placeholder="gr-${Date.now().toString().slice(-4)}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+  else if (adminActiveSection === 'customers') {
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="users" class="w-4.5 h-4.5 text-brand-orange"></i> Customer Database Accounts
+        </h4>
+        <div class="overflow-x-auto border rounded-xl bg-white">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-2.5 px-3">Name</th>
+                <th class="py-2.5 px-3">Contact</th>
+                <th class="py-2.5 px-3">Default Location</th>
+                <th class="py-2.5 px-3 text-right">Spent (₦)</th>
+              </tr>
+            </thead>
+            <tbody id="admin-customers-table-body">
+              <tr>
+                <td colspan="4" class="py-8 text-center text-slate-400 text-xs italic">
+                  <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-brand-orange" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span>Loading Live Accounts...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    setTimeout(async () => {
+      const customers = await window.getCustomersList();
+      const body = document.getElementById('admin-customers-table-body');
+      if (body) {
+        localStorage.setItem('gr_last_customers_count', customers.length);
+        if (customers.length === 0) {
+          body.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-slate-400 italic">No active customer accounts registered yet.</td></tr>';
+        } else {
+          body.innerHTML = customers.map(c => {
+            const customerOrders = orders.filter(o => o.userId === c.uid);
+            const spent = customerOrders.filter(o => o.paymentStatus === 'Approved' || o.status === 'Paid Successfully' || o.status === 'completed' || o.status === 'Verified Dispatch').reduce((sum, o) => sum + (o.total || 0), 0);
+            return `
+              <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
+                <td class="py-3 px-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-[#0f1e36] text-white rounded-full flex items-center justify-center font-bold text-[10px] uppercase">${c.fullName ? c.fullName.charAt(0) : 'U'}</div>
+                    <span class="font-bold text-slate-950 block">${c.fullName || 'Anonymous'}</span>
+                  </div>
+                </td>
+                <td class="py-3 px-3">
+                  <p class="font-medium">${c.email}</p>
+                  <p class="font-mono text-[10px] text-slate-400">${c.phoneNumber || 'N/A'}</p>
+                </td>
+                <td class="py-3 px-3 text-slate-500">${c.address || 'Kwara'}, ${c.city || 'Ilorin'}, ${c.state || 'Kwara State'}</td>
+                <td class="py-3 px-3 text-right font-mono font-bold text-slate-900">₦${spent.toLocaleString()}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }, 200);
+  }
+
+  else if (adminActiveSection === 'payments') {
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="credit-card" class="w-4.5 h-4.5 text-brand-orange"></i> Payments Verification Desk
+        </h4>
+        <div class="overflow-x-auto border rounded-xl bg-white">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-2.5 px-3">Order ID</th>
+                <th class="py-2.5 px-3">Amount</th>
+                <th class="py-2.5 px-3">Verification State</th>
+                <th class="py-2.5 px-3 text-right">Verification Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-payments-table-body">
+              <tr>
+                <td colspan="4" class="py-8 text-center text-slate-400 text-xs italic">
+                  <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-brand-orange" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span>Loading Transaction Audits...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    setTimeout(async () => {
+      const payments = await window.getAllPaymentsList();
+      const body = document.getElementById('admin-payments-table-body');
+      if (body) {
+        if (payments.length === 0) {
+          body.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-slate-400 italic">No bank transfer logs found in Firestore.</td></tr>';
+        } else {
+          body.innerHTML = payments.map(p => {
+            const isPending = p.status === 'Pending';
+            return `
+              <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
+                <td class="py-3 px-3 font-mono font-bold">${p.orderId}</td>
+                <td class="py-3 px-3 font-mono font-extrabold text-[#0f1e36]">₦${p.amount.toLocaleString()}</td>
+                <td class="py-3 px-3">
+                  <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${
+                    p.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
+                    p.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                  }">
+                    ${p.status}
+                  </span>
+                </td>
+                <td class="py-3 px-3 text-right">
+                  ${isPending ? `
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button data-id="${p.orderId}" class="payment-verify-approve-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] px-2.5 py-1.5 rounded border-0 cursor-pointer shadow-xs">Approve</button>
+                      <button data-id="${p.orderId}" class="payment-verify-reject-btn bg-red-500 hover:bg-red-600 text-white font-bold text-[9px] px-2.5 py-1.5 rounded border-0 cursor-pointer shadow-xs">Reject</button>
+                    </div>
+                  ` : `
+                    <span class="text-[9px] text-slate-400 italic">Audit Log Locked</span>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }, 200);
+  }
+
+  else if (adminActiveSection === 'flash-sales') {
+    let rowHtml = products.map(p => `
+      <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <img src="${p.image}" class="w-8 h-8 object-cover rounded border">
+          <div class="flex flex-col">
+            <span class="font-bold text-slate-900">${p.name}</span>
+            <span class="text-[9px] text-slate-400 font-mono">Price: ₦${p.price.toLocaleString()}</span>
           </div>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category *</label>
-            <select id="prod-category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
-              <option value="school-bags">School Bags</option>
-              <option value="ladies-hand-bags">Ladies Hand Bags</option>
-              <option value="laptop-bags">Laptop Bags</option>
-              <option value="lunch-bags">Lunch Bags</option>
-              <option value="office-bags">Office Bags</option>
-              <option value="mens-purses">Men's Purse</option>
-              <option value="travelling-bags">Travelling Bags</option>
-              <option value="accessories">Accessories</option>
-            </select>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price (₦) *</label>
-            <input type="number" id="prod-price" required placeholder="15000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Description *</label>
-          <textarea id="prod-description" required rows="3" placeholder="Handcrafted from full-grain vegetable-tanned leather..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange"></textarea>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image (Upload to Storage) *</label>
-          <div id="image-drag-drop-zone" class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
-            <i data-lucide="image" class="w-8 h-8 text-slate-400"></i>
-            <span class="text-[11px] font-bold text-slate-600">Drag & drop product image or click to browse</span>
-            <span class="text-[9px] text-slate-400 font-light">Supports JPEG, PNG, WEBP</span>
-            <input type="file" id="prod-image-file" accept="image/*" class="hidden">
-          </div>
-          
-          <div id="image-preview-container" class="hidden mt-2 flex items-center gap-3 bg-slate-50 border p-2.5 rounded-lg">
-            <img id="image-preview-img" src="" class="w-12 h-12 object-cover rounded border bg-white">
-            <div class="flex-1 min-w-0">
-              <p id="image-preview-filename" class="text-[11px] font-bold text-slate-800 truncate"></p>
-              <p id="image-preview-size" class="text-[9px] text-slate-400"></p>
-            </div>
-            <button type="button" id="image-preview-remove" class="p-1 hover:bg-slate-200 rounded-full text-slate-500 hover:text-red-500 border-0 bg-transparent cursor-pointer">
-              <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" id="admin-add-product-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-xl text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 shadow-sm border-0">
-          <i data-lucide="plus" class="w-4 h-4"></i> Add Product Catalog
+        <button data-id="${p.id}" class="flash-sale-toggle-btn px-3 py-1.5 font-bold uppercase rounded text-[10px] border-0 cursor-pointer ${
+          p.isFlashSale ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+        }">
+          ${p.isFlashSale ? '★ Active Sale' : 'Add to Flash'}
         </button>
-      </form>
+      </div>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="zap" class="w-4.5 h-4.5 text-brand-orange animate-pulse"></i> Flash Sales Manager
+        </h4>
+        <p class="text-[10px] text-slate-500">Products placed on Flash Sale will have countdown indicators and discount price displays on the homepage.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+          ${rowHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'new-arrivals') {
+    let rowHtml = products.map(p => `
+      <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <img src="${p.image}" class="w-8 h-8 object-cover rounded border">
+          <span class="font-bold text-slate-900">${p.name}</span>
+        </div>
+        <button data-id="${p.id}" class="new-arrival-toggle-btn px-3 py-1.5 font-bold uppercase rounded text-[10px] border-0 cursor-pointer ${
+          p.isNew ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+        }">
+          ${p.isNew ? '★ New Arrival' : 'Mark New'}
+        </button>
+      </div>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="sparkles" class="w-4.5 h-4.5 text-brand-orange"></i> New Arrivals Manager
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+          ${rowHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'featured-products') {
+    let rowHtml = products.map(p => `
+      <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <img src="${p.image}" class="w-8 h-8 object-cover rounded border">
+          <span class="font-bold text-slate-900">${p.name}</span>
+        </div>
+        <button data-id="${p.id}" class="featured-toggle-btn px-3 py-1.5 font-bold uppercase rounded text-[10px] border-0 cursor-pointer ${
+          p.isFeatured ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+        }">
+          ${p.isFeatured ? '★ Featured' : 'Mark Featured'}
+        </button>
+      </div>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="star" class="w-4.5 h-4.5 text-brand-orange"></i> Featured Products Selector
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+          ${rowHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'banner-manager') {
+    const currentSlides = SLIDES || [];
+    let listHTML = currentSlides.map((s, idx) => `
+      <div class="border border-slate-200 bg-white p-3 rounded-xl flex flex-col gap-2 shadow-xs text-xs mb-3">
+        <div class="flex items-center gap-3">
+          <img src="${s.image}" class="w-16 h-12 object-cover rounded border bg-slate-50">
+          <div class="flex-1 min-w-0">
+            <span class="text-[9px] uppercase font-bold text-brand-orange tracking-wider block">${s.accent || 'SLIDE ACCENT'}</span>
+            <span class="font-bold text-slate-950 block truncate">${s.title}</span>
+            <span class="text-[10px] text-slate-400 block truncate">${s.subtitle}</span>
+          </div>
+        </div>
+        <div class="flex justify-between items-center border-t pt-2 mt-1">
+          <span class="text-[9px] font-mono text-slate-400">Target: ${s.ctaUrl || 'None'}</span>
+          <button data-idx="${idx}" class="banner-delete-btn text-red-500 hover:bg-red-50 p-1 rounded border-0 bg-transparent cursor-pointer">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="image" class="w-4.5 h-4.5 text-brand-orange"></i> Homepage Banner Slider
+          </h4>
+          <button id="admin-add-banner-btn" class="bg-[#0f1e36] hover:bg-[#1c355c] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg border-0 cursor-pointer uppercase tracking-wide shadow-xs">Add New Slide</button>
+        </div>
+
+        <div id="admin-banner-form-container" class="hidden bg-slate-50 border p-4 rounded-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b pb-1.5 mb-1.5">
+            <span class="font-bold text-[10px] uppercase text-slate-700">Configure Slide Details</span>
+            <button id="admin-banner-form-close-btn" type="button" class="text-slate-400 hover:text-slate-600 bg-transparent border-0 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <form id="admin-banner-add-form" class="flex flex-col gap-2.5">
+            <div class="flex flex-col gap-1">
+              <label class="text-[9px] font-bold text-slate-400 uppercase">Image URL *</label>
+              <input type="url" id="slide-image-url" required placeholder="https://images.unsplash.com/..." class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex flex-col gap-1">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">Accent Tagline</label>
+                <input type="text" id="slide-accent" placeholder="GOLD & ROCK EXCLUSIVE" class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">Slide Heading Title *</label>
+                <input type="text" id="slide-title" required placeholder="Custom Briefcases" class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[9px] font-bold text-slate-400 uppercase">Slide Paragraph Subtitle *</label>
+              <input type="text" id="slide-subtitle" required placeholder="Nigeria's best premium full-grain leather designs..." class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex flex-col gap-1">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">CTA Button Text</label>
+                <input type="text" id="slide-cta-text" placeholder="Shop Now" class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">CTA Link (HTML File) *</label>
+                <input type="text" id="slide-cta-url" required placeholder="categories.html" class="w-full px-2.5 py-1.5 text-xs bg-white border rounded-lg focus:outline-none focus:border-brand-orange">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white py-2 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 mt-2 shadow-xs">Insert Slide</button>
+          </form>
+        </div>
+
+        <div class="flex flex-col">
+          ${listHTML === '' ? '<p class="text-xs text-slate-400 italic">No slides found in settings.</p>' : listHTML}
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'analytics') {
+    const totalRevenueSum = orders.filter(o => o.paymentStatus === 'Approved' || o.status === 'Paid Successfully' || o.status === 'completed' || o.status === 'Verified Dispatch').reduce((sum, o) => sum + (o.total || 0), 0);
+    const topSellers = [...products].sort((a,b) => (b.soldCount || 0) - (a.soldCount || 0)).slice(0, 3);
+
+    contentHTML = `
+      <div class="flex flex-col gap-5 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 text-brand-orange"></i> Shop Analytics Intelligence
+        </h4>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Live Revenue Ledger</span>
+          <div class="h-32 flex items-end gap-3.5 border-b border-l border-slate-200 pb-1 pl-1 pt-4 relative">
+            <div class="absolute left-2 top-2 text-[8px] text-slate-400 font-bold uppercase font-mono">Current Peak: ₦${(totalRevenueSum || 500000).toLocaleString()}</div>
+            
+            <div class="flex-1 bg-gradient-to-t from-[#0f1e36]/20 to-[#0f1e36]/80 rounded-t-md h-[40%] flex items-center justify-center relative">
+              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Q1</span>
+            </div>
+            <div class="flex-1 bg-gradient-to-t from-[#0f1e36]/20 to-[#0f1e36]/80 rounded-t-md h-[65%] flex items-center justify-center relative">
+              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Q2</span>
+            </div>
+            <div class="flex-1 bg-gradient-to-t from-orange-200 to-brand-orange rounded-t-md h-[95%] flex items-center justify-center relative">
+              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Live</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="border border-slate-200 rounded-xl p-3.5">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Top Performance Products</span>
+            <div class="flex flex-col gap-2.5">
+              ${topSellers.map(p => `
+                <div class="flex items-center justify-between text-xs p-1">
+                  <div class="flex items-center gap-1.5">
+                    <img src="${p.image}" class="w-7 h-7 object-cover rounded border">
+                    <span class="font-bold text-slate-900">${p.name}</span>
+                  </div>
+                  <span class="font-mono font-extrabold text-brand-orange">${p.soldCount || 0} sold</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl p-3.5">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Order Distribution</span>
+            <div class="flex flex-col gap-2 font-mono text-[10px]">
+              <div class="flex justify-between">
+                <span>Completed / Delivered:</span>
+                <span class="font-bold">${orders.filter(o => o.status === 'Delivered').length}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Handcrafting / Processing:</span>
+                <span class="font-bold">${orders.filter(o => o.status === 'Processing').length}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Shipped / Dispatched:</span>
+                <span class="font-bold">${orders.filter(o => o.status === 'Shipped').length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (adminActiveSection === 'settings') {
+    contentHTML = `
+      <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
+          <i data-lucide="settings" class="w-4.5 h-4.5 text-brand-orange"></i> Security Settings & Account Profile
+        </h4>
+
+        <div class="bg-slate-50 border p-4 rounded-xl flex items-center gap-3">
+          <img src="${user.profilePicture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'}" class="w-12 h-12 object-cover rounded-full border">
+          <div class="flex flex-col">
+            <span class="font-extrabold text-slate-900 text-sm">OYEWOLE TOSIN OLUMIDE</span>
+            <span class="text-[10px] text-slate-400 font-mono">live_database_admin | Kwara State</span>
+          </div>
+        </div>
+
+        <form id="admin-settings-password-form" class="bg-white border p-4 rounded-xl flex flex-col gap-3 shadow-xs">
+          <span class="font-sans font-bold text-[#0f1e36] text-[11px] uppercase tracking-wide border-b pb-1">Reset Console Admin Password</span>
+          <div class="flex flex-col gap-1">
+            <label class="text-[9px] font-bold text-slate-400 uppercase">New Master Password</label>
+            <input type="password" id="admin-settings-new-pass" required placeholder="Minimum 6 characters" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+          <button type="submit" id="admin-settings-password-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a345a] text-white py-2 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 mt-1 shadow-sm">Update Console Security Password</button>
+        </form>
+      </div>
     `;
   }
 
   return `
     <div class="animate-in fade-in duration-300">
-      <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-5">
-        <i data-lucide="shield-check" class="w-4 h-4 text-brand-orange"></i>
-        Administrator Verification Hub
-      </h3>
-      
-      <!-- Hub Description -->
-      <div class="bg-[#0f1e36] text-white p-4 rounded-xl border border-slate-800 text-xs mb-5 shadow-md flex flex-col gap-2">
-        <div class="flex items-center gap-2 text-brand-orange">
-          <i data-lucide="shield" class="w-4.5 h-4.5"></i>
-          <h4 class="font-extrabold uppercase tracking-wider text-[11px]">CEO Admin Controls Hub</h4>
-        </div>
-        <p class="text-slate-300 font-light leading-relaxed">
-          Welcome back, <strong class="text-white font-bold">OYEWOLE TOSIN OLUMIDE</strong>. As the administrator of Gold & Rock Leather Craft, use this panel to inspect incoming bank payments or upload new custom products directly to Firebase.
-        </p>
-      </div>
-
-      <!-- Admin Mini Tabs -->
-      <div class="flex border-b border-slate-200 mb-5 text-center">
-        <button id="admin-tab-verify" class="flex-1 py-2.5 font-bold text-[10px] tracking-wider uppercase cursor-pointer transition-colors border-b-2 ${adminSubTab === 'verify-payments' ? 'text-brand-orange bg-slate-50 border-brand-orange' : 'text-slate-400 border-transparent hover:text-slate-600 bg-transparent'}">
-          Verify Orders
-        </button>
-        <button id="admin-tab-upload" class="flex-1 py-2.5 font-bold text-[10px] tracking-wider uppercase cursor-pointer transition-colors border-b-2 ${adminSubTab === 'upload-product' ? 'text-brand-orange bg-slate-50 border-brand-orange' : 'text-slate-400 border-transparent hover:text-slate-600 bg-transparent'}">
-          Upload New Product
-        </button>
-      </div>
-      
-      ${mainContentHTML}
+      ${subNavHTML}
+      ${contentHTML}
     </div>
   `;
 }
@@ -1068,165 +1788,685 @@ function getSettingsViewHtml(user) {
 }
 
 function setupAccountListeners(user) {
-  // Admin sub-tab toggling
-  const adminTabVerify = document.getElementById('admin-tab-verify');
-  const adminTabUpload = document.getElementById('admin-tab-upload');
-  
-  if (adminTabVerify) {
-    adminTabVerify.addEventListener('click', () => {
-      adminSubTab = 'verify-payments';
+  // 1. Admin Section Tab Clicks (Multi-tab system)
+  document.querySelectorAll('.admin-section-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      adminActiveSection = btn.getAttribute('data-section');
+      adminEditingProduct = null;
+      adminEditingCategory = null;
+      selectedProductImageFile = null;
       renderAccountView();
     });
-  }
-  if (adminTabUpload) {
-    adminTabUpload.addEventListener('click', () => {
-      adminSubTab = 'upload-product';
-      renderAccountView();
+  });
+
+  // 2. Admin Force Change Password Form
+  const forcePasswordForm = document.getElementById('admin-force-password-form');
+  if (forcePasswordForm) {
+    forcePasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPass = document.getElementById('admin-new-pass').value;
+      const confirmPass = document.getElementById('admin-confirm-pass').value;
+      
+      if (newPass !== confirmPass) {
+        showNotification("Passwords do not match.", "danger");
+        return;
+      }
+      if (newPass.length < 6) {
+        showNotification("Password must be at least 6 characters.", "danger");
+        return;
+      }
+      
+      const btn = document.getElementById('admin-force-password-btn');
+      const originalHTML = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Updating security...';
+      }
+      
+      try {
+        await window.adminChangePassword(newPass);
+        showNotification("Security password successfully updated! Welcome to your secure dashboard.", "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+        }
+      }
     });
   }
 
-  // Admin Approve Buttons
-  document.querySelectorAll('.admin-approve-btn').forEach(btn => {
+  // 3. Quick Stock Update Buttons (Dashboard & Products lists)
+  document.querySelectorAll('.quick-stock-update-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const orderId = btn.getAttribute('data-order-id');
-      const originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `
-        <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <span>Verifying...</span>
-      `;
+      const pId = btn.getAttribute('data-id');
+      const input = document.getElementById(`quick-stock-${pId}`);
+      if (!input) return;
+      const val = parseInt(input.value);
+      if (isNaN(val) || val < 0) {
+        showNotification("Please enter a valid stock quantity.", "info");
+        return;
+      }
       
+      btn.disabled = true;
       try {
-        await window.approveOrderPayment(orderId);
-        showNotification(`Order ${orderId} has been marked as Paid Successfully!`, 'success');
+        await window.editProductInCatalog(pId, { stock: val });
+        showNotification("Product stock refilled successfully!", "success");
         renderAccountView();
       } catch (err) {
-        showNotification(err.message, 'danger');
+        showNotification(err.message, "danger");
         btn.disabled = false;
-        btn.innerHTML = originalHTML;
       }
     });
   });
 
-  // Admin Product Creation form & drag-and-drop file handlers
-  const imageZone = document.getElementById('image-drag-drop-zone');
-  const fileInput = document.getElementById('prod-image-file');
-  const previewContainer = document.getElementById('image-preview-container');
-  const previewImg = document.getElementById('image-preview-img');
-  const previewFilename = document.getElementById('image-preview-filename');
-  const previewSize = document.getElementById('image-preview-size');
-  const previewRemove = document.getElementById('image-preview-remove');
-
-  const handleFileSelection = (file) => {
-    if (!file || !file.type.startsWith('image/')) {
-      showNotification('Please select a valid image file (JPEG, PNG, WEBP).', 'info');
-      return;
-    }
-    selectedProductImageFile = file;
-    
-    // Preview the image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (previewImg) previewImg.src = e.target.result;
-      if (previewFilename) previewFilename.textContent = file.name;
-      if (previewSize) previewSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
-      if (previewContainer) previewContainer.classList.remove('hidden');
-      if (imageZone) imageZone.classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  if (imageZone && fileInput) {
-    imageZone.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleFileSelection(e.target.files[0]);
-      }
-    });
-
-    imageZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      imageZone.classList.add('border-brand-orange');
-      imageZone.classList.add('bg-orange-50/10');
-    });
-
-    ['dragleave', 'dragend'].forEach(type => {
-      imageZone.addEventListener(type, () => {
-        imageZone.classList.remove('border-brand-orange');
-        imageZone.classList.remove('bg-orange-50/10');
-      });
-    });
-
-    imageZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      imageZone.classList.remove('border-brand-orange');
-      imageZone.classList.remove('bg-orange-50/10');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelection(e.dataTransfer.files[0]);
-      }
-    });
-  }
-
-  if (previewRemove) {
-    previewRemove.addEventListener('click', () => {
-      selectedProductImageFile = null;
-      if (fileInput) fileInput.value = '';
-      if (previewContainer) previewContainer.classList.add('hidden');
-      if (imageZone) imageZone.classList.remove('hidden');
-    });
-  }
-
-  const addProductForm = document.getElementById('admin-add-product-form');
-  if (addProductForm) {
-    addProductForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      if (!selectedProductImageFile) {
-        showNotification('Please select or upload a product image first.', 'info');
+  document.querySelectorAll('.prod-stock-update-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const input = document.getElementById(`prod-stock-input-${pId}`);
+      if (!input) return;
+      const val = parseInt(input.value);
+      if (isNaN(val) || val < 0) {
+        showNotification("Please enter a valid stock quantity.", "info");
         return;
       }
-
-      const submitBtn = document.getElementById('admin-add-product-btn');
-      const originalHTML = submitBtn ? submitBtn.innerHTML : '';
-
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-          <span>Uploading and Creating...</span>
-        `;
-      }
-
-      const prodData = {
-        id: document.getElementById('prod-id').value.trim(),
-        name: document.getElementById('prod-name').value.trim(),
-        category: document.getElementById('prod-category').value,
-        price: parseFloat(document.getElementById('prod-price').value),
-        description: document.getElementById('prod-description').value.trim(),
-        stock: 10,
-        colors: ["Default Leather", "Classic Black", "Vintage Brown"],
-        image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80" // default placeholder fallback
-      };
-
+      
+      btn.disabled = true;
       try {
-        await window.addProductToCatalog(prodData, selectedProductImageFile);
-        showNotification('Product successfully uploaded and registered in catalog database!', 'success');
-        selectedProductImageFile = null;
-        adminSubTab = 'verify-payments';
+        await window.editProductInCatalog(pId, { stock: val });
+        showNotification("Product stock refilled successfully!", "success");
         renderAccountView();
       } catch (err) {
-        showNotification(err.message || 'Failed to create product.', 'danger');
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalHTML;
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.prod-price-update-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const input = document.getElementById(`prod-price-input-${pId}`);
+      if (!input) return;
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val < 0) {
+        showNotification("Please enter a valid price.", "info");
+        return;
+      }
+      
+      btn.disabled = true;
+      try {
+        await window.editProductInCatalog(pId, { price: val });
+        showNotification("Product price updated successfully!", "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // 4. Product Enabled Toggle Button
+  document.querySelectorAll('.prod-status-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      btn.disabled = true;
+      const newEnabled = p.enabled === false;
+      try {
+        await window.editProductInCatalog(pId, { enabled: newEnabled });
+        showNotification(`Product ${p.name} has been ${newEnabled ? 'enabled' : 'disabled'}!`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // Delete Product Trigger
+  document.querySelectorAll('.prod-delete-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      if (confirm("Are you sure you want to permanently delete this product?")) {
+        try {
+          await window.deleteProductFromCatalog(pId);
+          showNotification("Product deleted from system catalog successfully.", "success");
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
         }
+      }
+    });
+  });
+
+  // Edit Product / Create Product Form Toggle
+  const addProdBtn = document.getElementById('admin-add-prod-btn');
+  if (addProdBtn) {
+    addProdBtn.addEventListener('click', () => {
+      adminEditingProduct = null; // Adding mode
+      selectedProductImageFile = null;
+      const container = document.getElementById('admin-product-crud-form-container');
+      if (container) {
+        container.innerHTML = getInlineEditProductFormHtml(null);
+        container.classList.remove('hidden');
+        setupEditProductFormListeners(false);
+      }
+    });
+  }
+
+  document.querySelectorAll('.prod-edit-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      adminEditingProduct = p; // Editing mode
+      selectedProductImageFile = null;
+      const container = document.getElementById('admin-product-crud-form-container');
+      if (container) {
+        container.innerHTML = getInlineEditProductFormHtml(p);
+        container.classList.remove('hidden');
+        setupEditProductFormListeners(true, p);
+      }
+    });
+  });
+
+  const setupEditProductFormListeners = (isEdit, prod = null) => {
+    const cancelBtn = document.getElementById('admin-edit-product-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        const container = document.getElementById('admin-product-crud-form-container');
+        if (container) container.classList.add('hidden');
+        adminEditingProduct = null;
+        selectedProductImageFile = null;
+      });
+    }
+
+    const editZone = document.getElementById('edit-image-drag-drop-zone');
+    const editFileInput = document.getElementById('edit-prod-image-file');
+    const editPreviewContainer = document.getElementById('edit-image-preview-container');
+    const editPreviewImg = document.getElementById('edit-image-preview-img');
+    const editPreviewFilename = document.getElementById('edit-image-preview-filename');
+
+    const handleEditFileSelection = (file) => {
+      if (!file || !file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file.', 'info');
+        return;
+      }
+      selectedProductImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (editPreviewImg) editPreviewImg.src = e.target.result;
+        if (editPreviewFilename) editPreviewFilename.textContent = file.name;
+        if (editPreviewContainer) editPreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    if (editZone && editFileInput) {
+      editZone.addEventListener('click', () => editFileInput.click());
+      editFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleEditFileSelection(e.target.files[0]);
+        }
+      });
+      editZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editZone.classList.add('border-brand-orange', 'bg-orange-50/10');
+      });
+      ['dragleave', 'dragend'].forEach(type => {
+        editZone.addEventListener(type, () => {
+          editZone.classList.remove('border-brand-orange', 'bg-orange-50/10');
+        });
+      });
+      editZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        editZone.classList.remove('border-brand-orange', 'bg-orange-50/10');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleEditFileSelection(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    const form = document.getElementById('admin-edit-product-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!isEdit && !selectedProductImageFile) {
+          showNotification('A product image upload is required for new designs.', 'info');
+          return;
+        }
+
+        const submitBtn = document.getElementById('admin-edit-product-btn');
+        const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = `Saving Product...`;
+        }
+
+        const idVal = document.getElementById('edit-prod-id').value.trim();
+        const nameVal = document.getElementById('edit-prod-name').value.trim();
+        const catVal = document.getElementById('edit-prod-category').value;
+        const priceVal = parseFloat(document.getElementById('edit-prod-price').value);
+        const descVal = document.getElementById('edit-prod-description').value.trim();
+
+        const dataObj = {
+          id: idVal,
+          name: nameVal,
+          category: catVal,
+          price: priceVal,
+          description: descVal
+        };
+
+        try {
+          if (isEdit) {
+            await window.editProductInCatalog(prod.id, dataObj, selectedProductImageFile);
+            showNotification(`Product "${nameVal}" updated successfully!`, 'success');
+          } else {
+            await window.addProductToCatalog(dataObj, selectedProductImageFile);
+            showNotification(`Product "${nameVal}" created and added to catalog successfully!`, 'success');
+          }
+          selectedProductImageFile = null;
+          adminEditingProduct = null;
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, 'danger');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHTML;
+          }
+        }
+      });
+    }
+  };
+
+  // 5. Category CRUD
+  const addCatBtn = document.getElementById('admin-add-cat-btn');
+  if (addCatBtn) {
+    addCatBtn.addEventListener('click', () => {
+      adminEditingCategory = null;
+      selectedProductImageFile = null;
+      const container = document.getElementById('admin-category-form-container');
+      if (container) {
+        container.innerHTML = getInlineCategoryFormHtml(null);
+        container.classList.remove('hidden');
+        setupCategoryFormListeners(false);
+      }
+    });
+  }
+
+  document.querySelectorAll('.cat-edit-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const catId = btn.getAttribute('data-id');
+      const categories = getMockCategories() || [];
+      const cat = categories.find(c => c.id === catId);
+      if (!cat) return;
+
+      adminEditingCategory = cat;
+      selectedProductImageFile = null;
+      const container = document.getElementById('admin-category-form-container');
+      if (container) {
+        container.innerHTML = getInlineCategoryFormHtml(cat);
+        container.classList.remove('hidden');
+        setupCategoryFormListeners(true, cat);
+      }
+    });
+  });
+
+  document.querySelectorAll('.cat-delete-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const catId = btn.getAttribute('data-id');
+      if (confirm(`Are you sure you want to delete category "${catId}"?`)) {
+        try {
+          await window.deleteCategory(catId);
+          showNotification("Category successfully deleted from system.", "success");
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
+        }
+      }
+    });
+  });
+
+  // Reorder index up/down for categories
+  document.querySelectorAll('.cat-move-up-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.getAttribute('data-idx'));
+      const categories = [...getMockCategories()];
+      if (idx > 0) {
+        const reordered = categories.map(c => c.id);
+        const temp = reordered[idx];
+        reordered[idx] = reordered[idx - 1];
+        reordered[idx - 1] = temp;
+        try {
+          await window.reorderCategories(reordered);
+          showNotification("Category ranked up successfully!", "success");
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.cat-move-down-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.getAttribute('data-idx'));
+      const categories = [...getMockCategories()];
+      if (idx < categories.length - 1) {
+        const reordered = categories.map(c => c.id);
+        const temp = reordered[idx];
+        reordered[idx] = reordered[idx + 1];
+        reordered[idx + 1] = temp;
+        try {
+          await window.reorderCategories(reordered);
+          showNotification("Category ranked down successfully!", "success");
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
+        }
+      }
+    });
+  });
+
+  const setupCategoryFormListeners = (isEdit, cat = null) => {
+    const closeBtn = document.getElementById('admin-category-form-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        const container = document.getElementById('admin-category-form-container');
+        if (container) container.classList.add('hidden');
+        adminEditingCategory = null;
+        selectedProductImageFile = null;
+      });
+    }
+
+    const catZone = document.getElementById('cat-image-zone');
+    const catFileInput = document.getElementById('cat-image-file');
+    const catPreviewContainer = document.getElementById('cat-preview-container');
+    const catPreviewImg = document.getElementById('cat-preview-img');
+    const catPreviewFilename = document.getElementById('cat-preview-filename');
+
+    const handleCatFile = (file) => {
+      if (!file || !file.type.startsWith('image/')) {
+        showNotification('Please select a valid banner image file.', 'info');
+        return;
+      }
+      selectedProductImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (catPreviewImg) catPreviewImg.src = e.target.result;
+        if (catPreviewFilename) catPreviewFilename.textContent = file.name;
+        if (catPreviewContainer) catPreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    if (catZone && catFileInput) {
+      catZone.addEventListener('click', () => catFileInput.click());
+      catFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleCatFile(e.target.files[0]);
+      });
+      catZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        catZone.classList.add('border-brand-orange', 'bg-orange-50/10');
+      });
+      ['dragleave', 'dragend'].forEach(type => {
+        catZone.addEventListener(type, () => {
+          catZone.classList.remove('border-brand-orange', 'bg-orange-50/10');
+        });
+      });
+      catZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        catZone.classList.remove('border-brand-orange', 'bg-orange-50/10');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) handleCatFile(e.dataTransfer.files[0]);
+      });
+    }
+
+    const form = document.getElementById('admin-category-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const slug = document.getElementById('cat-slug').value.trim();
+        const name = document.getElementById('cat-name').value.trim();
+        const submitBtn = document.getElementById('admin-category-save-btn');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          let bannerUrl = isEdit ? cat.image : '';
+          if (selectedProductImageFile) {
+            bannerUrl = await window.uploadFile(selectedProductImageFile, 'categories');
+          }
+
+          const catData = {
+            id: slug,
+            name: name,
+            image: bannerUrl || "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=600"
+          };
+
+          if (isEdit) {
+            await window.editCategory(cat.id, catData);
+            showNotification(`Category "${name}" updated successfully!`, "success");
+          } else {
+            await window.addCategory(catData);
+            showNotification(`Category "${name}" created successfully!`, "success");
+          }
+          selectedProductImageFile = null;
+          adminEditingCategory = null;
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+    }
+  };
+
+  // 6. Live Order Status Select Dropdown Change
+  document.querySelectorAll('.order-status-change-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const orderId = sel.getAttribute('data-id');
+      const newStatus = sel.value;
+      try {
+        await window.updateOrderStatus(orderId, newStatus);
+        showNotification(`Order ${orderId} status successfully updated to: ${newStatus}`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+      }
+    });
+  });
+
+  // 7. Payment Verification Actions (Approve/Reject)
+  document.querySelectorAll('.payment-verify-approve-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orderId = btn.getAttribute('data-id');
+      btn.disabled = true;
+      try {
+        await window.approveOrderPayment(orderId);
+        showNotification(`Payment for Order ${orderId} APPROVED successfully!`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.payment-verify-reject-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orderId = btn.getAttribute('data-id');
+      btn.disabled = true;
+      try {
+        await window.rejectOrderPayment(orderId);
+        showNotification(`Payment for Order ${orderId} REJECTED and order cancelled.`, "info");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // 8. Dynamic Badges/Modes toggling (Flash Sale, New Arrival, Featured)
+  document.querySelectorAll('.flash-sale-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      btn.disabled = true;
+      const newFlash = !p.isFlashSale;
+      const updates = { 
+        isFlashSale: newFlash,
+        oldPrice: newFlash ? (p.oldPrice || Math.round(p.price * 1.25)) : null
+      };
+      try {
+        await window.editProductInCatalog(pId, updates);
+        showNotification(newFlash ? `${p.name} added to Flash Sales!` : `${p.name} removed from Flash Sales.`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.new-arrival-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      btn.disabled = true;
+      const newIsNew = !p.isNew;
+      try {
+        await window.editProductInCatalog(pId, { isNew: newIsNew });
+        showNotification(newIsNew ? `${p.name} marked as New Arrival!` : `${p.name} removed from New Arrivals.`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.featured-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      btn.disabled = true;
+      const newFeatured = !p.isFeatured;
+      try {
+        await window.editProductInCatalog(pId, { isFeatured: newFeatured });
+        showNotification(newFeatured ? `${p.name} placed in Featured category!` : `${p.name} removed from Featured category.`, "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // 9. Banner Manager Slider
+  const addBannerBtn = document.getElementById('admin-add-banner-btn');
+  if (addBannerBtn) {
+    addBannerBtn.addEventListener('click', () => {
+      const formContainer = document.getElementById('admin-banner-form-container');
+      if (formContainer) formContainer.classList.remove('hidden');
+    });
+  }
+
+  const closeBannerFormBtn = document.getElementById('admin-banner-form-close-btn');
+  if (closeBannerFormBtn) {
+    closeBannerFormBtn.addEventListener('click', () => {
+      const formContainer = document.getElementById('admin-banner-form-container');
+      if (formContainer) formContainer.classList.add('hidden');
+    });
+  }
+
+  const bannerAddForm = document.getElementById('admin-banner-add-form');
+  if (bannerAddForm) {
+    bannerAddForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const imageUrl = document.getElementById('slide-image-url').value.trim();
+      const accent = document.getElementById('slide-accent').value.trim();
+      const title = document.getElementById('slide-title').value.trim();
+      const subtitle = document.getElementById('slide-subtitle').value.trim();
+      const ctaText = document.getElementById('slide-cta-text').value.trim() || 'Shop Now';
+      const ctaUrl = document.getElementById('slide-cta-url').value.trim();
+
+      const newSlide = {
+        id: Date.now(),
+        image: imageUrl,
+        accent: accent || 'GOLD & ROCK EXCLUSIVE',
+        title: title,
+        subtitle: subtitle,
+        ctaText: ctaText,
+        ctaUrl: ctaUrl
+      };
+
+      const currentSettings = window.getHomepageSettings() || { heroSlides: [] };
+      const slides = currentSettings.heroSlides ? [...currentSettings.heroSlides] : [];
+      slides.push(newSlide);
+
+      try {
+        await window.saveHomepageSettings({ ...currentSettings, heroSlides: slides });
+        showNotification("New slider banner added to the homepage!", "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+      }
+    });
+  }
+
+  document.querySelectorAll('.banner-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.getAttribute('data-idx'));
+      if (confirm("Are you sure you want to remove this slider banner from the homepage?")) {
+        const currentSettings = window.getHomepageSettings() || { heroSlides: [] };
+        const slides = currentSettings.heroSlides ? [...currentSettings.heroSlides] : [];
+        slides.splice(idx, 1);
+        try {
+          await window.saveHomepageSettings({ ...currentSettings, heroSlides: slides });
+          showNotification("Homepage banner slider removed.", "info");
+          renderAccountView();
+        } catch (err) {
+          showNotification(err.message, "danger");
+        }
+      }
+    });
+  });
+
+  // 10. Settings Admin Master Password Form Submission
+  const adminSettingsForm = document.getElementById('admin-settings-password-form');
+  if (adminSettingsForm) {
+    adminSettingsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPass = document.getElementById('admin-settings-new-pass').value;
+      const btn = document.getElementById('admin-settings-password-btn');
+      if (btn) btn.disabled = true;
+
+      try {
+        await window.adminChangePassword(newPass);
+        showNotification("Console master password updated successfully!", "success");
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, "danger");
+        if (btn) btn.disabled = false;
       }
     });
   }

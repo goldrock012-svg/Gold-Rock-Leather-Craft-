@@ -19,6 +19,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  updatePassword,
   ref,
   uploadBytes,
   getDownloadURL
@@ -32,6 +33,7 @@ const KEYS = {
   CURRENT_USER: 'gr_store_current_user',
   ORDERS: 'gr_store_orders',
   NOTIFICATIONS: 'gr_store_notifications',
+  HOMEPAGE_SETTINGS: 'gr_store_homepage_settings',
 };
 
 // Caches for fast synchronous UI access with real-time Firestore backups
@@ -42,12 +44,18 @@ let wishlistCache = [];
 let ordersCache = [];
 let notificationsCache = [];
 let currentUserCache = null;
+let homepageSettingsCache = null;
 
 // Load initial caches from LocalStorage for seamless instant rendering
 const loadLocalCaches = () => {
   try {
     const localProds = localStorage.getItem(KEYS.PRODUCTS);
     if (localProds) productsCache = JSON.parse(localProds);
+  } catch (e) {}
+
+  try {
+    const localCats = localStorage.getItem(KEYS.CATEGORIES);
+    if (localCats) categoriesCache = JSON.parse(localCats);
   } catch (e) {}
 
   try {
@@ -74,9 +82,84 @@ const loadLocalCaches = () => {
     const localNotifs = localStorage.getItem(KEYS.NOTIFICATIONS);
     if (localNotifs) notificationsCache = JSON.parse(localNotifs);
   } catch (e) {}
+
+  try {
+    const localHomeSettings = localStorage.getItem(KEYS.HOMEPAGE_SETTINGS);
+    if (localHomeSettings) homepageSettingsCache = JSON.parse(localHomeSettings);
+  } catch (e) {}
 };
 
 loadLocalCaches();
+
+// Seed Categories if empty
+const seedCategoriesIfEmpty = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, 'categories'));
+    if (snapshot.empty && window.CATEGORIES) {
+      console.log('Categories empty. Seeding initial categories...');
+      let index = 0;
+      for (const cat of window.CATEGORIES) {
+        await setDoc(doc(db, 'categories', cat.id), {
+          ...cat,
+          orderIndex: index++
+        });
+      }
+      console.log('Seeding categories complete!');
+    }
+  } catch (err) {
+    console.error('Error seeding categories:', err);
+  }
+};
+
+// Seed Homepage Settings if empty
+const seedHomepageSettingsIfEmpty = async () => {
+  try {
+    const homepageDocRef = doc(db, 'settings', 'homepage');
+    const snap = await getDoc(homepageDocRef);
+    if (!snap.exists()) {
+      console.log('Homepage settings empty. Seeding defaults...');
+      const defaultSlides = window.SLIDES || [
+        {
+          id: 1,
+          image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=1600',
+          accent: 'GOLD & ROCK SIGNATURE',
+          title: 'Premium Leather Bags',
+          subtitle: 'Handcrafted from 100% genuine vegetable-tanned leather. Sourced and processed locally in Nigeria to provide unmatched durability and timeless elegance.',
+          ctaUrl: 'categories.html',
+          ctaText: 'Shop Premium Leather',
+          secondaryCtaUrl: 'categories.html',
+          secondaryCtaText: 'View Catalogue'
+        },
+        {
+          id: 2,
+          image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=1600',
+          accent: 'ELEGANT & SOPHISTICATED',
+          title: 'Luxury Hand Bags',
+          subtitle: 'Stunning handcrafted fashion bags with impeccable stitching, perfect for every social gathering, workplace, and formal event.',
+          ctaUrl: 'categories.html?cat=ladies-hand-bags',
+          ctaText: 'Shop Luxury Handbags',
+          secondaryCtaUrl: 'categories.html',
+          secondaryCtaText: 'All Collections'
+        }
+      ];
+      await setDoc(homepageDocRef, {
+        heroSlides: defaultSlides,
+        banners: [
+          {
+            id: 'banner1',
+            title: 'Genuine Craftsmanship',
+            subtitle: 'Direct from Kwara State workshop',
+            image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800',
+            link: 'categories.html'
+          }
+        ]
+      });
+      console.log('Seeding homepage settings complete!');
+    }
+  } catch (err) {
+    console.error('Error seeding homepage settings:', err);
+  }
+};
 
 // Seed Products to Firestore if database is empty
 const seedProductsIfEmpty = async () => {
@@ -85,7 +168,10 @@ const seedProductsIfEmpty = async () => {
     if (snapshot.empty && window.PRODUCTS) {
       console.log('Database empty. Seeding initial leather products to Firestore...');
       for (const prod of window.PRODUCTS) {
-        await setDoc(doc(db, 'products', prod.id), prod);
+        await setDoc(doc(db, 'products', prod.id), {
+          ...prod,
+          enabled: true
+        });
       }
       console.log('Seeding products complete!');
     }
@@ -108,6 +194,35 @@ onSnapshot(collection(db, 'products'), (snapshot) => {
   }
 }, (err) => {
   console.error('Products subscription error:', err);
+});
+
+// 1b. Categories Subscription
+onSnapshot(collection(db, 'categories'), (snapshot) => {
+  const cats = [];
+  snapshot.forEach(d => cats.push(d.data()));
+  if (cats.length > 0) {
+    cats.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+    categoriesCache = cats;
+    localStorage.setItem(KEYS.CATEGORIES, JSON.stringify(categoriesCache));
+    window.dispatchEvent(new Event('categoriesUpdated'));
+  } else {
+    seedCategoriesIfEmpty();
+  }
+}, (err) => {
+  console.error('Categories subscription error:', err);
+});
+
+// 1c. Homepage Settings Subscription
+onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+  if (docSnap.exists()) {
+    homepageSettingsCache = docSnap.data();
+    localStorage.setItem(KEYS.HOMEPAGE_SETTINGS, JSON.stringify(homepageSettingsCache));
+    window.dispatchEvent(new Event('homepageSettingsUpdated'));
+  } else {
+    seedHomepageSettingsIfEmpty();
+  }
+}, (err) => {
+  console.error('Homepage settings subscription error:', err);
 });
 
 // User-specific subscriptions management
@@ -272,10 +387,12 @@ const mergeLocalStateToFirestore = async (userId) => {
 
 // ===================== PRODUCTS API =====================
 const getMockProducts = () => {
-  if (productsCache.length === 0 && window.PRODUCTS) {
-    return window.PRODUCTS;
+  let prods = productsCache.length === 0 && window.PRODUCTS ? window.PRODUCTS : productsCache;
+  const isCeo = currentUserCache && currentUserCache.email === "goldrock012@gmail.com";
+  if (!isCeo) {
+    prods = prods.filter(p => p.enabled !== false);
   }
-  return productsCache;
+  return prods;
 };
 
 const getMockProductById = (id) => {
@@ -284,6 +401,9 @@ const getMockProductById = (id) => {
 };
 
 const getMockCategories = () => {
+  if (categoriesCache.length > 0) {
+    return categoriesCache;
+  }
   if (window.CATEGORIES) return window.CATEGORIES;
   return [];
 };
@@ -615,6 +735,443 @@ const generateWhatsAppOrderLink = (order) => {
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 };
 
+// ===================== ADMIN CONSOLE & OPERATIONS API =====================
+
+// Automatic initialization of the administrator account
+const autoInitializeAdmin = async () => {
+  // Prevent duplicate concurrent initialization triggers
+  if (localStorage.getItem('gr_admin_init_triggered')) return;
+  localStorage.setItem('gr_admin_init_triggered', 'true');
+  try {
+    // Attempt to register the administrator
+    const cred = await createUserWithEmailAndPassword(auth, 'goldrock012@gmail.com', 'promise');
+    const uid = cred.user.uid;
+    
+    // Set up their profile metadata document in Firestore
+    await setDoc(doc(db, 'users', uid), {
+      uid: uid,
+      fullName: 'OYEWOLE TOSIN OLUMIDE',
+      email: 'goldrock012@gmail.com',
+      phoneNumber: '2348126730784',
+      address: 'Kwara State, Nigeria',
+      city: 'Ilorin',
+      state: 'Kwara State',
+      needsPasswordChange: true, // Force password change flag
+      profilePicture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200'
+    });
+    
+    console.log("Admin account goldrock012@gmail.com initialized with temporary password 'promise'.");
+    // Sign out so they have to sign in properly
+    await signOut(auth);
+  } catch (err) {
+    // Expected to fail if already registered. Ignore silently.
+  }
+};
+
+// Trigger auto admin setup
+autoInitializeAdmin();
+
+// Force admin to change password
+const adminChangePassword = async (newPassword) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Only the administrator can perform this action.");
+  }
+  try {
+    await updatePassword(auth.currentUser, newPassword);
+    const userDocRef = doc(db, 'users', auth.currentUser.uid);
+    await updateDoc(userDocRef, { needsPasswordChange: false });
+    
+    if (currentUserCache) {
+      currentUserCache.needsPasswordChange = false;
+      localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(currentUserCache));
+    }
+    console.log("Administrator password successfully updated.");
+  } catch (err) {
+    console.error("Failed to change admin password:", err);
+    throw new Error(err.message || "Failed to update administrator password.");
+  }
+};
+
+// Product Catalog operations
+const addProductToCatalog = async (productData, imageFileOrFiles) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    let images = [];
+    let mainImage = "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80"; // fallback
+
+    // If there are files, upload them
+    if (imageFileOrFiles) {
+      if (Array.isArray(imageFileOrFiles)) {
+        images = await uploadMultipleFiles(imageFileOrFiles, 'products');
+        if (images.length > 0) mainImage = images[0];
+      } else if (imageFileOrFiles instanceof File) {
+        const url = await uploadFile(imageFileOrFiles, 'products');
+        if (url) {
+          mainImage = url;
+          images = [url];
+        }
+      }
+    }
+
+    const docId = productData.id || `gr-${Math.floor(1000 + Math.random() * 9000)}`;
+    const fullProd = {
+      id: docId,
+      name: productData.name,
+      productName: productData.name,
+      category: productData.category,
+      price: Number(productData.price),
+      oldPrice: productData.oldPrice ? Number(productData.oldPrice) : null,
+      originalPrice: productData.oldPrice ? Number(productData.oldPrice) : null,
+      discountPercentage: productData.oldPrice ? Math.round(((productData.oldPrice - productData.price) / productData.oldPrice) * 100) : 0,
+      image: mainImage,
+      images: images.length > 0 ? images : [mainImage],
+      rating: productData.rating || 5.0,
+      reviewsCount: productData.reviewsCount || 0,
+      isFlashSale: !!productData.isFlashSale,
+      isBestSeller: !!productData.isBestSeller,
+      isNew: !!productData.isNew,
+      isFeatured: !!productData.isFeatured,
+      stock: Number(productData.stock ?? 10),
+      soldCount: Number(productData.soldCount || 0),
+      description: productData.description || "Premium leather craft product.",
+      details: productData.details || [
+        "100% Genuine Nigerian leather",
+        "Handcrafted with fine stitching",
+        "Durable premium build and hardware"
+      ],
+      reviews: [],
+      enabled: productData.enabled !== false, // default enabled
+      colors: productData.colors || ["Default Leather", "Classic Black", "Vintage Brown"]
+    };
+
+    await setDoc(doc(db, 'products', docId), fullProd);
+    return fullProd;
+  } catch (err) {
+    console.error("Error adding product to catalog:", err);
+    throw new Error(err.message || "Failed to add product to database.");
+  }
+};
+
+const editProductInCatalog = async (productId, productData, imageFileOrFiles) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const prodRef = doc(db, 'products', productId);
+    let updatedFields = { ...productData };
+
+    // Upload new image files if provided
+    if (imageFileOrFiles) {
+      if (Array.isArray(imageFileOrFiles) && imageFileOrFiles.length > 0) {
+        const urls = await uploadMultipleFiles(imageFileOrFiles, 'products');
+        if (urls.length > 0) {
+          updatedFields.image = urls[0];
+          updatedFields.images = urls;
+        }
+      } else if (imageFileOrFiles instanceof File) {
+        const url = await uploadFile(imageFileOrFiles, 'products');
+        if (url) {
+          updatedFields.image = url;
+          updatedFields.images = [url];
+        }
+      }
+    }
+
+    // Convert values
+    if (updatedFields.price !== undefined) updatedFields.price = Number(updatedFields.price);
+    if (updatedFields.oldPrice !== undefined) {
+      updatedFields.oldPrice = updatedFields.oldPrice ? Number(updatedFields.oldPrice) : null;
+      updatedFields.originalPrice = updatedFields.oldPrice;
+      if (updatedFields.oldPrice && updatedFields.price) {
+        updatedFields.discountPercentage = Math.round(((updatedFields.oldPrice - updatedFields.price) / updatedFields.oldPrice) * 100);
+      } else {
+        updatedFields.discountPercentage = 0;
+      }
+    }
+    if (updatedFields.stock !== undefined) updatedFields.stock = Number(updatedFields.stock);
+    if (updatedFields.soldCount !== undefined) updatedFields.soldCount = Number(updatedFields.soldCount);
+
+    await updateDoc(prodRef, updatedFields);
+    console.log(`Product ${productId} successfully edited in catalog.`);
+  } catch (err) {
+    console.error("Error editing product in catalog:", err);
+    throw new Error(err.message || "Failed to update product details.");
+  }
+};
+
+const deleteProductFromCatalog = async (productId) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    await deleteDoc(doc(db, 'products', productId));
+    console.log(`Product ${productId} successfully deleted.`);
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    throw new Error(err.message || "Failed to delete product from database.");
+  }
+};
+
+// Helper for multiple file uploads
+const uploadMultipleFiles = async (files, folderPath) => {
+  if (!files || files.length === 0) return [];
+  const urls = [];
+  for (const file of files) {
+    if (file && file instanceof File) {
+      const url = await uploadFile(file, folderPath);
+      if (url) urls.push(url);
+    }
+  }
+  return urls;
+};
+
+// Categories Management
+const addCategory = async (categoryData) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const id = categoryData.id || categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const orderIndex = categoriesCache.length;
+    
+    await setDoc(doc(db, 'categories', id), {
+      id: id,
+      name: categoryData.name,
+      image: categoryData.image || "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=600",
+      count: 0,
+      orderIndex: orderIndex
+    });
+  } catch (err) {
+    console.error("Error adding category:", err);
+    throw new Error("Failed to create category.");
+  }
+};
+
+const editCategory = async (categoryId, categoryData) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    await updateDoc(doc(db, 'categories', categoryId), categoryData);
+  } catch (err) {
+    console.error("Error editing category:", err);
+    throw new Error("Failed to edit category.");
+  }
+};
+
+const deleteCategory = async (categoryId) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    await deleteDoc(doc(db, 'categories', categoryId));
+  } catch (err) {
+    console.error("Error deleting category:", err);
+    throw new Error("Failed to delete category.");
+  }
+};
+
+const reorderCategories = async (reorderedIds) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    for (let i = 0; i < reorderedIds.length; i++) {
+      const catId = reorderedIds[i];
+      await updateDoc(doc(db, 'categories', catId), { orderIndex: i });
+    }
+  } catch (err) {
+    console.error("Error reordering categories:", err);
+    throw new Error("Failed to update category ranks.");
+  }
+};
+
+// Homepage settings manager
+const saveHomepageSettings = async (settings) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    await setDoc(doc(db, 'settings', 'homepage'), settings, { merge: true });
+  } catch (err) {
+    console.error("Error saving homepage settings:", err);
+    throw new Error("Failed to update homepage content.");
+  }
+};
+
+// Order administrative actions
+const approveOrderPayment = async (orderId) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) throw new Error("Order not found.");
+    
+    const orderData = orderSnap.data();
+
+    // 1. Update Order status and Payment status
+    await updateDoc(orderRef, {
+      paymentStatus: 'Approved',
+      status: 'Processing'
+    });
+
+    // 2. Update Payment record status
+    await updateDoc(doc(db, 'payments', orderId), {
+      status: 'Approved'
+    });
+
+    // 3. Create Dynamic Notifications inside Firestore for the customer
+    const userNotifRef = collection(db, 'notifications');
+    await addDoc(userNotifRef, {
+      userId: orderData.userId,
+      title: 'Payment Successful',
+      message: `Your payment for order ${orderId} has been verified successfully! Status: Paid Successfully.`,
+      date: new Date().toISOString(),
+      read: false,
+      type: 'success'
+    });
+
+    await addDoc(userNotifRef, {
+      userId: orderData.userId,
+      title: 'Order Confirmed',
+      message: `Your order ${orderId} is confirmed and is now Processing. Gold & Rock masters are preparing your package!`,
+      date: new Date().toISOString(),
+      read: false,
+      type: 'success'
+    });
+
+    console.log(`Order ${orderId} payment approved successfully.`);
+  } catch (err) {
+    console.error("Error approving payment:", err);
+    throw new Error(err.message || "Failed to approve payment.");
+  }
+};
+
+const rejectOrderPayment = async (orderId) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) throw new Error("Order not found.");
+    
+    const orderData = orderSnap.data();
+
+    // Update statuses
+    await updateDoc(orderRef, {
+      paymentStatus: 'Rejected',
+      status: 'Cancelled (Payment Rejected)'
+    });
+
+    await updateDoc(doc(db, 'payments', orderId), {
+      status: 'Rejected'
+    });
+
+    // Notify customer
+    await addDoc(collection(db, 'notifications'), {
+      userId: orderData.userId,
+      title: 'Payment Rejected',
+      message: `We could not verify your payment transfer for order ${orderId}. Please contact customer care.`,
+      date: new Date().toISOString(),
+      read: false,
+      type: 'danger'
+    });
+  } catch (err) {
+    console.error("Error rejecting payment:", err);
+    throw new Error(err.message || "Failed to reject payment.");
+  }
+};
+
+const updateOrderStatus = async (orderId, status) => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) throw new Error("Order not found.");
+    
+    const orderData = orderSnap.data();
+    await updateDoc(orderRef, { status: status });
+
+    // Notify customer dynamically
+    let type = 'info';
+    let msg = `Your order ${orderId} has changed status to: ${status}.`;
+    if (status === 'Processing') msg = `Your order ${orderId} is being handcrafted at our Kwara State workshop!`;
+    if (status === 'Packaging') msg = `Your order ${orderId} is double-checked and packaged nicely!`;
+    if (status === 'Shipped') {
+      type = 'success';
+      msg = `Your order ${orderId} has been shipped! Instant chat alert: check your WhatsApp.`;
+    }
+    if (status === 'Delivered') {
+      type = 'success';
+      msg = `Congratulations! Your package ${orderId} has been successfully delivered.`;
+    }
+
+    await addDoc(collection(db, 'notifications'), {
+      userId: orderData.userId,
+      title: `Order Status: ${status}`,
+      message: msg,
+      date: new Date().toISOString(),
+      read: false,
+      type: type
+    });
+
+    console.log(`Order ${orderId} status changed to ${status}.`);
+  } catch (err) {
+    console.error("Error updating order status:", err);
+    throw new Error(err.message || "Failed to update order status.");
+  }
+};
+
+// Customer accounts catalog query
+const getCustomersList = async () => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const snapshot = await getDocs(collection(db, 'users'));
+    const customers = [];
+    snapshot.forEach(d => {
+      const data = d.data();
+      if (data.email !== "goldrock012@gmail.com") {
+        customers.push(data);
+      }
+    });
+    return customers;
+  } catch (err) {
+    console.error("Error loading customer database list:", err);
+    return [];
+  }
+};
+
+// Payment logs query
+const getAllPaymentsList = async () => {
+  if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
+    throw new Error("Administrative permission required.");
+  }
+  try {
+    const snapshot = await getDocs(collection(db, 'payments'));
+    const payments = [];
+    snapshot.forEach(d => payments.push(d.data()));
+    return payments;
+  } catch (err) {
+    console.error("Error loading payment transaction logs:", err);
+    return [];
+  }
+};
+
+// Homepage settings accessor
+const getHomepageSettings = () => {
+  return homepageSettingsCache;
+};
+
+
 // Bind to window object for full compatibility with legacy code
 window.KEYS = KEYS;
 window.getMockProducts = getMockProducts;
@@ -642,6 +1199,23 @@ window.getMockNotifications = getMockNotifications;
 window.addMockNotification = addMockNotification;
 window.markAllNotificationsAsRead = markAllNotificationsAsRead;
 window.uploadFile = uploadFile;
+
+// Admin binds
+window.adminChangePassword = adminChangePassword;
+window.addProductToCatalog = addProductToCatalog;
+window.editProductInCatalog = editProductInCatalog;
+window.deleteProductFromCatalog = deleteProductFromCatalog;
+window.addCategory = addCategory;
+window.editCategory = editCategory;
+window.deleteCategory = deleteCategory;
+window.reorderCategories = reorderCategories;
+window.saveHomepageSettings = saveHomepageSettings;
+window.approveOrderPayment = approveOrderPayment;
+window.rejectOrderPayment = rejectOrderPayment;
+window.updateOrderStatus = updateOrderStatus;
+window.getCustomersList = getCustomersList;
+window.getAllPaymentsList = getAllPaymentsList;
+window.getHomepageSettings = getHomepageSettings;
 
 // Export Firebase features directly for any scripts that want to import them as Req 2
 export {
@@ -672,5 +1246,21 @@ export {
   getMockNotifications,
   addMockNotification,
   markAllNotificationsAsRead,
-  uploadFile
+  uploadFile,
+  // Admin exports
+  adminChangePassword,
+  addProductToCatalog,
+  editProductInCatalog,
+  deleteProductFromCatalog,
+  addCategory,
+  editCategory,
+  deleteCategory,
+  reorderCategories,
+  saveHomepageSettings,
+  approveOrderPayment,
+  rejectOrderPayment,
+  updateOrderStatus,
+  getCustomersList,
+  getAllPaymentsList,
+  getHomepageSettings
 };
