@@ -21,8 +21,8 @@
             }
           },
           fontFamily: {
-            sans: ['Montserrat', 'sans-serif'],
-            display: ['Montserrat', 'sans-serif'],
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace']
           }
         }
@@ -71,17 +71,27 @@
           All Collections
         </button>
         <span class="text-slate-300">/</span>
-        <span id="active-cat-title" class="text-slate-600 font-bold capitalize">Wallets</span>
+        <span id="active-cat-breadcrumb" class="text-slate-600 font-bold capitalize">Wallets</span>
       </div>
 
-      <!-- Header title and description of collection -->
-      <div class="border-b pb-4">
-        <h2 id="active-cat-title" class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight capitalize">
-          Category Products
-        </h2>
-        <p id="active-cat-desc" class="text-xs text-slate-400 font-medium mt-1">
-          Handcrafted accessories designed with Nigeria's premium full-grain leather.
-        </p>
+      <!-- Header title and description of collection with premium banner -->
+      <div id="category-premium-banner" class="relative rounded-2xl overflow-hidden h-36 md:h-52 bg-[#0f1e36] text-white flex flex-col justify-end p-5 md:p-8 border border-slate-805 shadow-md">
+        <!-- Background image -->
+        <div id="category-banner-bg" class="absolute inset-0 bg-cover bg-center opacity-45" style="background-image: url('')"></div>
+        <!-- Gradient overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0f1e36] via-[#0f1e36]/30 to-transparent"></div>
+        
+        <div class="relative z-10">
+          <span class="text-[9px] md:text-[10px] font-mono tracking-widest text-brand-orange uppercase font-extrabold mb-1 block">
+            PREMIUM HANDCRAFTED SELECTION
+          </span>
+          <h2 id="active-cat-title" class="text-xl md:text-3xl font-extrabold font-display text-white leading-tight capitalize">
+            Category Products
+          </h2>
+          <p id="active-cat-desc" class="text-[11px] md:text-xs text-slate-200 font-light mt-1 max-w-2xl leading-relaxed">
+            Handcrafted accessories designed with Nigeria's premium full-grain leather.
+          </p>
+        </div>
       </div>
 
       <!-- Products Grid under specific collection -->

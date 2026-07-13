@@ -26,6 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // Track user interaction for recommendations and recently viewed lists
+  localStorage.setItem('gr_store_last_viewed_category', product.category);
+  try {
+    let recentlyViewedIds = JSON.parse(localStorage.getItem('gr_store_recently_viewed_ids') || '[]');
+    recentlyViewedIds = recentlyViewedIds.filter(id => id !== product.id);
+    recentlyViewedIds.unshift(product.id);
+    recentlyViewedIds = recentlyViewedIds.slice(0, 4);
+    localStorage.setItem('gr_store_recently_viewed_ids', JSON.stringify(recentlyViewedIds));
+  } catch (e) {
+    console.error('Error tracking recently viewed', e);
+  }
+
   // Initial State Setup
   activeImg = 0;
   selectedColor = COLORS[0].name;

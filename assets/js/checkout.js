@@ -1,6 +1,6 @@
 let cartItems = [];
 let placedOrder = null;
-let paymentMethod = 'cash_on_delivery'; // or 'bank_transfer'
+let paymentMethod = 'bank_transfer';
 
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
@@ -90,41 +90,54 @@ function renderCheckoutForm() {
 
         <!-- 2. Payment Section -->
         <div class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-xs">
-          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-            <i data-lucide="credit-card" class="w-4.5 h-4.5 text-brand-blue"></i>
-            2. Payment Method
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b pb-2">
+            <i data-lucide="credit-card" class="w-4.5 h-4.5 text-brand-orange animate-pulse"></i>
+            2. Payment Method & Transfer Instructions
           </h3>
 
           <div class="flex flex-col gap-3">
-            <!-- COD selection card -->
-            <label class="flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              paymentMethod === 'cash_on_delivery' ? 'border-brand-orange bg-brand-orange/5' : 'border-slate-100 bg-slate-50/30'
-            }" id="payment-card-cod">
-              <input type="radio" name="payment_method" value="cash_on_delivery" ${paymentMethod === 'cash_on_delivery' ? 'checked' : ''} class="mt-1 accent-brand-orange">
-              <div class="flex flex-col -mt-0.5">
-                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  Cash on Delivery (Lagos State Only)
-                </span>
-                <span class="text-[11px] text-slate-400 font-light mt-1">
-                  Pay securely with cash, card, or instant bank transfer when our priority courier dispatch rider drops off your items.
-                </span>
+            <div class="p-4 rounded-xl border-2 border-brand-orange bg-brand-orange/5" id="payment-card-bank">
+              <div class="flex items-start gap-3">
+                <input type="radio" name="payment_method" value="bank_transfer" checked class="mt-1 accent-brand-orange">
+                <div class="flex flex-col -mt-0.5">
+                  <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    Direct Bank Transfer (Nationwide Priority Dispatch)
+                  </span>
+                  <p class="text-[11px] text-amber-700 font-bold mt-1.5 leading-relaxed bg-amber-50 border border-amber-200/60 rounded-lg p-2.5">
+                    ⚠️ After making payment your order will remain Pending until payment is verified by the Administrator.
+                  </p>
+                </div>
               </div>
-            </label>
 
-            <!-- Bank transfer option -->
-            <label class="flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              paymentMethod === 'bank_transfer' ? 'border-brand-orange bg-brand-orange/5' : 'border-slate-100 bg-slate-50/30'
-            }" id="payment-card-bank">
-              <input type="radio" name="payment_method" value="bank_transfer" ${paymentMethod === 'bank_transfer' ? 'checked' : ''} class="mt-1 accent-brand-orange">
-              <div class="flex flex-col -mt-0.5">
-                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  Direct Secure Bank Transfer (Lagos & Nationwide)
-                </span>
-                <span class="text-[11px] text-slate-400 font-light mt-1">
-                  Secure instant verification. Account instructions are shared upon clicking dispatch order. High priority nationwide courier.
-                </span>
+              <!-- Embedded transfer details directly on checkout form -->
+              <div class="mt-4 bg-[#0f1e36] text-white border border-slate-800 rounded-xl p-4 flex flex-col gap-2.5 shadow-inner">
+                <h4 class="font-bold text-[10px] text-brand-orange uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-850 pb-2">
+                  <i data-lucide="landmark" class="w-3.5 h-3.5 text-brand-orange"></i> Transfer Account Details
+                </h4>
+                <div class="flex flex-col gap-1.5 text-xs font-light text-slate-300 font-sans">
+                  <p>Please make your payment of <span class="text-brand-orange font-bold font-mono text-sm">₦${total.toLocaleString()}</span> to the official business account below:</p>
+                  
+                  <div class="bg-slate-950/50 p-3 rounded-lg border border-slate-800 text-[11px] flex flex-col gap-1.5">
+                    <p class="flex justify-between">
+                      <span class="text-slate-400">Bank Name:</span>
+                      <span class="font-bold text-white">Zenith Bank PLC</span>
+                    </p>
+                    <p class="flex justify-between">
+                      <span class="text-slate-400">Account Number:</span>
+                      <span class="font-bold text-white font-mono tracking-wide">1017307844</span>
+                    </p>
+                    <p class="flex justify-between">
+                      <span class="text-slate-400">Account Name:</span>
+                      <span class="font-bold text-white">Gold & Rock Leather Craft Ltd.</span>
+                    </p>
+                  </div>
+                  
+                  <p class="text-[9px] text-slate-400 mt-1 italic">
+                    Note: After making the transfer, please click the "Place Order" button below to log your transaction. On the next screen, you can click to share your payment receipt via WhatsApp for immediate priority workshop queue allocation.
+                  </p>
+                </div>
               </div>
-            </label>
+            </div>
           </div>
         </div>
 
@@ -182,24 +195,6 @@ function renderCheckoutForm() {
   `;
 
   if (window.lucide) window.lucide.createIcons();
-
-  // Bind Payment card radio styling triggers
-  const codRadio = container.querySelector('input[value="cash_on_delivery"]');
-  const bankRadio = container.querySelector('input[value="bank_transfer"]');
-  const codCard = document.getElementById('payment-card-cod');
-  const bankCard = document.getElementById('payment-card-bank');
-
-  codRadio.addEventListener('change', () => {
-    paymentMethod = 'cash_on_delivery';
-    codCard.className = 'flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all border-brand-orange bg-brand-orange/5';
-    bankCard.className = 'flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-100 bg-slate-50/30';
-  });
-
-  bankRadio.addEventListener('change', () => {
-    paymentMethod = 'bank_transfer';
-    bankCard.className = 'flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all border-brand-orange bg-brand-orange/5';
-    codCard.className = 'flex items-start gap-3.5 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-100 bg-slate-50/30';
-  });
 
   // Handle Order Submit
   const checkoutForm = document.getElementById('checkout-secure-form');

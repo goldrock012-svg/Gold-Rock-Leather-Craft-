@@ -93,6 +93,26 @@ function renderCartPage() {
   subtotalEl.textContent = `₦${subtotal.toLocaleString()}`;
   totalEl.textContent = `₦${(subtotal + 1500).toLocaleString()}`;
 
+  // Update dynamic page headers & estimated delivery dates
+  const titleCountEl = document.getElementById('cart-title-count');
+  if (titleCountEl) {
+    const totalItemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
+    titleCountEl.textContent = totalItemsCount;
+  }
+
+  const deliveryDateEl = document.getElementById('cart-page-delivery-date');
+  if (deliveryDateEl) {
+    const today = new Date();
+    const deliveryMin = new Date(today);
+    deliveryMin.setDate(today.getDate() + 3);
+    const deliveryMax = new Date(today);
+    deliveryMax.setDate(today.getDate() + 5);
+    
+    const minStr = deliveryMin.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const maxStr = deliveryMax.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    deliveryDateEl.textContent = `${minStr} - ${maxStr}`;
+  }
+
   if (window.lucide) window.lucide.createIcons();
 
   // Bind Listeners

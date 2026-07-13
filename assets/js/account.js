@@ -764,10 +764,10 @@ function getHelpSupportViewHtml() {
             <span class="text-xs font-bold text-slate-800">Direct Line Call</span>
             <span class="text-[9px] text-slate-400">Mon-Sat Hotline</span>
           </a>
-          <a href="mailto:support@grstore.ng" class="border border-slate-100 hover:border-slate-200 bg-white p-3 rounded-xl text-center flex flex-col items-center gap-1 shadow-xs">
+          <a href="mailto:goldrock012@gmail.com" class="border border-slate-100 hover:border-slate-200 bg-white p-3 rounded-xl text-center flex flex-col items-center gap-1 shadow-xs">
             <i data-lucide="mail" class="w-4.5 h-4.5 text-slate-400"></i>
             <span class="text-xs font-bold text-slate-800">Support Mail</span>
-            <span class="text-[9px] text-slate-400">support@grstore.ng</span>
+            <span class="text-[9px] text-slate-400">goldrock012@gmail.com</span>
           </a>
         </div>
       </div>
@@ -776,38 +776,70 @@ function getHelpSupportViewHtml() {
 }
 
 function getSettingsViewHtml(user) {
+  const notifications = getMockNotifications();
+  const notifListHtml = notifications.length === 0 ? `
+    <p class="text-[11px] text-slate-400 italic">No notifications on file.</p>
+  ` : notifications.map(n => `
+    <div class="p-3 rounded-lg border ${n.read ? 'border-slate-100 bg-slate-50/30 opacity-75' : 'border-l-4 border-l-[#f68b1e] border-slate-100 bg-brand-orange/5'} flex flex-col gap-1">
+      <div class="flex items-center justify-between gap-2">
+        <span class="font-bold text-xs text-slate-800">${n.title}</span>
+        <span class="text-[9px] text-slate-400 font-mono tracking-tighter shrink-0">${getRelativeTime ? getRelativeTime(n.date) : n.date}</span>
+      </div>
+      <p class="text-[11px] text-slate-600 leading-normal font-sans font-light">${n.message}</p>
+    </div>
+  `).join('');
+
   return `
     <div class="animate-in fade-in duration-300">
       <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-5">
         <i data-lucide="settings" class="w-4 h-4 text-brand-orange"></i>
-        Account Settings
+        Account Settings & Notification Center
       </h3>
 
-      <div class="flex flex-col gap-4 max-w-sm text-xs">
-        <div class="border border-slate-200 bg-slate-50/30 rounded-xl p-3.5 flex flex-col gap-2.5">
-          <div class="flex items-center justify-between py-1 border-b pb-2 last:border-b-0">
-            <div class="flex flex-col gap-0.5">
-              <span class="font-bold text-slate-800">WhatsApp Dispatch Alerts</span>
-              <span class="text-[9px] text-slate-400 leading-none">Instant chat alert when order leaves Kwara State</span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-sans">
+        
+        <!-- Preferences column -->
+        <div class="lg:col-span-5 flex flex-col gap-4 text-xs">
+          <div class="border border-slate-200 bg-slate-50/30 rounded-xl p-3.5 flex flex-col gap-2.5">
+            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wide border-b pb-1.5">Communication Preferences</h4>
+            <div class="flex items-center justify-between py-1 border-b pb-2 last:border-b-0">
+              <div class="flex flex-col gap-0.5">
+                <span class="font-bold text-slate-800">WhatsApp Dispatch Alerts</span>
+                <span class="text-[9px] text-slate-400 leading-none">Instant chat alert when order leaves Kwara State</span>
+              </div>
+              <input type="checkbox" checked class="w-4 h-4 accent-brand-orange cursor-pointer">
             </div>
-            <input type="checkbox" checked class="w-4 h-4 accent-brand-orange cursor-pointer">
+            <div class="flex items-center justify-between py-1 last:border-0">
+              <div class="flex flex-col gap-0.5">
+                <span class="font-bold text-slate-800">Catalog Updates</span>
+                <span class="text-[9px] text-slate-400 leading-none">Email on new handcrafted design launches</span>
+              </div>
+              <input type="checkbox" checked class="w-4 h-4 accent-brand-orange cursor-pointer">
+            </div>
           </div>
-          <div class="flex items-center justify-between py-1 last:border-0">
-            <div class="flex flex-col gap-0.5">
-              <span class="font-bold text-slate-800">Catalog Updates</span>
-              <span class="text-[9px] text-slate-400 leading-none">Email on new handcrafted design launches</span>
-            </div>
-            <input type="checkbox" checked class="w-4 h-4 accent-brand-orange cursor-pointer">
+
+          <div class="border border-red-100 bg-red-50/20 rounded-xl p-3.5 flex flex-col gap-1.5">
+            <h4 class="font-bold text-red-600">Reset Account</h4>
+            <p class="text-[10px] text-slate-500 leading-normal">Resetting clears local profile information, order state, and mock address caches.</p>
+            <button id="reset-account-data-btn" class="mt-1 text-red-500 font-bold hover:underline text-left bg-transparent cursor-pointer">
+              Clear Account Data
+            </button>
           </div>
         </div>
 
-        <div class="border border-red-100 bg-red-50/20 rounded-xl p-3.5 flex flex-col gap-1.5">
-          <h4 class="font-bold text-red-600">Reset Account</h4>
-          <p class="text-[10px] text-slate-500 leading-normal">Resetting clears local profile information, order state, and mock address caches.</p>
-          <button id="reset-account-data-btn" class="mt-1 text-red-500 font-bold hover:underline text-left bg-transparent cursor-pointer">
-            Clear Account Data
-          </button>
+        <!-- Notifications center column -->
+        <div class="lg:col-span-7 flex flex-col gap-3">
+          <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center justify-between border-b pb-1.5 mb-1">
+            <span>Recent Alerts Log</span>
+            <button id="settings-clear-notifs-btn" class="text-[10px] text-[#f68b1e] hover:underline font-bold bg-transparent border-0 cursor-pointer">
+              Mark all read
+            </button>
+          </h4>
+          <div class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto">
+            ${notifListHtml}
+          </div>
         </div>
+
       </div>
     </div>
   `;
@@ -958,6 +990,18 @@ function setupAccountListeners(user) {
       mobileShowPane = false;
       showNotification('Account profile cache reset successfully.', 'success');
       renderAccountView();
+    });
+  }
+
+  // Clear or Mark all notifications read inside settings
+  const settingsClearNotifsBtn = document.getElementById('settings-clear-notifs-btn');
+  if (settingsClearNotifsBtn) {
+    settingsClearNotifsBtn.addEventListener('click', () => {
+      if (window.markAllNotificationsAsRead) {
+        window.markAllNotificationsAsRead();
+        showNotification('All notifications marked as read!', 'success');
+        renderAccountView();
+      }
     });
   }
 

@@ -83,11 +83,15 @@ function renderCategoryProducts(catId) {
   const products = getMockProducts().filter(p => p.category === catId);
 
   const titleEl = document.getElementById('active-cat-title');
+  const breadcrumbEl = document.getElementById('active-cat-breadcrumb');
   const descEl = document.getElementById('active-cat-desc');
   const gridEl = document.getElementById('category-products-grid');
+  const bannerBgEl = document.getElementById('category-banner-bg');
 
-  if (titleEl && category) {
-    titleEl.textContent = category.name;
+  if (category) {
+    if (titleEl) titleEl.textContent = category.name;
+    if (breadcrumbEl) breadcrumbEl.textContent = category.name;
+    if (bannerBgEl) bannerBgEl.style.backgroundImage = `url('${category.image}')`;
   }
 
   const descs = {

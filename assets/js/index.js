@@ -3,35 +3,57 @@ const SLIDES = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=1600',
-    accent: 'GOLD & ROCK HANDCRAFTED LUXURY',
-    title: 'Artisanal Premium Bags & Accessories',
-    subtitle: 'Sourced from the finest full-grain leather in Nigeria. Handcrafted with meticulous double-stitching and designed for a lifetime of timeless elegance and durability.',
+    accent: 'GOLD & ROCK SIGNATURE',
+    title: 'Premium Leather Bags',
+    subtitle: 'Handcrafted from 100% genuine vegetable-tanned leather. Sourced and processed locally in Nigeria to provide unmatched durability and timeless elegance.',
     ctaUrl: 'categories.html',
-    ctaText: 'Shop Collections',
+    ctaText: 'Shop Premium Leather',
     secondaryCtaUrl: 'categories.html',
-    secondaryCtaText: 'Browse Catalogue'
+    secondaryCtaText: 'View Catalogue'
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1600',
-    accent: 'EXECUTIVE OFFICE RANGE',
-    title: 'Luxury Laptop Bags & Meeting Folios',
-    subtitle: 'Padded protective interiors, heavy-duty brass zippers, and burnished edge-finishes. Make an unmistakable statement in every executive boardroom meeting.',
-    ctaUrl: 'categories.html?cat=laptop-bags',
-    ctaText: 'Shop Laptop Bags',
-    secondaryCtaUrl: 'categories.html?cat=office-bags',
-    secondaryCtaText: 'View Portfolios'
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=1600',
+    accent: 'ELEGANT & SOPHISTICATED',
+    title: 'Luxury Hand Bags',
+    subtitle: 'Stunning handcrafted fashion bags with impeccable stitching, perfect for every social gathering, workplace, and formal event.',
+    ctaUrl: 'categories.html?cat=ladies-hand-bags',
+    ctaText: 'Shop Luxury Handbags',
+    secondaryCtaUrl: 'categories.html',
+    secondaryCtaText: 'All Collections'
   },
   {
     id: 3,
+    image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1600',
+    accent: 'EXECUTIVE OFFICE RANGE',
+    title: 'Office Bags',
+    subtitle: 'Keep your documents and tech devices secure in our highly functional executive laptop bags, portfolios, and messenger leather carriers.',
+    ctaUrl: 'categories.html?cat=office-bags',
+    ctaText: 'Shop Office Bags',
+    secondaryCtaUrl: 'categories.html?cat=laptop-bags',
+    secondaryCtaText: 'Laptop Carriers'
+  },
+  {
+    id: 4,
+    image: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&q=80&w=1600',
+    accent: 'DURABLE SCHOOL GEAR',
+    title: 'School Bags',
+    subtitle: 'Spacious, robust, and water-resistant leather backpacks built with load-balanced shoulder padding to make school runs comfortable.',
+    ctaUrl: 'categories.html?cat=school-bags',
+    ctaText: 'Shop School Bags',
+    secondaryCtaUrl: 'categories.html',
+    secondaryCtaText: 'View All'
+  },
+  {
+    id: 5,
     image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=1600',
     accent: 'TRAVEL & WEEKENDER SPECIAL',
-    title: 'Rugged Duffel Bags Built to Last',
-    subtitle: 'High-capacity, oil-waxed premium pull-up leather that develops beautiful scratch patinas. Engineered with reinforced handles to endure your longest journeys.',
+    title: 'Travelling Bags',
+    subtitle: 'Make your journeys memorable with high-capacity premium duffel and weekender bags built to handle rugged conditions while developing a gorgeous patina.',
     ctaUrl: 'categories.html?cat=travelling-bags',
-    ctaText: 'Explore Weekenders',
+    ctaText: 'Shop Travelling Bags',
     secondaryCtaUrl: 'categories.html',
-    secondaryCtaText: 'All Collections'
+    secondaryCtaText: 'Explore More'
   }
 ];
 
@@ -184,6 +206,10 @@ function renderHomepage() {
   const flashSaleContainer = document.getElementById('flash-sale-grid');
   const bestSellersContainer = document.getElementById('best-sellers-grid');
   const newArrivalsContainer = document.getElementById('new-arrivals-grid');
+  const topDealsContainer = document.getElementById('top-deals-grid');
+  const recommendedContainer = document.getElementById('recommended-for-you-grid');
+  const recentlyViewedSec = document.getElementById('recently-viewed-section');
+  const recentlyViewedContainer = document.getElementById('recently-viewed-grid');
 
   const flashSales = products.filter(p => p.isFlashSale);
   const bestSellers = products.filter(p => p.isBestSeller);
@@ -192,6 +218,50 @@ function renderHomepage() {
   if (flashSaleContainer) renderGrid(flashSaleContainer, flashSales);
   if (bestSellersContainer) renderGrid(bestSellersContainer, bestSellers);
   if (newArrivalsContainer) renderGrid(newArrivalsContainer, newArrivals);
+
+  // 1. Top Deals: display discounted products (e.g., originalPrice > price, or flash sales)
+  if (topDealsContainer) {
+    const topDeals = products.filter(p => (p.oldPrice && p.oldPrice > p.price) || (p.originalPrice && p.originalPrice > p.price));
+    renderGrid(topDealsContainer, topDeals.slice(0, 4));
+  }
+
+  // 2. Recommended For You: based on customer browsing (last visited category)
+  if (recommendedContainer) {
+    const lastCat = localStorage.getItem('gr_store_last_viewed_category');
+    let recommended = [];
+    if (lastCat) {
+      recommended = products.filter(p => p.category === lastCat).slice(0, 4);
+    }
+    // Fallback if none viewed yet, or if there are fewer than 2 items in that category
+    if (recommended.length < 2) {
+      recommended = products.filter(p => p.isBestSeller || p.rating >= 4.8).slice(0, 4);
+    }
+    renderGrid(recommendedContainer, recommended);
+  }
+
+  // 3. Recently Viewed: loaded from local storage list of recently viewed product IDs
+  if (recentlyViewedSec && recentlyViewedContainer) {
+    try {
+      const recentlyViewedIds = JSON.parse(localStorage.getItem('gr_store_recently_viewed_ids') || '[]');
+      if (recentlyViewedIds.length > 0) {
+        recentlyViewedSec.classList.remove('hidden');
+        const recentlyViewedProducts = recentlyViewedIds
+          .map(id => products.find(p => p.id === id))
+          .filter(p => p !== undefined);
+        
+        if (recentlyViewedProducts.length > 0) {
+          renderGrid(recentlyViewedContainer, recentlyViewedProducts);
+        } else {
+          recentlyViewedSec.classList.add('hidden');
+        }
+      } else {
+        recentlyViewedSec.classList.add('hidden');
+      }
+    } catch (e) {
+      console.error('Error rendering recently viewed', e);
+      recentlyViewedSec.classList.add('hidden');
+    }
+  }
 
   // Setup click handler for custom quick categories
   const categories = [
@@ -260,7 +330,8 @@ function renderSearchResults(query) {
     filtered = products.filter(p => 
       p.name.toLowerCase().includes(lowerQuery) ||
       p.description.toLowerCase().includes(lowerQuery) ||
-      p.category.toLowerCase().includes(lowerQuery)
+      p.category.toLowerCase().includes(lowerQuery) ||
+      p.price.toString().includes(lowerQuery)
     );
   }
 

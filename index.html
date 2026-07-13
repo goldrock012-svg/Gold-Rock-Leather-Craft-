@@ -23,8 +23,8 @@
             }
           },
           fontFamily: {
-            sans: ['Montserrat', 'sans-serif'],
-            display: ['Montserrat', 'sans-serif'],
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace']
           }
         }
@@ -236,6 +236,23 @@
       </div>
 
 
+      <!-- TOP DEALS SECTION -->
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-2">
+          <span class="bg-red-50 text-red-600 p-1 rounded-md border border-red-100">
+            <i data-lucide="tag" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Top Deals
+          </h3>
+        </div>
+
+        <div id="top-deals-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
       <!-- PROMOTIONAL BANNER -->
       <div class="relative bg-gradient-to-r from-[#1e3a8a] to-[#0f1e36] text-white rounded-2xl overflow-hidden shadow-xl border border-slate-800 p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
         <!-- Floating shapes -->
@@ -295,6 +312,40 @@
         </div>
 
         <div id="new-arrivals-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- RECOMMENDED FOR YOU SECTION -->
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-2">
+          <span class="bg-emerald-50 text-emerald-600 p-1 rounded-md border border-emerald-100">
+            <i data-lucide="heart" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Recommended For You
+          </h3>
+        </div>
+
+        <div id="recommended-for-you-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
+      <!-- RECENTLY VIEWED SECTION -->
+      <div id="recently-viewed-section" class="flex flex-col gap-5 hidden">
+        <div class="flex items-center gap-2">
+          <span class="bg-slate-100 text-slate-600 p-1 rounded-md border border-slate-200">
+            <i data-lucide="history" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Recently Viewed
+          </h3>
+        </div>
+
+        <div id="recently-viewed-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <!-- Dynamically populated -->
         </div>
       </div>

@@ -5,6 +5,7 @@ const KEYS = {
   WISHLIST: 'gr_store_wishlist',
   CURRENT_USER: 'gr_store_current_user',
   ORDERS: 'gr_store_orders',
+  NOTIFICATIONS: 'gr_store_notifications',
 };
 
 // Initialize default mock data into LocalStorage if not present
@@ -55,6 +56,27 @@ const initializeMockDB = () => {
   }
   if (!localStorage.getItem(KEYS.ORDERS)) {
     localStorage.setItem(KEYS.ORDERS, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
+    const defaultNotifications = [
+      {
+        id: 'notif-1',
+        title: 'Welcome to GR STORE!',
+        message: 'Welcome to Gold & Rock Leather Craft! Enjoy premium handmade leather products designed with maximum elegance and longevity.',
+        date: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
+        read: false,
+        type: 'info'
+      },
+      {
+        id: 'notif-2',
+        title: 'Workshop Alerts Active',
+        message: 'You will receive automatic real-time notifications here about your order status, payment receipts, and dispatch tracks.',
+        date: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
+        read: true,
+        type: 'success'
+      }
+    ];
+    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(defaultNotifications));
   }
 };
 
@@ -249,6 +271,18 @@ const placeMockOrder = (shippingDetails, paymentMethod) => {
   // Clear cart on success
   clearMockCart();
 
+  // Log automatic notifications
+  addMockNotification(
+    'Order Received', 
+    `Your order ${newOrder.id} has been registered! Total amount: ₦${total.toLocaleString()}.`, 
+    'success'
+  );
+  addMockNotification(
+    'Payment Pending', 
+    `Payment for order ${newOrder.id} is Pending verification. Please transfer ₦${total.toLocaleString()} to Zenith Bank 1017307844.`, 
+    'info'
+  );
+
   window.dispatchEvent(new Event('ordersUpdated'));
   return newOrder;
 };
@@ -279,6 +313,39 @@ const generateWhatsAppOrderLink = (order) => {
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 };
 
+// Notifications API
+const getMockNotifications = () => {
+  initializeMockDB();
+  const notifJSON = localStorage.getItem(KEYS.NOTIFICATIONS);
+  return notifJSON ? JSON.parse(notifJSON) : [];
+};
+
+const saveMockNotifications = (notifs) => {
+  localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(notifs));
+  window.dispatchEvent(new Event('notificationsUpdated'));
+};
+
+const addMockNotification = (title, message, type = 'info') => {
+  const notifs = getMockNotifications();
+  const newNotif = {
+    id: `notif-${Math.floor(100000 + Math.random() * 900000)}`,
+    title,
+    message,
+    date: new Date().toISOString(),
+    read: false,
+    type
+  };
+  notifs.unshift(newNotif);
+  saveMockNotifications(notifs);
+  return newNotif;
+};
+
+const markAllNotificationsAsRead = () => {
+  const notifs = getMockNotifications();
+  notifs.forEach(n => n.read = true);
+  saveMockNotifications(notifs);
+};
+
 // Make them available globally
 window.KEYS = KEYS;
 window.initializeMockDB = initializeMockDB;
@@ -303,3 +370,6 @@ window.logoutMockUser = logoutMockUser;
 window.getMockOrders = getMockOrders;
 window.placeMockOrder = placeMockOrder;
 window.generateWhatsAppOrderLink = generateWhatsAppOrderLink;
+window.getMockNotifications = getMockNotifications;
+window.addMockNotification = addMockNotification;
+window.markAllNotificationsAsRead = markAllNotificationsAsRead;
