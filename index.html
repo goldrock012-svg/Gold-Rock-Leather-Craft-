@@ -106,144 +106,144 @@
       </div>
 
 
-      <!-- QUICK CATEGORIES BAR -->
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <h3 class="font-sans font-bold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="sparkles" class="w-4.5 h-4.5 text-brand-orange"></i>
-            Explore Collections
+      <!-- CATEGORIES SECTION (JUMIA CIRCLE STYLE) -->
+      <div class="flex flex-col gap-4 bg-white rounded-2xl p-4 border border-slate-150 shadow-xs" id="home-categories-section">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="grid" class="w-4.5 h-4.5 text-brand-orange"></i>
+            Categories
           </h3>
           <a href="categories.html" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-0.5 cursor-pointer">
             See All <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </a>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto pb-1.5 no-scrollbar md:grid md:grid-cols-4 lg:grid-cols-7">
-          <!-- School Bags quicklink -->
-          <div id="quick-cat-bar-school-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+        <div class="grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-5 justify-items-center py-2">
+          <!-- 1. School Bags -->
+          <div id="quick-cat-school-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="backpack" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">School Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">School Bags</span>
           </div>
 
-          <!-- Ladies Hand Bags quicklink -->
-          <div id="quick-cat-bar-ladies-hand-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 2. Ladies Hand Bags -->
+          <div id="quick-cat-ladies-hand-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="shopping-bag" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Ladies Hand Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Ladies Handbags</span>
           </div>
 
-          <!-- Laptop Bags quicklink -->
-          <div id="quick-cat-bar-laptop-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 3. Laptop Bags -->
+          <div id="quick-cat-laptop-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="laptop" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Laptop Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Laptop Bags</span>
           </div>
 
-          <!-- Lunch Bags quicklink -->
-          <div id="quick-cat-bar-lunch-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 4. Lunch Bags -->
+          <div id="quick-cat-lunch-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="box" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Lunch Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Lunch Bags</span>
           </div>
 
-          <!-- Office Bags quicklink -->
-          <div id="quick-cat-bar-office-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 5. Office Bags -->
+          <div id="quick-cat-office-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="briefcase" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Office Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Office Bags</span>
           </div>
 
-          <!-- Men's Purse quicklink -->
-          <div id="quick-cat-bar-mens-purses" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 6. Men's Purse -->
+          <div id="quick-cat-mens-purses" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="wallet" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Men's Purse</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
-            </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Men's Purse</span>
           </div>
 
-          <!-- Travelling Bags quicklink -->
-          <div id="quick-cat-bar-travelling-bags" class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs cursor-pointer hover:shadow-md hover:border-slate-300 transition-all min-w-[200px] shrink-0 md:min-w-0">
-            <div class="w-11 h-11 rounded-lg overflow-hidden shrink-0 border bg-slate-50">
-              <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800" alt="" class="w-full h-full object-cover">
+          <!-- 7. Travel Bags -->
+          <div id="quick-cat-travelling-bags" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="luggage" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-sans font-bold text-xs text-slate-800 capitalize">Travelling Bags</h4>
-              <span class="text-[10px] text-slate-400 font-mono font-medium">Gold & Rock</span>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Travel Bags</span>
+          </div>
+
+          <!-- 8. Accessories -->
+          <div id="quick-cat-accessories" class="flex flex-col items-center gap-2 cursor-pointer group text-center max-w-[80px]">
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-50 border border-orange-100/50 flex items-center justify-center text-brand-orange group-hover:bg-brand-orange group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-xs">
+              <i data-lucide="sparkles" class="w-5 h-5 md:w-7 md:h-7"></i>
             </div>
+            <span class="text-[10px] md:text-xs font-bold text-slate-700 leading-tight group-hover:text-brand-orange transition-colors">Accessories</span>
           </div>
         </div>
       </div>
 
 
       <!-- FLASH SALES SECTION -->
-      <div class="bg-[#0f1e36] text-white rounded-2xl p-4 md:p-6 border border-slate-800 shadow-xl overflow-hidden relative">
+      <div class="bg-[#0f1e36] text-white rounded-2xl p-4 md:p-6 border border-slate-800 shadow-xl overflow-hidden relative" id="flash-sale-section">
         <!-- Glowing decorative ambient corner -->
         <div class="absolute -top-12 -right-12 w-36 h-36 bg-brand-orange/15 rounded-full blur-2xl pointer-events-none"></div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-4 mb-5">
-          <div class="flex items-center gap-2">
-            <span class="bg-brand-orange text-white p-1.5 rounded-lg shadow-md animate-pulse">
-              <i data-lucide="zap" class="w-4 h-4 fill-white text-white"></i>
-            </span>
-            <h3 class="font-sans font-extrabold text-white text-base md:text-xl uppercase tracking-wider">
-              ⚡ Flash Sales
-            </h3>
+          <div class="flex items-center justify-between w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+              <span class="bg-brand-orange text-white p-1.5 rounded-lg shadow-md animate-pulse">
+                <i data-lucide="zap" class="w-4 h-4 fill-white text-white"></i>
+              </span>
+              <h3 class="font-sans font-extrabold text-white text-base md:text-xl uppercase tracking-wider">
+                ⚡ Flash Sales
+              </h3>
+            </div>
+            
+            <a href="categories.html" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-0.5 sm:hidden">
+              See All <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
           </div>
 
-          <!-- Countdown timer widget -->
-          <div class="flex items-center gap-2 text-xs">
-            <span class="text-slate-400 font-mono font-semibold flex items-center gap-1">
-              <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
-              ENDING IN:
-            </span>
-            <div class="flex gap-1.5 font-mono">
-              <span id="timer-hours" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">08h</span>
-              <span class="text-slate-500 font-bold">:</span>
-              <span id="timer-minutes" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">42m</span>
-              <span class="text-slate-500 font-bold">:</span>
-              <span id="timer-seconds" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">15s</span>
+          <!-- Countdown timer widget & See All -->
+          <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-slate-400 font-mono font-semibold flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                ENDING IN:
+              </span>
+              <div class="flex gap-1.5 font-mono">
+                <span id="timer-hours" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">08h</span>
+                <span class="text-slate-500 font-bold">:</span>
+                <span id="timer-minutes" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">42m</span>
+                <span class="text-slate-500 font-bold">:</span>
+                <span id="timer-seconds" class="bg-slate-800 border border-slate-700 text-brand-orange font-bold px-2 py-1 rounded-md text-xs">15s</span>
+              </div>
             </div>
+
+            <a href="categories.html" class="hidden sm:flex text-xs font-bold text-brand-orange hover:text-brand-orange-dark items-center gap-0.5 cursor-pointer">
+              See All <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
           </div>
         </div>
 
-        <div id="flash-sale-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Dynamically populated -->
+        <!-- Horizontal scrollable products wrapper -->
+        <div id="flash-sale-scroller" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar scroll-smooth snap-x snap-mandatory">
+          <!-- Dynamically populated horizontally scrollable list -->
         </div>
       </div>
 
 
-      <!-- TOP DEALS SECTION -->
-      <div class="flex flex-col gap-5">
-        <div class="flex items-center gap-2">
-          <span class="bg-red-50 text-red-600 p-1 rounded-md border border-red-100">
-            <i data-lucide="tag" class="w-4 h-4"></i>
+      <!-- FEATURED PRODUCTS (TOP DEALS) SECTION -->
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500" id="featured-products-section">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-red-50 text-red-600 p-1.5 rounded-lg border border-red-150">
+            <i data-lucide="tag" class="w-4 h-4 text-red-500"></i>
           </span>
           <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
-            Top Deals
+            Featured Products
           </h3>
         </div>
 
@@ -253,57 +253,10 @@
       </div>
 
 
-      <!-- PROMOTIONAL BANNER -->
-      <div class="relative bg-gradient-to-r from-[#1e3a8a] to-[#0f1e36] text-white rounded-2xl overflow-hidden shadow-xl border border-slate-800 p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-        <!-- Floating shapes -->
-        <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl pointer-events-none"></div>
-        
-        <div class="max-w-xl text-center md:text-left z-10">
-          <span class="bg-brand-orange text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest">
-            LIMITED PROMO OFFER
-          </span>
-          <h3 class="font-display font-extrabold text-2xl md:text-3.5xl text-white tracking-tight mt-3 leading-tight">
-            Handcrafted Luxury, <br class="hidden md:inline" />Nigeria's Premium Heritage
-          </h3>
-          <p class="text-slate-300 text-xs md:text-sm font-light mt-3 leading-relaxed">
-            Get an extra <strong class="text-brand-orange font-bold font-mono text-base">15% OFF</strong> on all custom laptop briefcases & travel duffels. Hand-stitched with 100% genuine vegetable-tanned leather.
-          </p>
-          <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-            <span class="bg-slate-900/60 border border-slate-700 font-mono font-bold text-xs md:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5">
-              <i data-lucide="tag" class="w-3.5 h-3.5 text-brand-orange"></i>
-              USE CODE: <span class="text-brand-orange">GRGOLD</span>
-            </span>
-          </div>
-        </div>
-        
-        <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden border border-slate-700 bg-slate-900/40 shrink-0 z-10 shadow-lg">
-          <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800" alt="Executive leather office bag" class="w-full h-full object-cover">
-        </div>
-      </div>
-
-
-      <!-- BEST SELLERS SECTION -->
-      <div class="flex flex-col gap-5">
-        <div class="flex items-center gap-2">
-          <span class="bg-amber-100 text-amber-600 p-1 rounded-md border border-amber-200">
-            <i data-lucide="award" class="w-4 h-4"></i>
-          </span>
-          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
-            Best Sellers
-          </h3>
-        </div>
-
-        <div id="best-sellers-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-
-
       <!-- NEW ARRIVALS -->
-      <div class="flex flex-col gap-5">
-        <div class="flex items-center gap-2">
-          <span class="bg-blue-50 text-brand-blue-light p-1 rounded-md border border-blue-100">
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-blue-50 text-brand-blue-light p-1.5 rounded-lg border border-blue-150">
             <i data-lucide="sparkles" class="w-4 h-4 text-[#1e3a8a]"></i>
           </span>
           <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
@@ -317,11 +270,28 @@
       </div>
 
 
+      <!-- BEST SELLERS SECTION -->
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-amber-50 text-amber-600 p-1.5 rounded-lg border border-amber-150">
+            <i data-lucide="award" class="w-4 h-4 text-amber-500 animate-pulse"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Best Sellers
+          </h3>
+        </div>
+
+        <div id="best-sellers-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+
       <!-- RECOMMENDED FOR YOU SECTION -->
-      <div class="flex flex-col gap-5">
-        <div class="flex items-center gap-2">
-          <span class="bg-emerald-50 text-emerald-600 p-1 rounded-md border border-emerald-100">
-            <i data-lucide="heart" class="w-4 h-4"></i>
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg border border-emerald-150">
+            <i data-lucide="heart" class="w-4 h-4 text-emerald-500"></i>
           </span>
           <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
             Recommended For You
@@ -334,11 +304,127 @@
       </div>
 
 
+      <!-- LEATHER COLLECTIONS SECTION (PROMOTIONAL BANNER) -->
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500" id="leather-collections-section">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-slate-100 text-slate-800 p-1.5 rounded-lg border border-slate-200">
+            <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            Leather Collections
+          </h3>
+        </div>
+
+        <div class="relative bg-gradient-to-r from-[#1e3a8a] to-[#0f1e36] text-white rounded-2xl overflow-hidden shadow-xl border border-slate-800 p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <!-- Floating shapes -->
+          <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="max-w-xl text-center md:text-left z-10">
+            <span class="bg-brand-orange text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest">
+              LIMITED PROMO OFFER
+            </span>
+            <h3 class="font-display font-extrabold text-2xl md:text-3.5xl text-white tracking-tight mt-3 leading-tight">
+              Handcrafted Luxury, <br class="hidden md:inline" />Nigeria's Premium Heritage
+            </h3>
+            <p class="text-slate-300 text-xs md:text-sm font-light mt-3 leading-relaxed">
+              Get an extra <strong class="text-brand-orange font-bold font-mono text-base">15% OFF</strong> on all custom laptop briefcases & travel duffels. Hand-stitched with 100% genuine vegetable-tanned leather.
+            </p>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
+              <span class="bg-slate-900/60 border border-slate-700 font-mono font-bold text-xs md:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5">
+                <i data-lucide="tag" class="w-3.5 h-3.5 text-brand-orange"></i>
+                USE CODE: <span class="text-brand-orange">GRGOLD</span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden border border-slate-700 bg-slate-900/40 shrink-0 z-10 shadow-lg">
+            <img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=800" alt="Executive leather office bag" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+
+
+      <!-- CUSTOMER REVIEWS SECTION -->
+      <div class="flex flex-col gap-5 animate-in fade-in duration-500" id="customer-reviews-section">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-amber-50 text-amber-600 p-1.5 rounded-lg border border-amber-150">
+            <i data-lucide="message-square" class="w-4 h-4 text-amber-500"></i>
+          </span>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
+            What Our Customers Say
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white border border-slate-150 p-4 rounded-xl shadow-xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center text-amber-400 gap-0.5 mb-2">
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+              </div>
+              <p class="text-xs text-slate-600 italic">"The leather quality of the office bag is simply outstanding. It is thick, rugged, and smells amazing! OYEWOLE TOSIN OLUMIDE delivered exactly what I ordered."</p>
+            </div>
+            <div class="mt-4 flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-100 font-bold text-xs flex items-center justify-center text-slate-700">A</div>
+              <div>
+                <h5 class="text-xs font-bold text-slate-800">Adeyemi O.</h5>
+                <span class="text-[9px] text-slate-400 block -mt-0.5">Verified Buyer • Ilorin</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-150 p-4 rounded-xl shadow-xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center text-amber-400 gap-0.5 mb-2">
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+              </div>
+              <p class="text-xs text-slate-600 italic">"My daughter's leather school bag is extremely durable. Most canvas bags tear after one term, but this Gold & Rock bag still looks brand new after 6 months."</p>
+            </div>
+            <div class="mt-4 flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-100 font-bold text-xs flex items-center justify-center text-slate-700">F</div>
+              <div>
+                <h5 class="text-xs font-bold text-slate-800">Florence E.</h5>
+                <span class="text-[9px] text-slate-400 block -mt-0.5">Verified Buyer • Offa</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-150 p-4 rounded-xl shadow-xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center text-amber-400 gap-0.5 mb-2">
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+              </div>
+              <p class="text-xs text-slate-600 italic">"Top-tier bespoke lunch bags. It holds hot containers well, and the hand-burnishing of the strap is exquisite. Nigeria has a true leather heritage!"</p>
+            </div>
+            <div class="mt-4 flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-slate-100 font-bold text-xs flex items-center justify-center text-slate-700">I</div>
+              <div>
+                <h5 class="text-xs font-bold text-slate-800">Ibrahim K.</h5>
+                <span class="text-[9px] text-slate-400 block -mt-0.5">Verified Buyer • Kwara</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <!-- RECENTLY VIEWED SECTION -->
-      <div id="recently-viewed-section" class="flex flex-col gap-5 hidden">
-        <div class="flex items-center gap-2">
-          <span class="bg-slate-100 text-slate-600 p-1 rounded-md border border-slate-200">
-            <i data-lucide="history" class="w-4 h-4"></i>
+      <div id="recently-viewed-section" class="flex flex-col gap-5 hidden animate-in fade-in duration-500">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <span class="bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200">
+            <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
           </span>
           <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider">
             Recently Viewed

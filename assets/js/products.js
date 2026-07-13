@@ -40,6 +40,12 @@ const CATEGORIES = [
     name: 'Travelling Bags',
     image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=800',
     count: 4
+  },
+  {
+    id: 'accessories',
+    name: 'Accessories',
+    image: 'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&q=80&w=800',
+    count: 2
   }
 ];
 
@@ -797,6 +803,68 @@ const PRODUCTS = [
     ],
     reviews: [
       { id: 'r124', userName: 'Chinedu W.', rating: 5, date: '2026-07-09', comment: 'Extremely elegant notebook protector. Smells wonderful.' }
+    ]
+  },
+  {
+    id: 'gr-acc-01',
+    productName: 'Gold & Rock Premium Key Organizer',
+    name: 'Gold & Rock Premium Key Organizer',
+    category: 'accessories',
+    price: 4500,
+    oldPrice: 6000,
+    originalPrice: 6000,
+    discountPercentage: 25,
+    flashSaleDiscount: 25,
+    image: 'https://images.unsplash.com/photo-1588444839799-eb0850009161?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1588444839799-eb0850009161?auto=format&fit=crop&q=80&w=800'
+    ],
+    rating: 4.9,
+    reviewsCount: 37,
+    isFlashSale: false,
+    isBestSeller: true,
+    isNew: true,
+    stock: 45,
+    soldCount: 15,
+    description: "Keep your keys silent and neat in our heavy-duty handcrafted leather organizer key sleeve.",
+    details: [
+      '100% thick premium tooling leather',
+      'Holds 2-8 keys with robust steel locking shaft',
+      'Elegant contrast stitching'
+    ],
+    reviews: [
+      { id: 'rac1', userName: 'Emeka O.', rating: 5, date: '2026-07-12', comment: 'Absolutely brilliant organizer! No more jingle in my pocket.' }
+    ]
+  },
+  {
+    id: 'gr-acc-02',
+    productName: 'Gold & Rock Classic Belt',
+    name: 'Gold & Rock Classic Belt',
+    category: 'accessories',
+    price: 9500,
+    oldPrice: 12000,
+    originalPrice: 12000,
+    discountPercentage: 20,
+    flashSaleDiscount: 20,
+    image: 'https://images.unsplash.com/photo-1624222247344-550fb8ecf7db?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1624222247344-550fb8ecf7db?auto=format&fit=crop&q=80&w=800'
+    ],
+    rating: 4.8,
+    reviewsCount: 52,
+    isFlashSale: false,
+    isBestSeller: true,
+    isNew: true,
+    stock: 30,
+    soldCount: 22,
+    description: "Exquisite hand-burnished formal belt made from the finest top-grain bridal leather.",
+    details: [
+      '100% full-grain Nigerian bridal leather strap',
+      'Solid heavy brass buckle attachment',
+      'Durable edge treatment with natural burnishing beeswax'
+    ],
+    reviews: [
+      { id: 'rac2', userName: 'Yusuf M.', rating: 5, date: '2026-07-11', comment: 'Incredible finish. Very thick and durable.' }
     ]
   }
 ];

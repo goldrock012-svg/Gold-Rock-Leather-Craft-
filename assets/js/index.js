@@ -203,7 +203,7 @@ function setupCountdownTimer() {
 function renderHomepage() {
   const products = getMockProducts();
 
-  const flashSaleContainer = document.getElementById('flash-sale-grid');
+  const flashSaleContainer = document.getElementById('flash-sale-scroller');
   const bestSellersContainer = document.getElementById('best-sellers-grid');
   const newArrivalsContainer = document.getElementById('new-arrivals-grid');
   const topDealsContainer = document.getElementById('top-deals-grid');
@@ -271,10 +271,11 @@ function renderHomepage() {
     'lunch-bags',
     'office-bags',
     'mens-purses',
-    'travelling-bags'
+    'travelling-bags',
+    'accessories'
   ];
   categories.forEach(cat => {
-    const el = document.getElementById(`quick-cat-bar-${cat}`);
+    const el = document.getElementById(`quick-cat-${cat}`);
     if (el) {
       el.addEventListener('click', () => {
         window.location.href = `categories.html?cat=${cat}`;
