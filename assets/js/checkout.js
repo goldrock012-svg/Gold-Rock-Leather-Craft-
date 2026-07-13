@@ -198,7 +198,7 @@ function renderCheckoutForm() {
 
   // Handle Order Submit
   const checkoutForm = document.getElementById('checkout-secure-form');
-  checkoutForm.addEventListener('submit', (e) => {
+  checkoutForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const fullName = document.getElementById('chk-name').value.trim();
@@ -211,16 +211,24 @@ function renderCheckoutForm() {
 
     const submitBtn = document.getElementById('checkout-submit-btn');
     submitBtn.classList.add('pointer-events-none', 'opacity-60');
-    submitBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 text-white animate-spin"></i> Processing payment & reserving stock...`;
+    submitBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 text-white animate-spin"></i> Processing Payment & Reserving Stock...`;
     if (window.lucide) window.lucide.createIcons();
 
-    setTimeout(() => {
-      const details = { fullName, phoneNumber, email, address, city, state, additionalNotes };
-      placedOrder = placeMockOrder(details, paymentMethod);
+    const details = { fullName, phoneNumber, email, address, city, state, additionalNotes };
+
+    try {
+      placedOrder = await placeMockOrder(details, paymentMethod);
 
       showNotification('Order placed successfully! Reserving your leather crafts.', 'success');
       renderSuccessState();
-    }, 1500);
+      showSuccessModal(placedOrder);
+    } catch (err) {
+      showNotification(err.message || 'Failed to place order. Please try again.', 'danger');
+    } finally {
+      submitBtn.classList.remove('pointer-events-none', 'opacity-60');
+      submitBtn.innerHTML = `<i data-lucide="shield-check" class="w-4 h-4 text-white"></i> Confirm & Place Order`;
+      if (window.lucide) window.lucide.createIcons();
+    }
   });
 }
 
@@ -285,4 +293,82 @@ function renderSuccessState() {
     const link = generateWhatsAppOrderLink(placedOrder);
     window.open(link, '_blank');
   });
+}
+
+function showSuccessModal(order) {
+  // Remove any existing success modal
+  const existingModal = document.getElementById('checkout-success-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  const modalHtml = `
+    <div id="checkout-success-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div class="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-5 relative animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Success Icon -->
+        <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full border border-emerald-100 shadow-inner flex items-center justify-center">
+          <i data-lucide="check-circle" class="w-10 h-10 stroke-[1.5px]"></i>
+        </div>
+
+        <!-- Title -->
+        <h3 class="font-sans font-extrabold text-slate-900 text-lg">✅ Order placed successfully.</h3>
+
+        <!-- Order Number & Info -->
+        <div class="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col gap-2.5 text-left">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Order Number</span>
+            <span class="text-xs font-mono font-bold text-slate-800">${order.id}</span>
+          </div>
+          
+          <div class="border-t border-slate-150 my-0.5"></div>
+          
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Status</span>
+            <div>
+              <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200/60 inline-block">Pending Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-500 font-light leading-relaxed max-w-xs">
+          Thank you for choosing Gold & Rock Leather Craft! Your order is reserved in our workshop. Please share your receipt on WhatsApp below for instant confirmation.
+        </p>
+
+        <!-- Buttons Stack -->
+        <div class="w-full flex flex-col gap-2.5 mt-2">
+          <!-- Share Receipt on WhatsApp -->
+          <button id="modal-whatsapp-share-btn" class="w-full bg-[#25D366] hover:bg-[#1ebd54] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md text-xs tracking-wider uppercase border border-[#1fbf55]">
+            <i data-lucide="message-square" class="w-4.5 h-4.5 fill-white text-white"></i> Share Receipt on WhatsApp
+          </button>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- View My Orders -->
+            <a href="account.html?tab=my-orders" class="bg-[#0f1e36] hover:bg-[#152a4d] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors text-xs tracking-wider uppercase shadow-xs">
+              <i data-lucide="package" class="w-3.5 h-3.5"></i> View My Orders
+            </a>
+
+            <!-- Continue Shopping -->
+            <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors text-xs tracking-wider uppercase">
+              <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Continue Shopping
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  if (window.lucide) window.lucide.createIcons();
+
+  // Setup WhatsApp share button click inside modal
+  const waBtn = document.getElementById('modal-whatsapp-share-btn');
+  if (waBtn) {
+    waBtn.addEventListener('click', () => {
+      const link = generateWhatsAppOrderLink(order);
+      window.open(link, '_blank');
+    });
+  }
 }
