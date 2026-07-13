@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Handcrafted leather product item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "oldPrice": { "type": "number" },
+        "discountPercentage": { "type": "number" },
+        "image": { "type": "string" },
+        "images": { "type": "array" },
+        "rating": { "type": "number" },
+        "reviewsCount": { "type": "number" },
+        "isFlashSale": { "type": "boolean" },
+        "isBestSeller": { "type": "boolean" },
+        "isNew": { "type": "boolean" },
+        "stock": { "type": "number" },
+        "soldCount": { "type": "number" },
+        "description": { "type": "string" },
+        "details": { "type": "array" },
+        "reviews": { "type": "array" }
+      },
+      "required": ["id", "name", "category", "price"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile metadata and PII info",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "profilePicture": { "type": "string" }
+      },
+      "required": ["uid", "fullName", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer custom order document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "shippingDetails": { "type": "object" },
+        "paymentMethod": { "type": "string" }
+      },
+      "required": ["id", "userId", "date", "items", "total", "status"]
+    },
+    "Cart": {
+      "title": "Cart",
+      "description": "User shopping cart state synchronized to Firestore",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["userId", "items"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "User wishlist state synchronized to Firestore",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "productIds": { "type": "array" }
+      },
+      "required": ["userId", "productIds"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "The product catalog collection"
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "The customer profiles and delivery address settings"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer logged orders"
+    },
+    "carts/{userId}": {
+      "schema": "Cart",
+      "description": "Carts synchronized state"
+    },
+    "wishlists/{userId}": {
+      "schema": "Wishlist",
+      "description": "Wishlists synchronized state"
+    }
+  }
+}

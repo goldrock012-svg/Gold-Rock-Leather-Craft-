@@ -2,6 +2,8 @@ let activeTab = 'my-profile';
 let editMode = false;
 let authTab = 'signin'; // 'signin' or 'register'
 let mobileShowPane = false;
+let adminSubTab = 'verify-payments'; // 'verify-payments' or 'upload-product'
+let selectedProductImageFile = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
@@ -195,14 +197,14 @@ function getSignInFormHtml() {
   return `
     <form id="auth-signin-form" class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address *</label>
         <input type="email" id="signin-email" required placeholder="example@gmail.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password (Optional)</label>
-        <input type="password" id="signin-password" placeholder="••••••••" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password *</label>
+        <input type="password" id="signin-password" required placeholder="••••••••" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
       </div>
-      <button type="submit" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer mt-2">
+      <button type="submit" id="signin-submit-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer mt-2 flex items-center justify-center gap-1.5 border-0">
         Sign In
       </button>
     </form>
@@ -238,7 +240,17 @@ function getRegisterFormHtml() {
           <input type="text" id="reg-state" required placeholder="Kwara State" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
         </div>
       </div>
-      <button type="submit" class="w-full bg-[#f68b1e] hover:bg-brand-orange-dark text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer mt-2">
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password *</label>
+          <input type="password" id="reg-password" required placeholder="••••••••" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confirm Password *</label>
+          <input type="password" id="reg-confirm-password" required placeholder="••••••••" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+        </div>
+      </div>
+      <button type="submit" id="register-submit-btn" class="w-full bg-[#f68b1e] hover:bg-brand-orange-dark text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer mt-2 flex items-center justify-center gap-1.5 border-0">
         Register Account
       </button>
     </form>
@@ -592,80 +604,159 @@ function getPaymentHistoryViewHtml(user) {
 function getAdminConsoleViewHtml() {
   const orders = getMockOrders();
   
-  let ordersListHTML = '';
+  let mainContentHTML = '';
   
-  if (orders.length === 0) {
-    ordersListHTML = `
-      <div class="text-center py-10 bg-slate-50 border border-dashed rounded-2xl p-6">
-        <p class="text-slate-400 text-xs italic">No orders logged in system database yet.</p>
-        <p class="text-slate-400 text-[10px] mt-1">Place some handcrafted leather orders in the checkout first!</p>
-      </div>
-    `;
-  } else {
-    ordersListHTML = orders.map(ord => {
-      const isPending = ord.status === 'Pending Payment Verification' || ord.status === 'pending';
-      const isPaid = ord.status === 'Paid Successfully';
-      const isCompleted = ord.status === 'completed' || ord.status === 'Verified Dispatch';
-      
-      let itemsList = ord.items.map(item => `
-        <div class="flex justify-between text-[11px] text-slate-600 font-mono">
-          <span>${item.product.name} (Qty: ${item.quantity})</span>
-          <span>₦${(item.product.price * item.quantity).toLocaleString()}</span>
-        </div>
-      `).join('');
-      
-      return `
-        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 shadow-xs">
-          <div class="flex justify-between items-start border-b border-slate-100 pb-2">
-            <div>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>
-              <span class="font-mono font-bold text-xs text-[#0f1e36]">${ord.id}</span>
-            </div>
-            <div class="text-right">
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
-              <span class="font-semibold text-xs text-slate-800">${ord.shippingDetails.fullName}</span>
-            </div>
-          </div>
-          
-          <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Items</span>
-            ${itemsList}
-            <div class="flex justify-between font-bold text-xs mt-1 text-slate-800">
-              <span>Total Payment:</span>
-              <span class="text-brand-orange font-mono">₦${ord.total.toLocaleString()}</span>
-            </div>
-          </div>
-          
-          <div class="flex justify-between items-center">
-            <div>
-              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Current Status</span>
-              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                isPaid 
-                  ? 'bg-emerald-100 text-emerald-800' 
-                  : isCompleted 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-amber-100 text-amber-800'
-              }">
-                ${ord.status === 'pending' ? 'Pending Payment Verification' : ord.status}
-              </span>
-            </div>
-            
-            <div>
-              ${isPending ? `
-                <button data-order-id="${ord.id}" class="admin-approve-btn bg-[#f68b1e] hover:bg-[#e07a1b] text-white font-extrabold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide shadow-xs border-0">
-                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Approve Payment
-                </button>
-              ` : `
-                <div class="flex items-center gap-1 text-emerald-600 font-extrabold text-[10px] uppercase">
-                  <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-500"></i>
-                  <span>Paid & Approved</span>
-                </div>
-              `}
-            </div>
-          </div>
+  if (adminSubTab === 'verify-payments') {
+    let ordersListHTML = '';
+    if (orders.length === 0) {
+      ordersListHTML = `
+        <div class="text-center py-10 bg-slate-50 border border-dashed rounded-2xl p-6">
+          <p class="text-slate-400 text-xs italic">No orders logged in system database yet.</p>
+          <p class="text-slate-400 text-[10px] mt-1">Place some handcrafted leather orders in the checkout first!</p>
         </div>
       `;
-    }).join('<div class="h-4"></div>');
+    } else {
+      ordersListHTML = orders.map(ord => {
+        const isPending = ord.status === 'Pending Payment Verification' || ord.status === 'pending';
+        const isPaid = ord.status === 'Paid Successfully';
+        const isCompleted = ord.status === 'completed' || ord.status === 'Verified Dispatch';
+        
+        let itemsList = ord.items.map(item => `
+          <div class="flex justify-between text-[11px] text-slate-600 font-mono">
+            <span>${item.product.name} (Qty: ${item.quantity})</span>
+            <span>₦${(item.product.price * item.quantity).toLocaleString()}</span>
+          </div>
+        `).join('');
+        
+        return `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 shadow-xs">
+            <div class="flex justify-between items-start border-b border-slate-100 pb-2">
+              <div>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>
+                <span class="font-mono font-bold text-xs text-[#0f1e36]">${ord.id}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
+                <span class="font-semibold text-xs text-slate-800">${ord.shippingDetails.fullName}</span>
+              </div>
+            </div>
+            
+            <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2">
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Items</span>
+              ${itemsList}
+              <div class="flex justify-between font-bold text-xs mt-1 text-slate-800">
+                <span>Total Payment:</span>
+                <span class="text-brand-orange font-mono">₦${ord.total.toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Current Status</span>
+                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                  isPaid 
+                    ? 'bg-emerald-100 text-emerald-800' 
+                    : isCompleted 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-amber-100 text-amber-800'
+                }">
+                  ${ord.status === 'pending' ? 'Pending Payment Verification' : ord.status}
+                </span>
+              </div>
+              
+              <div>
+                ${isPending ? `
+                  <button data-order-id="${ord.id}" class="admin-approve-btn bg-[#f68b1e] hover:bg-[#e07a1b] text-white font-extrabold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide shadow-xs border-0">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Approve Payment
+                  </button>
+                ` : `
+                  <div class="flex items-center gap-1 text-emerald-600 font-extrabold text-[10px] uppercase">
+                    <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-500"></i>
+                    <span>Paid & Approved</span>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('<div class="h-4"></div>');
+    }
+    
+    mainContentHTML = `
+      <div class="flex flex-col gap-4">
+        ${ordersListHTML}
+      </div>
+    `;
+  } else if (adminSubTab === 'upload-product') {
+    mainContentHTML = `
+      <form id="admin-add-product-form" class="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-xs">
+        <div class="flex items-center gap-2 border-b pb-2 mb-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-[#f68b1e]"></i>
+          <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider">Add New Product Catalog</h4>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Name *</label>
+            <input type="text" id="prod-name" required placeholder="Gold & Rock Vintage Briefcase" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product ID *</label>
+            <input type="text" id="prod-id" required placeholder="gr-${Date.now().toString().slice(-4)}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category *</label>
+            <select id="prod-category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+              <option value="school-bags">School Bags</option>
+              <option value="ladies-hand-bags">Ladies Hand Bags</option>
+              <option value="laptop-bags">Laptop Bags</option>
+              <option value="lunch-bags">Lunch Bags</option>
+              <option value="office-bags">Office Bags</option>
+              <option value="mens-purses">Men's Purse</option>
+              <option value="travelling-bags">Travelling Bags</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price (₦) *</label>
+            <input type="number" id="prod-price" required placeholder="15000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Description *</label>
+          <textarea id="prod-description" required rows="3" placeholder="Handcrafted from full-grain vegetable-tanned leather..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image (Upload to Storage) *</label>
+          <div id="image-drag-drop-zone" class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
+            <i data-lucide="image" class="w-8 h-8 text-slate-400"></i>
+            <span class="text-[11px] font-bold text-slate-600">Drag & drop product image or click to browse</span>
+            <span class="text-[9px] text-slate-400 font-light">Supports JPEG, PNG, WEBP</span>
+            <input type="file" id="prod-image-file" accept="image/*" class="hidden">
+          </div>
+          
+          <div id="image-preview-container" class="hidden mt-2 flex items-center gap-3 bg-slate-50 border p-2.5 rounded-lg">
+            <img id="image-preview-img" src="" class="w-12 h-12 object-cover rounded border bg-white">
+            <div class="flex-1 min-w-0">
+              <p id="image-preview-filename" class="text-[11px] font-bold text-slate-800 truncate"></p>
+              <p id="image-preview-size" class="text-[9px] text-slate-400"></p>
+            </div>
+            <button type="button" id="image-preview-remove" class="p-1 hover:bg-slate-200 rounded-full text-slate-500 hover:text-red-500 border-0 bg-transparent cursor-pointer">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="admin-add-product-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-xl text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 shadow-sm border-0">
+          <i data-lucide="plus" class="w-4 h-4"></i> Add Product Catalog
+        </button>
+      </form>
+    `;
   }
 
   return `
@@ -682,14 +773,21 @@ function getAdminConsoleViewHtml() {
           <h4 class="font-extrabold uppercase tracking-wider text-[11px]">CEO Admin Controls Hub</h4>
         </div>
         <p class="text-slate-300 font-light leading-relaxed">
-          Welcome back, <strong class="text-white font-bold">OYEWOLE TOSIN OLUMIDE</strong>. As the administrator of Gold & Rock Leather Craft, use this panel to inspect incoming bank payments. Click <span class="text-brand-orange font-semibold">Approve Payment</span> to instantly update the customer's status to "Paid Successfully" and issue their production/dispatch queue slots.
+          Welcome back, <strong class="text-white font-bold">OYEWOLE TOSIN OLUMIDE</strong>. As the administrator of Gold & Rock Leather Craft, use this panel to inspect incoming bank payments or upload new custom products directly to Firebase.
         </p>
       </div>
-      
-      <!-- List -->
-      <div class="flex flex-col gap-4">
-        ${ordersListHTML}
+
+      <!-- Admin Mini Tabs -->
+      <div class="flex border-b border-slate-200 mb-5 text-center">
+        <button id="admin-tab-verify" class="flex-1 py-2.5 font-bold text-[10px] tracking-wider uppercase cursor-pointer transition-colors border-b-2 ${adminSubTab === 'verify-payments' ? 'text-brand-orange bg-slate-50 border-brand-orange' : 'text-slate-400 border-transparent hover:text-slate-600 bg-transparent'}">
+          Verify Orders
+        </button>
+        <button id="admin-tab-upload" class="flex-1 py-2.5 font-bold text-[10px] tracking-wider uppercase cursor-pointer transition-colors border-b-2 ${adminSubTab === 'upload-product' ? 'text-brand-orange bg-slate-50 border-brand-orange' : 'text-slate-400 border-transparent hover:text-slate-600 bg-transparent'}">
+          Upload New Product
+        </button>
       </div>
+      
+      ${mainContentHTML}
     </div>
   `;
 }
@@ -970,28 +1068,168 @@ function getSettingsViewHtml(user) {
 }
 
 function setupAccountListeners(user) {
-  // Admin approve buttons
+  // Admin sub-tab toggling
+  const adminTabVerify = document.getElementById('admin-tab-verify');
+  const adminTabUpload = document.getElementById('admin-tab-upload');
+  
+  if (adminTabVerify) {
+    adminTabVerify.addEventListener('click', () => {
+      adminSubTab = 'verify-payments';
+      renderAccountView();
+    });
+  }
+  if (adminTabUpload) {
+    adminTabUpload.addEventListener('click', () => {
+      adminSubTab = 'upload-product';
+      renderAccountView();
+    });
+  }
+
+  // Admin Approve Buttons
   document.querySelectorAll('.admin-approve-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const orderId = btn.getAttribute('data-order-id');
-      const orders = getMockOrders();
-      const oIndex = orders.findIndex(o => o.id === orderId);
-      if (oIndex !== -1) {
-        orders[oIndex].status = 'Paid Successfully';
-        localStorage.setItem(KEYS.ORDERS, JSON.stringify(orders));
-        
-        // Log automatic notification
-        addMockNotification(
-          'Payment Verified', 
-          `Payment for order ${orderId} has been successfully verified! Your order status has changed to Paid Successfully.`, 
-          'success'
-        );
-        
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span>Verifying...</span>
+      `;
+      
+      try {
+        await window.approveOrderPayment(orderId);
         showNotification(`Order ${orderId} has been marked as Paid Successfully!`, 'success');
         renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
       }
     });
   });
+
+  // Admin Product Creation form & drag-and-drop file handlers
+  const imageZone = document.getElementById('image-drag-drop-zone');
+  const fileInput = document.getElementById('prod-image-file');
+  const previewContainer = document.getElementById('image-preview-container');
+  const previewImg = document.getElementById('image-preview-img');
+  const previewFilename = document.getElementById('image-preview-filename');
+  const previewSize = document.getElementById('image-preview-size');
+  const previewRemove = document.getElementById('image-preview-remove');
+
+  const handleFileSelection = (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      showNotification('Please select a valid image file (JPEG, PNG, WEBP).', 'info');
+      return;
+    }
+    selectedProductImageFile = file;
+    
+    // Preview the image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (previewImg) previewImg.src = e.target.result;
+      if (previewFilename) previewFilename.textContent = file.name;
+      if (previewSize) previewSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+      if (previewContainer) previewContainer.classList.remove('hidden');
+      if (imageZone) imageZone.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (imageZone && fileInput) {
+    imageZone.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    imageZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imageZone.classList.add('border-brand-orange');
+      imageZone.classList.add('bg-orange-50/10');
+    });
+
+    ['dragleave', 'dragend'].forEach(type => {
+      imageZone.addEventListener(type, () => {
+        imageZone.classList.remove('border-brand-orange');
+        imageZone.classList.remove('bg-orange-50/10');
+      });
+    });
+
+    imageZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imageZone.classList.remove('border-brand-orange');
+      imageZone.classList.remove('bg-orange-50/10');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelection(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  if (previewRemove) {
+    previewRemove.addEventListener('click', () => {
+      selectedProductImageFile = null;
+      if (fileInput) fileInput.value = '';
+      if (previewContainer) previewContainer.classList.add('hidden');
+      if (imageZone) imageZone.classList.remove('hidden');
+    });
+  }
+
+  const addProductForm = document.getElementById('admin-add-product-form');
+  if (addProductForm) {
+    addProductForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!selectedProductImageFile) {
+        showNotification('Please select or upload a product image first.', 'info');
+        return;
+      }
+
+      const submitBtn = document.getElementById('admin-add-product-btn');
+      const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Uploading and Creating...</span>
+        `;
+      }
+
+      const prodData = {
+        id: document.getElementById('prod-id').value.trim(),
+        name: document.getElementById('prod-name').value.trim(),
+        category: document.getElementById('prod-category').value,
+        price: parseFloat(document.getElementById('prod-price').value),
+        description: document.getElementById('prod-description').value.trim(),
+        stock: 10,
+        colors: ["Default Leather", "Classic Black", "Vintage Brown"],
+        image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80" // default placeholder fallback
+      };
+
+      try {
+        await window.addProductToCatalog(prodData, selectedProductImageFile);
+        showNotification('Product successfully uploaded and registered in catalog database!', 'success');
+        selectedProductImageFile = null;
+        adminSubTab = 'verify-payments';
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message || 'Failed to create product.', 'danger');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHTML;
+        }
+      }
+    });
+  }
 
   // Back to Menu on mobile
   const backBtn = document.getElementById('back-to-menu-btn');
@@ -1004,7 +1242,7 @@ function setupAccountListeners(user) {
 
   // Sidebar Menu clicks
   document.querySelectorAll('.tab-menu-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const tabId = btn.getAttribute('data-tab');
       activeTab = tabId;
       editMode = false;
@@ -1016,24 +1254,38 @@ function setupAccountListeners(user) {
   // Sidebar logout click
   const logoutBtn = document.getElementById('sidebar-logout-btn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      logoutMockUser();
-      activeTab = 'my-profile';
-      mobileShowPane = false;
-      showNotification('Successfully signed out of GR STORE.', 'success');
-      renderAccountView();
+    logoutBtn.addEventListener('click', async () => {
+      const originalHTML = logoutBtn.innerHTML;
+      logoutBtn.innerHTML = 'Signing out...';
+      try {
+        await logoutMockUser();
+        activeTab = 'my-profile';
+        mobileShowPane = false;
+        showNotification('Successfully signed out of GR STORE.', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        logoutBtn.innerHTML = originalHTML;
+      }
     });
   }
 
   // Profile Sign out
   const profLogoutBtn = document.getElementById('profile-logout-btn');
   if (profLogoutBtn) {
-    profLogoutBtn.addEventListener('click', () => {
-      logoutMockUser();
-      activeTab = 'my-profile';
-      mobileShowPane = false;
-      showNotification('Successfully signed out of GR STORE.', 'success');
-      renderAccountView();
+    profLogoutBtn.addEventListener('click', async () => {
+      const originalHTML = profLogoutBtn.innerHTML;
+      profLogoutBtn.innerHTML = 'Signing out...';
+      try {
+        await logoutMockUser();
+        activeTab = 'my-profile';
+        mobileShowPane = false;
+        showNotification('Successfully signed out of GR STORE.', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        profLogoutBtn.innerHTML = originalHTML;
+      }
     });
   }
 
@@ -1083,60 +1335,152 @@ function setupAccountListeners(user) {
   // Submits form bindings
   const editForm = document.getElementById('profile-edit-form');
   if (editForm) {
-    editForm.addEventListener('submit', (e) => {
+    editForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const submitBtn = editForm.querySelector('button[type="submit"]');
+      const originalBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Saving...</span>
+        `;
+      }
+
       const profile = {
         fullName: document.getElementById('edit-name').value.trim(),
-        email: user.email,
         phoneNumber: document.getElementById('edit-phone').value.trim(),
         address: document.getElementById('edit-addr').value.trim(),
         city: document.getElementById('edit-city').value.trim(),
         state: document.getElementById('edit-state').value.trim()
       };
-      updateMockUserProfile(profile);
-      editMode = false;
-      showNotification('Profile information updated successfully!', 'success');
-      renderAccountView();
+
+      try {
+        await updateMockUserProfile(profile);
+        editMode = false;
+        showNotification('Profile information updated successfully!', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+        }
+      }
     });
   }
 
   const signinForm = document.getElementById('auth-signin-form');
   if (signinForm) {
-    signinForm.addEventListener('submit', (e) => {
+    signinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('signin-email').value.trim();
-      loginMockUser(email);
-      showNotification('Signed in successfully! Welcome back to GR STORE.', 'success');
-      renderAccountView();
+      const password = document.getElementById('signin-password').value;
+      const submitBtn = document.getElementById('signin-submit-btn');
+      const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Signing in...</span>
+        `;
+      }
+
+      try {
+        await loginMockUser(email, password);
+        showNotification('Signed in successfully! Welcome back to GR STORE.', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHTML;
+        }
+      }
     });
   }
 
   const registerForm = document.getElementById('auth-register-form');
   if (registerForm) {
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const profile = {
-        fullName: document.getElementById('reg-name').value.trim(),
-        email: document.getElementById('reg-email').value.trim(),
-        phoneNumber: document.getElementById('reg-phone').value.trim(),
-        address: document.getElementById('reg-addr').value.trim(),
-        city: document.getElementById('reg-city').value.trim(),
-        state: document.getElementById('reg-state').value.trim()
-      };
-      registerMockUser(profile);
-      showNotification('Account registered successfully! Welcome to GR STORE.', 'success');
-      renderAccountView();
+      const fullName = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phoneNumber = document.getElementById('reg-phone').value.trim();
+      const address = document.getElementById('reg-addr').value.trim();
+      const city = document.getElementById('reg-city').value.trim();
+      const state = document.getElementById('reg-state').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirmPassword = document.getElementById('reg-confirm-password').value;
+      const submitBtn = document.getElementById('register-submit-btn');
+      const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+
+      if (password !== confirmPassword) {
+        showNotification('Passwords do not match.', 'danger');
+        return;
+      }
+
+      if (password.length < 6) {
+        showNotification('Password must be at least 6 characters.', 'danger');
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Registering...</span>
+        `;
+      }
+
+      try {
+        await registerMockUser({
+          fullName,
+          email,
+          phoneNumber,
+          address,
+          city,
+          state,
+          password
+        });
+        showNotification('Account registered successfully! Welcome to GR STORE.', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHTML;
+        }
+      }
     });
   }
 
   const resetBtn = document.getElementById('reset-account-data-btn');
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      logoutMockUser();
-      activeTab = 'my-profile';
-      mobileShowPane = false;
-      showNotification('Account profile cache reset successfully.', 'success');
-      renderAccountView();
+    resetBtn.addEventListener('click', async () => {
+      const originalHTML = resetBtn.innerHTML;
+      resetBtn.innerHTML = 'Clearing...';
+      try {
+        await logoutMockUser();
+        activeTab = 'my-profile';
+        mobileShowPane = false;
+        showNotification('Account profile cache reset successfully.', 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        resetBtn.innerHTML = originalHTML;
+      }
     });
   }
 
@@ -1154,13 +1498,13 @@ function setupAccountListeners(user) {
 
   // Wishlist dynamic buttons
   document.querySelectorAll('.wishlist-add-cart-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const pId = btn.getAttribute('data-id');
       const products = getMockProducts();
       const p = products.find(prod => prod.id === pId);
       if (p) {
-        addToMockCart(p, 1, null);
-        toggleMockWishlist(p); // Move means remove from wishlist and add to cart
+        await addToMockCart(p, 1, null);
+        await toggleMockWishlist(p); // Move means remove from wishlist and add to cart
         showNotification(`${p.name} has been moved to your cart!`, 'success');
         renderAccountView();
       }
@@ -1168,12 +1512,12 @@ function setupAccountListeners(user) {
   });
 
   document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const pId = btn.getAttribute('data-id');
       const products = getMockProducts();
       const p = products.find(prod => prod.id === pId);
       if (p) {
-        toggleMockWishlist(p);
+        await toggleMockWishlist(p);
         showNotification(`${p.name} removed from your wishlist.`, 'info');
         renderAccountView();
       }

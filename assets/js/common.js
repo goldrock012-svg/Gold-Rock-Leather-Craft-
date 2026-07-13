@@ -40,17 +40,6 @@ function initCommonUI() {
       window.open('https://wa.me/2348126730784?text=Hello%20Gold%20%26%20Rock%20Leather%20Craft%2C%20I%20would%20like%20to%20inquire%20about%20your%20custom%20leather%20crafts!', '_blank');
     });
   }
-
-  // Handle sliding announcement messages
-  const slideContainer = document.getElementById('header-announcement-slides');
-  if (slideContainer) {
-    let currentAnnSlide = 0;
-    const annSlidesCount = 3;
-    setInterval(() => {
-      currentAnnSlide = (currentAnnSlide + 1) % annSlidesCount;
-      slideContainer.style.transform = `translateY(-${currentAnnSlide * 20}px)`;
-    }, 4500);
-  }
 }
 
 // 1. Navbar Injected HTML
@@ -213,32 +202,10 @@ function renderNavbar() {
           </div>
         </div>
       </div>
-      <!-- Sliding Announcement Bar (Orange, Under Search Bar, Jumia Style) -->
-      <div class="w-full bg-[#f68b1e] text-white py-1.5 px-4 border-t border-orange-600/30 text-xs font-semibold overflow-hidden relative shadow-inner">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-hidden h-5">
-          <!-- Left side: CEO Badge / Title -->
-          <div class="flex items-center gap-1.5 shrink-0 bg-[#0f1e36]/15 px-2 py-0.5 rounded border border-white/20 select-none">
-            <span class="text-[8px] md:text-[9px] uppercase tracking-wider font-extrabold text-white">CEO: OYEWOLE TOSIN OLUMIDE</span>
-          </div>
-          <!-- Centered text: sliding messages container -->
-          <div class="flex-1 overflow-hidden relative h-5">
-            <div id="header-announcement-slides" class="absolute inset-0 flex flex-col transition-all duration-500 transform translate-y-0">
-              <div class="h-5 flex items-center justify-center text-center text-[10px] md:text-xs font-bold leading-none truncate select-none">
-                🌟 PREMIUM HANDCRAFTED LEATHER CRAFTS &middot; POWERED BY GOLD & ROCK LEATHER CRAFT!
-              </div>
-              <div class="h-5 flex items-center justify-center text-center text-[10px] md:text-xs font-bold leading-none truncate select-none">
-                🎒 EXQUISITE LAPTOP BAGS, SCHOOL GEAR, AND LADIES HANDBAGS DESIGNED TO LAST!
-              </div>
-              <div class="h-5 flex items-center justify-center text-center text-[10px] md:text-xs font-bold leading-none truncate select-none">
-                📞 TALK TO THE DESIGNERS DIRECTLY &middot; PHONE/WHATSAPP: 08126730784
-              </div>
-            </div>
-          </div>
-          <!-- Right side: contact info -->
-          <div class="hidden md:flex items-center gap-1.5 shrink-0 text-[10px]">
-            <i data-lucide="phone" class="w-3.5 h-3.5 text-white"></i>
-            <span>08126730784</span>
-          </div>
+      <!-- Static CEO Announcement Bar (Orange, Under Search Bar) -->
+      <div class="w-full bg-[#f68b1e] text-white py-1.5 px-4 border-t border-orange-600/30 text-xs font-semibold shadow-inner">
+        <div class="max-w-7xl mx-auto flex items-center justify-center text-center h-5 select-none">
+          <span class="text-[9px] md:text-xs uppercase tracking-widest font-extrabold text-white">CEO: OYEWOLE TOSIN OLUMIDE</span>
         </div>
       </div>
     </header>
