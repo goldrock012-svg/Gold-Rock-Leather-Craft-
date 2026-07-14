@@ -1237,21 +1237,29 @@ const approveOrderPayment = async (orderId) => {
     
     const orderData = orderSnap.data();
 
+    const adminEmail = auth.currentUser ? auth.currentUser.email : 'goldrock012@gmail.com';
+    const timestamp = new Date().toISOString();
+
     // 1. Update Order status and Payment status
     await updateDoc(orderRef, {
       paymentStatus: 'Approved',
-      status: 'Processing'
+      status: 'Processing',
+      orderStatus: 'Processing',
+      approvedBy: adminEmail,
+      approvedAt: timestamp
     });
 
     // 2. Update Payment record status
     await updateDoc(doc(db, 'payments', orderId), {
-      status: 'Approved'
+      status: 'Approved',
+      approvedBy: adminEmail,
+      approvedAt: timestamp
     });
 
     // 3. Create Dynamic Notifications inside Firestore for the customer
     const userNotifRef = collection(db, 'notifications');
     await addDoc(userNotifRef, {
-      userId: orderData.userId,
+      userId: orderData.userId || 'guest',
       title: 'Payment Successful',
       message: `Your payment for order ${orderId} has been verified successfully! Status: Paid Successfully.`,
       date: new Date().toISOString(),
@@ -1260,7 +1268,7 @@ const approveOrderPayment = async (orderId) => {
     });
 
     await addDoc(userNotifRef, {
-      userId: orderData.userId,
+      userId: orderData.userId || 'guest',
       title: 'Order Confirmed',
       message: `Your order ${orderId} is confirmed and is now Processing. Gold & Rock masters are preparing your package!`,
       date: new Date().toISOString(),
@@ -1286,19 +1294,27 @@ const rejectOrderPayment = async (orderId) => {
     
     const orderData = orderSnap.data();
 
+    const adminEmail = auth.currentUser ? auth.currentUser.email : 'goldrock012@gmail.com';
+    const timestamp = new Date().toISOString();
+
     // Update statuses
     await updateDoc(orderRef, {
       paymentStatus: 'Rejected',
-      status: 'Cancelled (Payment Rejected)'
+      status: 'Cancelled (Payment Rejected)',
+      orderStatus: 'Rejected',
+      rejectedBy: adminEmail,
+      rejectedAt: timestamp
     });
 
     await updateDoc(doc(db, 'payments', orderId), {
-      status: 'Rejected'
+      status: 'Rejected',
+      rejectedBy: adminEmail,
+      rejectedAt: timestamp
     });
 
     // Notify customer
     await addDoc(collection(db, 'notifications'), {
-      userId: orderData.userId,
+      userId: orderData.userId || 'guest',
       title: 'Payment Rejected',
       message: `We could not verify your payment transfer for order ${orderId}. Please contact customer care.`,
       date: new Date().toISOString(),

@@ -1278,9 +1278,10 @@ function getAdminConsoleViewHtml() {
           </div>
         `).join('');
 
-        const statusOptions = ["pending", "Processing", "Packaging", "Shipped", "Delivered", "Cancelled"].map(st => `
-          <option value="${st}" ${ord.status === st ? 'selected' : ''}>${st === 'pending' ? 'Pending Verification' : st}</option>
-        `).join('');
+        const statusOptions = ["pending", "Processing", "Packaging", "Shipped", "Delivered", "Cancelled"].map(st => {
+          const isSelected = ord.status === st || (st === 'pending' && (ord.status === 'Pending Payment Verification' || ord.status === 'pending'));
+          return `<option value="${st}" ${isSelected ? 'selected' : ''}>${st === 'pending' ? 'Pending Verification' : st}</option>`;
+        }).join('');
 
         const waLink = generateWhatsAppOrderLink(ord);
 
@@ -1471,6 +1472,43 @@ function getAdminConsoleViewHtml() {
               </tr>
             `;
           }).join('');
+
+          // Bind click event handlers directly to the newly created elements
+          body.querySelectorAll('.payment-verify-approve-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const orderId = btn.getAttribute('data-id');
+              btn.disabled = true;
+              btn.innerHTML = 'Approving...';
+              try {
+                await window.approveOrderPayment(orderId);
+                showNotification("Payment Approved Successfully.", "success");
+                renderAccountView();
+              } catch (err) {
+                console.error("Approve payment failed:", err);
+                showNotification(err.message || String(err), "danger");
+                btn.disabled = false;
+                btn.innerHTML = 'Approve';
+              }
+            });
+          });
+
+          body.querySelectorAll('.payment-verify-reject-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const orderId = btn.getAttribute('data-id');
+              btn.disabled = true;
+              btn.innerHTML = 'Rejecting...';
+              try {
+                await window.rejectOrderPayment(orderId);
+                showNotification("Payment Rejected Successfully.", "success");
+                renderAccountView();
+              } catch (err) {
+                console.error("Reject payment failed:", err);
+                showNotification(err.message || String(err), "danger");
+                btn.disabled = false;
+                btn.innerHTML = 'Reject';
+              }
+            });
+          });
         }
       }
     }, 200);
