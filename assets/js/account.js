@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAccountView();
     }
   });
+  window.addEventListener('productsUpdated', () => {
+    if (activeTab === 'admin-dashboard') {
+      renderAccountView();
+    }
+  });
 
   if (window.lucide) window.lucide.createIcons();
 });
@@ -764,7 +769,7 @@ function getInlineEditProductFormHtml(prod = null) {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category *</label>
-          <select id="edit-prod-category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+          <select id="edit-prod-category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
             ${options}
           </select>
         </div>
