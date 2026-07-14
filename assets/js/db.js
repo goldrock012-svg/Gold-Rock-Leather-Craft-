@@ -793,12 +793,31 @@ const markAllNotificationsAsRead = async () => {
 const uploadFile = async (file, folderPath) => {
   if (!file) return '';
   try {
-    const fileName = `${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, `${folderPath}/${fileName}`);
-    console.log("Uploading image to Firebase Storage...");
-    await uploadBytes(storageRef, file);
+    console.log("Uploading image to ImgBB...");
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const apiKey = 'fa275afebdd74a6525df4d8742755579';
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errMsg = (errorData.error && errorData.error.message) || `ImgBB HTTP error! Status: ${response.status}`;
+      throw new Error(`ImgBB upload failed: ${errMsg}`);
+    }
+    
+    const result = await response.json();
+    if (!result.success || !result.data || !result.data.url) {
+      const errMsg = (result.error && result.error.message) || "Invalid response from ImgBB";
+      throw new Error(`ImgBB upload failed: ${errMsg}`);
+    }
+    
     console.log("Image uploaded successfully.");
-    const url = await getDownloadURL(storageRef);
+    const url = result.data.url;
     console.log("Download URL generated.");
     return url;
   } catch (err) {
