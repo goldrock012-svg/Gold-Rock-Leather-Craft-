@@ -22,7 +22,8 @@ import {
   updatePassword,
   ref,
   uploadBytes,
-  getDownloadURL
+  getDownloadURL,
+  deleteObject
 } from './firebase.js';
 
 const KEYS = {
@@ -388,13 +389,106 @@ const mergeLocalStateToFirestore = async (userId) => {
 };
 
 // ===================== PRODUCTS API =====================
+const normalizeProduct = (p) => {
+  if (!p) return p;
+  
+  // Ensure we have both old and new properties so nothing breaks
+  const id = p.productId || p.id;
+  const name = p.name || p.productName || '';
+  const productName = p.productName || p.name || '';
+  
+  const featured = p.featured !== undefined ? !!p.featured : !!p.isFeatured;
+  const isFeatured = featured;
+  
+  const flashSale = p.flashSale !== undefined ? !!p.flashSale : !!p.isFlashSale;
+  const isFlashSale = flashSale;
+  
+  const bestSeller = p.bestSeller !== undefined ? !!p.bestSeller : !!p.isBestSeller;
+  const isBestSeller = bestSeller;
+  
+  const newArrival = p.newArrival !== undefined ? !!p.newArrival : (p.isNew !== undefined ? !!p.isNew : false);
+  const isNew = newArrival;
+  
+  const status = p.status || (p.enabled !== false ? 'active' : 'hidden');
+  const enabled = status === 'active';
+  
+  const images = p.images || [p.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80'];
+  const image = p.image || images[0];
+
+  const price = Number(p.price || 0);
+  const oldPrice = p.oldPrice !== undefined ? (p.oldPrice ? Number(p.oldPrice) : null) : (p.originalPrice ? Number(p.originalPrice) : null);
+  const originalPrice = oldPrice;
+  const discount = p.discount !== undefined ? Number(p.discount) : (p.discountPercentage || 0);
+  const discountPercentage = discount;
+
+  // Specifications
+  let details = p.specifications || p.details || [];
+  if (typeof details === 'string') {
+    details = details.split('\n').map(s => s.trim()).filter(Boolean);
+  }
+  const specifications = details;
+
+  // Colours
+  let colors = p.colours || p.colors || ["Classic Black", "Vintage Brown", "Tan Gold"];
+  if (typeof colors === 'string') {
+    colors = colors.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  const colours = colors;
+
+  // Sizes
+  let sizes = p.sizes || [];
+  if (typeof sizes === 'string') {
+    sizes = sizes.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  // Stock
+  const stock = p.stock !== undefined ? Number(p.stock) : 10;
+
+  return {
+    ...p,
+    id,
+    productId: id,
+    name,
+    productName,
+    featured,
+    isFeatured,
+    flashSale,
+    isFlashSale,
+    bestSeller,
+    isBestSeller,
+    newArrival,
+    isNew,
+    status,
+    enabled,
+    image,
+    images,
+    price,
+    oldPrice,
+    originalPrice,
+    discount,
+    discountPercentage,
+    details,
+    specifications,
+    colors,
+    colours,
+    sizes,
+    stock,
+    soldCount: p.soldCount !== undefined ? Number(p.soldCount) : 0,
+    category: p.category
+  };
+};
+
 const getMockProducts = () => {
   let prods = productsCache.length === 0 && window.PRODUCTS ? window.PRODUCTS : productsCache;
   const isCeo = currentUserCache && currentUserCache.email === "goldrock012@gmail.com";
+  
+  // Normalize all products
+  let normalizedProds = prods.map(p => normalizeProduct(p));
+  
   if (!isCeo) {
-    prods = prods.filter(p => p.enabled !== false);
+    normalizedProds = normalizedProds.filter(p => p.status === 'active');
   }
-  return prods;
+  return normalizedProds;
 };
 
 const getMockProductById = (id) => {
@@ -617,19 +711,17 @@ const placeMockOrder = async (shippingDetails, paymentMethod) => {
       date: new Date().toISOString()
     });
 
-    // 3. Subtract product stock on Firestore if flash sale
+    // 3. Subtract product stock on Firestore for all purchased items
     for (const cartItem of cartItems) {
-      if (cartItem.product.isFlashSale) {
-        const prodRef = doc(db, 'products', cartItem.product.id);
-        const prodSnap = await getDoc(prodRef);
-        if (prodSnap.exists()) {
-          const currentStock = prodSnap.data().stock || 0;
-          const currentSold = prodSnap.data().soldCount || 0;
-          await updateDoc(prodRef, {
-            stock: Math.max(0, currentStock - cartItem.quantity),
-            soldCount: currentSold + cartItem.quantity
-          });
-        }
+      const prodRef = doc(db, 'products', cartItem.product.id);
+      const prodSnap = await getDoc(prodRef);
+      if (prodSnap.exists()) {
+        const currentStock = prodSnap.data().stock !== undefined ? Number(prodSnap.data().stock) : 10;
+        const currentSold = prodSnap.data().soldCount !== undefined ? Number(prodSnap.data().soldCount) : 0;
+        await updateDoc(prodRef, {
+          stock: Math.max(0, currentStock - cartItem.quantity),
+          soldCount: currentSold + cartItem.quantity
+        });
       }
     }
 
@@ -818,34 +910,70 @@ const addProductToCatalog = async (productData, imageFileOrFiles) => {
     }
 
     const docId = productData.id || `gr-${Math.floor(1000 + Math.random() * 9000)}`;
+    const nowIso = new Date().toISOString();
+    
+    // Normalize categories
+    const categoryId = productData.category || 'accessories';
+
+    // Parse specifications, colours, sizes
+    let specifications = productData.specifications || [];
+    if (typeof specifications === 'string') {
+      specifications = specifications.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+    
+    let colours = productData.colours || [];
+    if (typeof colours === 'string') {
+      colours = colours.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    let sizes = productData.sizes || [];
+    if (typeof sizes === 'string') {
+      sizes = sizes.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    const price = Number(productData.price || 0);
+    const oldPrice = productData.oldPrice ? Number(productData.oldPrice) : null;
+    let discount = 0;
+    if (oldPrice && oldPrice > price) {
+      discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+    }
+
     const fullProd = {
       id: docId,
+      productId: docId,
       name: productData.name,
       productName: productData.name,
-      category: productData.category,
-      price: Number(productData.price),
-      oldPrice: productData.oldPrice ? Number(productData.oldPrice) : null,
-      originalPrice: productData.oldPrice ? Number(productData.oldPrice) : null,
-      discountPercentage: productData.oldPrice ? Math.round(((productData.oldPrice - productData.price) / productData.oldPrice) * 100) : 0,
+      category: categoryId,
+      price: price,
+      oldPrice: oldPrice,
+      originalPrice: oldPrice,
+      discount: discount,
+      discountPercentage: discount,
       image: mainImage,
       images: images.length > 0 ? images : [mainImage],
       rating: productData.rating || 5.0,
       reviewsCount: productData.reviewsCount || 0,
-      isFlashSale: !!productData.isFlashSale,
-      isBestSeller: !!productData.isBestSeller,
-      isNew: !!productData.isNew,
-      isFeatured: !!productData.isFeatured,
+      featured: !!productData.featured,
+      isFeatured: !!productData.featured,
+      flashSale: !!productData.flashSale,
+      isFlashSale: !!productData.flashSale,
+      bestSeller: !!productData.bestSeller,
+      isBestSeller: !!productData.bestSeller,
+      newArrival: !!productData.newArrival,
+      isNew: !!productData.newArrival,
       stock: Number(productData.stock ?? 10),
       soldCount: Number(productData.soldCount || 0),
       description: productData.description || "Premium leather craft product.",
-      details: productData.details || [
-        "100% Genuine Nigerian leather",
-        "Handcrafted with fine stitching",
-        "Durable premium build and hardware"
-      ],
+      specifications: specifications,
+      details: specifications,
+      colours: colours,
+      colors: colours,
+      sizes: sizes,
       reviews: [],
-      enabled: productData.enabled !== false, // default enabled
-      colors: productData.colors || ["Default Leather", "Classic Black", "Vintage Brown"]
+      status: productData.status || 'active',
+      enabled: productData.status !== 'hidden',
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
     await setDoc(doc(db, 'products', docId), fullProd);
@@ -863,6 +991,8 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles) =>
   try {
     const prodRef = doc(db, 'products', productId);
     let updatedFields = { ...productData };
+    const nowIso = new Date().toISOString();
+    updatedFields.updatedAt = nowIso;
 
     // Upload new image files if provided
     if (imageFileOrFiles) {
@@ -886,14 +1016,52 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles) =>
     if (updatedFields.oldPrice !== undefined) {
       updatedFields.oldPrice = updatedFields.oldPrice ? Number(updatedFields.oldPrice) : null;
       updatedFields.originalPrice = updatedFields.oldPrice;
-      if (updatedFields.oldPrice && updatedFields.price) {
-        updatedFields.discountPercentage = Math.round(((updatedFields.oldPrice - updatedFields.price) / updatedFields.oldPrice) * 100);
+      
+      const price = updatedFields.price !== undefined ? updatedFields.price : 0;
+      if (updatedFields.oldPrice && updatedFields.oldPrice > price) {
+        updatedFields.discount = Math.round(((updatedFields.oldPrice - price) / updatedFields.oldPrice) * 100);
+        updatedFields.discountPercentage = updatedFields.discount;
       } else {
+        updatedFields.discount = 0;
         updatedFields.discountPercentage = 0;
       }
     }
+    
     if (updatedFields.stock !== undefined) updatedFields.stock = Number(updatedFields.stock);
     if (updatedFields.soldCount !== undefined) updatedFields.soldCount = Number(updatedFields.soldCount);
+
+    if (updatedFields.specifications !== undefined) {
+      let specs = updatedFields.specifications;
+      if (typeof specs === 'string') {
+        specs = specs.split('\n').map(s => s.trim()).filter(Boolean);
+      }
+      updatedFields.specifications = specs;
+      updatedFields.details = specs;
+    }
+
+    if (updatedFields.colours !== undefined) {
+      let cols = updatedFields.colours;
+      if (typeof cols === 'string') {
+        cols = cols.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      updatedFields.colours = cols;
+      updatedFields.colors = cols;
+    }
+
+    if (updatedFields.sizes !== undefined) {
+      let szs = updatedFields.sizes;
+      if (typeof szs === 'string') {
+        szs = szs.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      updatedFields.sizes = szs;
+    }
+
+    // Handle checkboxes mapping
+    if (updatedFields.featured !== undefined) updatedFields.isFeatured = !!updatedFields.featured;
+    if (updatedFields.flashSale !== undefined) updatedFields.isFlashSale = !!updatedFields.flashSale;
+    if (updatedFields.bestSeller !== undefined) updatedFields.isBestSeller = !!updatedFields.bestSeller;
+    if (updatedFields.newArrival !== undefined) updatedFields.isNew = !!updatedFields.newArrival;
+    if (updatedFields.status !== undefined) updatedFields.enabled = updatedFields.status !== 'hidden';
 
     await updateDoc(prodRef, updatedFields);
     console.log(`Product ${productId} successfully edited in catalog.`);
@@ -908,7 +1076,23 @@ const deleteProductFromCatalog = async (productId) => {
     throw new Error("Administrative permission required.");
   }
   try {
-    await deleteDoc(doc(db, 'products', productId));
+    const prodRef = doc(db, 'products', productId);
+    const prodSnap = await getDoc(prodRef);
+    if (prodSnap.exists()) {
+      const data = prodSnap.data();
+      const imgs = data.images || [data.image].filter(Boolean);
+      for (const imgUrl of imgs) {
+        if (imgUrl && imgUrl.includes('firebasestorage.googleapis.com')) {
+          try {
+            const imgRef = ref(storage, imgUrl);
+            await deleteObject(imgRef);
+          } catch (e) {
+            console.error("Error deleting product image from storage:", e);
+          }
+        }
+      }
+    }
+    await deleteDoc(prodRef);
     console.log(`Product ${productId} successfully deleted.`);
   } catch (err) {
     console.error("Error deleting product:", err);

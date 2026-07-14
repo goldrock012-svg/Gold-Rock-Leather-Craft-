@@ -4,6 +4,7 @@ let authTab = 'signin'; // 'signin' or 'register'
 let mobileShowPane = false;
 let adminSubTab = 'verify-payments'; // 'verify-payments' or 'upload-product'
 let selectedProductImageFile = null;
+let selectedProductImageFiles = []; // For multi-image product catalog uploads
 let adminActiveSection = 'dashboard';
 let adminEditingProduct = null;
 let adminEditingCategory = null;
@@ -726,22 +727,27 @@ function getForceChangePasswordHtml() {
 function getInlineEditProductFormHtml(prod = null) {
   const isEdit = !!prod;
   const requiredCategories = [
-    "School Bags",
-    "Ladies Handbags",
-    "Laptop Bags",
-    "Lunch Bags",
-    "Office Bags",
-    "Men's Purse",
-    "Travel Bags",
-    "Accessories"
+    { id: "school-bags", name: "School Bags" },
+    { id: "ladies-hand-bags", name: "Ladies Handbags" },
+    { id: "laptop-bags", name: "Laptop Bags" },
+    { id: "lunch-bags", name: "Lunch Bags" },
+    { id: "office-bags", name: "Office Bags" },
+    { id: "mens-purses", name: "Men's Purse" },
+    { id: "travelling-bags", name: "Travel Bags" },
+    { id: "accessories", name: "Accessories" }
   ];
   
   const options = `
     <option value="">-- Choose Category --</option>
     ${requiredCategories.map(cat => `
-      <option value="${cat}" ${isEdit && prod.category === cat ? 'selected' : ''}>${cat}</option>
+      <option value="${cat.id}" ${isEdit && prod.category === cat.id ? 'selected' : ''}>${cat.name}</option>
     `).join('')}
   `;
+
+  // Specs joined by newline for textarea edit
+  const specsText = isEdit && Array.isArray(prod.specifications) ? prod.specifications.join('\n') : '';
+  const coloursText = isEdit && Array.isArray(prod.colours) ? prod.colours.join(', ') : '';
+  const sizesText = isEdit && Array.isArray(prod.sizes) ? prod.sizes.join(', ') : '';
 
   return `
     <form id="admin-edit-product-form" class="bg-white border-2 border-[#0f1e36] rounded-xl p-5 flex flex-col gap-4 shadow-md mb-5 animate-in slide-in-from-top duration-300 text-left">
@@ -761,12 +767,12 @@ function getInlineEditProductFormHtml(prod = null) {
           <input type="text" id="edit-prod-name" required value="${isEdit ? prod.name : ''}" placeholder="e.g., Luxury Briefcase XL" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product ID (ReadOnly on Edit) *</label>
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product ID (Slug) *</label>
           <input type="text" id="edit-prod-id" ${isEdit ? 'readonly' : ''} required value="${isEdit ? prod.id : ''}" placeholder="e.g., luxury-briefcase-xl" class="w-full px-3 py-2 ${isEdit ? 'bg-slate-100 text-slate-500' : 'bg-slate-50'} border border-slate-200 rounded-lg text-xs font-mono focus:outline-none">
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category *</label>
           <select id="edit-prod-category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
@@ -777,6 +783,21 @@ function getInlineEditProductFormHtml(prod = null) {
           <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price (₦) *</label>
           <input type="number" id="edit-prod-price" required value="${isEdit ? prod.price : ''}" placeholder="e.g., 45000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
         </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Old Price (₦) (Optional)</label>
+          <input type="number" id="edit-prod-old-price" value="${isEdit && prod.oldPrice ? prod.oldPrice : ''}" placeholder="e.g., 60000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Discount Percentage (%)</label>
+          <input type="text" id="edit-prod-discount" readonly value="${isEdit ? prod.discountPercentage || 0 : 0}%" placeholder="Calculated automatically" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-mono text-slate-500 focus:outline-none">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Quantity *</label>
+          <input type="number" id="edit-prod-stock" required value="${isEdit ? prod.stock ?? 10 : 10}" placeholder="e.g., 15" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+        </div>
       </div>
 
       <div class="flex flex-col gap-1">
@@ -785,21 +806,81 @@ function getInlineEditProductFormHtml(prod = null) {
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image ${isEdit ? '(Optional replacement)' : '(Required Upload)'}</label>
-        <div id="edit-image-drag-drop-zone" class="border border-dashed border-slate-200 rounded-xl p-4 text-center flex flex-col items-center justify-center gap-1 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
-          <i data-lucide="image" class="w-6 h-6 text-slate-400"></i>
-          <span class="text-[10px] font-bold text-slate-600">Click to browse or drop product image</span>
-          <input type="file" id="edit-prod-image-file" accept="image/*" class="hidden">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Specifications * (one specification per line)</label>
+        <textarea id="edit-prod-specifications" required rows="4" placeholder="100% genuine vegetable-tanned Nigerian leather&#10;Durable metal hardware&#10;Dimensions: 12&quot; x 14&quot; x 4&quot;" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">${specsText}</textarea>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Available Colours * (comma separated)</label>
+          <input type="text" id="edit-prod-colours" required value="${coloursText}" placeholder="Classic Black, Vintage Brown, Tan Gold" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
         </div>
-        <div id="edit-image-preview-container" class="${isEdit ? 'flex' : 'hidden'} items-center gap-3 bg-slate-50 border p-2 rounded-lg">
-          <img id="edit-image-preview-img" src="${isEdit ? prod.image : ''}" class="w-10 h-10 object-cover rounded border bg-white">
-          <div class="flex-1 min-w-0">
-            <p id="edit-image-preview-filename" class="text-[10px] font-bold text-slate-800 truncate">${isEdit ? 'Current Image' : 'Selected Image'}</p>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Available Sizes (Optional, comma separated)</label>
+          <input type="text" id="edit-prod-sizes" value="${sizesText}" placeholder="S, M, L, XL" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Switches for Flags -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-150 flex flex-col gap-2.5">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Product Badges & Visibility Flags</span>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <label class="flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer">
+            <input type="checkbox" id="edit-prod-featured" ${isEdit && prod.featured ? 'checked' : ''} class="w-4 h-4 accent-brand-orange">
+            <span>Featured Product</span>
+          </label>
+          <label class="flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer">
+            <input type="checkbox" id="edit-prod-flash" ${isEdit && prod.flashSale ? 'checked' : ''} class="w-4 h-4 accent-brand-orange">
+            <span>Flash Sale</span>
+          </label>
+          <label class="flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer">
+            <input type="checkbox" id="edit-prod-new" ${isEdit && prod.newArrival ? 'checked' : ''} class="w-4 h-4 accent-brand-orange">
+            <span>New Arrival</span>
+          </label>
+          <label class="flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer">
+            <input type="checkbox" id="edit-prod-best" ${isEdit && prod.bestSeller ? 'checked' : ''} class="w-4 h-4 accent-brand-orange">
+            <span>Best Seller</span>
+          </label>
+          <div class="flex items-center gap-2 col-span-2 sm:col-span-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase">Status:</label>
+            <select id="edit-prod-status" class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none text-slate-800">
+              <option value="active" ${isEdit && prod.status === 'active' ? 'selected' : ''}>Published (Active)</option>
+              <option value="hidden" ${isEdit && prod.status === 'hidden' ? 'selected' : ''}>Hidden (Draft)</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <button type="submit" id="admin-edit-product-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-xl text-xs font-bold transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 border-0 shadow-sm">
+      <!-- Image upload section -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Images (Upload 1 to 6 images) *</label>
+        
+        <div id="edit-image-drag-drop-zone" class="border border-dashed border-slate-200 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-1.5 hover:border-brand-orange/60 transition-colors cursor-pointer bg-slate-50">
+          <i data-lucide="image-plus" class="w-8 h-8 text-slate-400"></i>
+          <span class="text-[11px] font-bold text-slate-700">Click to browse or drop up to 6 images</span>
+          <span class="text-[9px] text-slate-400">Images are auto-compressed to ensure premium quality under 500KB</span>
+          <input type="file" id="edit-prod-image-file" accept="image/*" multiple class="hidden">
+        </div>
+
+        <!-- Selected image list thumbnails -->
+        <div id="edit-image-previews-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          <p class="text-[10px] text-slate-400 italic col-span-full">No new images selected</p>
+        </div>
+
+        ${isEdit && prod.images && prod.images.length > 0 ? `
+          <!-- Existing Images Preview list -->
+          <div class="mt-2.5 border-t pt-2.5">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Current Images on Server:</span>
+            <div class="flex flex-wrap gap-2 mt-1">
+              ${prod.images.map(img => `
+                <img src="${img}" class="w-12 h-12 object-cover rounded border bg-white shadow-xs">
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <button type="submit" id="admin-edit-product-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-3 rounded-xl text-xs font-bold transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 border-0 shadow-md">
         <i data-lucide="check" class="w-4 h-4"></i> ${isEdit ? 'Save Modifications' : 'Register New Product'}
       </button>
     </form>
@@ -982,47 +1063,100 @@ function getAdminConsoleViewHtml() {
   }
 
   else if (adminActiveSection === 'products') {
-    let productRows = products.map((p, idx) => `
-      <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
-        <td class="py-2.5 px-2 font-mono font-bold">${p.id}</td>
-        <td class="py-2.5 px-2">
-          <div class="flex items-center gap-2">
-            <img src="${p.image}" class="w-8 h-8 object-cover rounded border bg-slate-50">
-            <span class="font-semibold text-slate-950">${p.name}</span>
-          </div>
-        </td>
-        <td class="py-2.5 px-2 text-slate-500 uppercase text-[10px] font-bold">${p.category}</td>
-        <td class="py-2.5 px-2">
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="prod-price-input-${p.id}" value="${p.price}" class="w-16 px-1.5 py-0.5 border rounded font-mono text-center">
-            <button data-id="${p.id}" class="prod-price-update-btn text-brand-orange hover:underline font-bold bg-transparent border-0 cursor-pointer">Save</button>
-          </div>
-        </td>
-        <td class="py-2.5 px-2">
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="prod-stock-input-${p.id}" value="${p.stock ?? 10}" class="w-12 px-1 py-0.5 border rounded font-mono text-center">
-            <button data-id="${p.id}" class="prod-stock-update-btn text-brand-orange hover:underline font-bold bg-transparent border-0 cursor-pointer">Refill</button>
-          </div>
-        </td>
-        <td class="py-2.5 px-2">
-          <button data-id="${p.id}" class="prod-status-toggle-btn px-2 py-0.5 font-bold uppercase rounded text-[9px] border-0 cursor-pointer ${
-            p.enabled !== false ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
-          }">
-            ${p.enabled !== false ? 'Enabled' : 'Disabled'}
-          </button>
-        </td>
-        <td class="py-2.5 px-2 text-right">
-          <div class="flex items-center justify-end gap-2">
-            <button data-id="${p.id}" class="prod-edit-trigger-btn text-slate-500 hover:text-blue-600 bg-transparent border-0 cursor-pointer p-1" title="Edit Product details">
-              <i data-lucide="edit-3" class="w-4 h-4"></i>
+    let productRows = products.map((p, idx) => {
+      // Visual indicators/badges
+      let badges = [];
+      if (p.featured) badges.push(`<span class="text-[8px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded font-extrabold uppercase tracking-wide">Featured</span>`);
+      if (p.flashSale) badges.push(`<span class="text-[8px] bg-red-100 text-red-800 px-1 py-0.5 rounded font-extrabold uppercase tracking-wide">Flash Sale</span>`);
+      if (p.newArrival) badges.push(`<span class="text-[8px] bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-extrabold uppercase tracking-wide">New</span>`);
+      if (p.bestSeller) badges.push(`<span class="text-[8px] bg-purple-100 text-purple-800 px-1 py-0.5 rounded font-extrabold uppercase tracking-wide">Bestseller</span>`);
+      
+      const badgeList = badges.length > 0 ? `<div class="flex flex-wrap gap-1 mt-1">${badges.join('')}</div>` : '';
+
+      // Stock status visual alerts
+      let stockAlert = '';
+      if (Number(p.stock) === 0) {
+        stockAlert = `<span class="text-[8px] font-bold text-red-500 uppercase block mt-1">● Out of Stock</span>`;
+      } else if (Number(p.stock) > 0 && Number(p.stock) <= 5) {
+        stockAlert = `<span class="text-[8px] font-bold text-amber-500 uppercase block mt-1">● Low Stock (${p.stock})</span>`;
+      } else {
+        stockAlert = `<span class="text-[8px] font-semibold text-emerald-500 block mt-1">✓ In Stock</span>`;
+      }
+
+      // Readable Date
+      let dateString = '2026-07-14';
+      if (p.createdAt) {
+        try {
+          dateString = p.createdAt.split('T')[0];
+        } catch(e) {}
+      }
+
+      const isPublished = p.status !== 'hidden';
+
+      return `
+        <tr class="border-b border-slate-100 hover:bg-slate-50/50 text-[11px] text-slate-700">
+          <td class="py-2.5 px-2 font-mono font-bold text-slate-400">${p.id}</td>
+          <td class="py-2.5 px-2">
+            <div class="flex items-center gap-2">
+              <img src="${p.image}" class="w-10 h-10 object-cover rounded border bg-slate-50">
+              <div class="flex flex-col min-w-0">
+                <span class="font-bold text-slate-950 leading-tight truncate">${p.name}</span>
+                ${badgeList}
+              </div>
+            </div>
+          </td>
+          <td class="py-2.5 px-2 text-slate-800 uppercase text-[9px] font-extrabold">
+            ${(() => {
+              const categoryMap = {
+                'school-bags': 'School Bags',
+                'ladies-hand-bags': 'Ladies Handbags',
+                'laptop-bags': 'Laptop Bags',
+                'lunch-bags': 'Lunch Bags',
+                'office-bags': 'Office Bags',
+                'mens-purses': "Men's Purse",
+                'travelling-bags': 'Travel Bags',
+                'accessories': 'Accessories'
+              };
+              return categoryMap[p.category] || p.category;
+            })()}
+          </td>
+          <td class="py-2.5 px-2">
+            <div class="flex items-center gap-1">
+              <input type="number" id="prod-price-input-${p.id}" value="${p.price}" class="w-18 px-1.5 py-1 border rounded font-mono text-center text-xs text-slate-800">
+              <button data-id="${p.id}" class="prod-price-update-btn bg-slate-100 hover:bg-slate-200 text-[#0f1e36] px-1.5 py-1 rounded font-bold border-0 cursor-pointer text-[10px]" title="Save new price">Save</button>
+            </div>
+          </td>
+          <td class="py-2.5 px-2">
+            <div class="flex items-center gap-1">
+              <input type="number" id="prod-stock-input-${p.id}" value="${p.stock ?? 10}" class="w-12 px-1 py-1 border rounded font-mono text-center text-xs text-slate-800">
+              <button data-id="${p.id}" class="prod-stock-update-btn bg-slate-100 hover:bg-slate-200 text-[#0f1e36] px-1.5 py-1 rounded font-bold border-0 cursor-pointer text-[10px]" title="Refill stock">Refill</button>
+            </div>
+            ${stockAlert}
+          </td>
+          <td class="py-2.5 px-2">
+            <button data-id="${p.id}" class="prod-status-toggle-btn px-2 py-1 font-bold uppercase rounded text-[9px] border-0 cursor-pointer ${
+              isPublished ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+            }">
+              ${isPublished ? 'Published' : 'Hidden'}
             </button>
-            <button data-id="${p.id}" class="prod-delete-trigger-btn text-slate-400 hover:text-red-500 bg-transparent border-0 cursor-pointer p-1" title="Delete Product">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+          </td>
+          <td class="py-2.5 px-2 font-mono text-slate-400 text-[10px]">${dateString}</td>
+          <td class="py-2.5 px-2 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              <button data-id="${p.id}" class="prod-edit-trigger-btn text-slate-500 hover:text-blue-600 bg-transparent border-0 cursor-pointer p-1" title="Edit Product">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+              <button data-id="${p.id}" class="prod-duplicate-trigger-btn text-slate-400 hover:text-indigo-600 bg-transparent border-0 cursor-pointer p-1" title="Duplicate/Clone Product">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+              <button data-id="${p.id}" class="prod-delete-trigger-btn text-slate-300 hover:text-red-500 bg-transparent border-0 cursor-pointer p-1" title="Delete Product">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     contentHTML = `
       <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
@@ -1037,20 +1171,21 @@ function getAdminConsoleViewHtml() {
 
         <div id="admin-product-crud-form-container" class="hidden"></div>
 
-        <div class="overflow-x-auto border rounded-xl bg-white max-h-[500px]">
+        <div class="overflow-x-auto border rounded-xl bg-white max-h-[600px] shadow-xs">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b text-[9px] font-bold uppercase tracking-wider text-slate-400">
                 <th class="py-2.5 px-2 w-16">ID</th>
-                <th class="py-2.5 px-2">Name</th>
+                <th class="py-2.5 px-2">Product Info</th>
                 <th class="py-2.5 px-2 w-24">Category</th>
-                <th class="py-2.5 px-2 w-28">Price (₦)</th>
-                <th class="py-2.5 px-2 w-24">Stock</th>
+                <th class="py-2.5 px-2 w-32">Price (₦)</th>
+                <th class="py-2.5 px-2 w-28">Stock</th>
                 <th class="py-2.5 px-2 w-24">Status</th>
-                <th class="py-2.5 px-2 w-16 text-right">Actions</th>
+                <th class="py-2.5 px-2 w-24">Date Created</th>
+                <th class="py-2.5 px-2 w-28 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100">
               ${productRows}
             </tbody>
           </table>
@@ -1996,7 +2131,7 @@ function setupAccountListeners(user) {
     });
   });
 
-  // 4. Product Enabled Toggle Button
+  // 4. Product Status Toggle Button
   document.querySelectorAll('.prod-status-toggle-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const pId = btn.getAttribute('data-id');
@@ -2005,10 +2140,10 @@ function setupAccountListeners(user) {
       if (!p) return;
       
       btn.disabled = true;
-      const newEnabled = p.enabled === false;
+      const newStatus = p.status === 'active' ? 'hidden' : 'active';
       try {
-        await window.editProductInCatalog(pId, { enabled: newEnabled });
-        showNotification(`Product ${p.name} has been ${newEnabled ? 'enabled' : 'disabled'}!`, "success");
+        await window.editProductInCatalog(pId, { status: newStatus });
+        showNotification(`Product "${p.name}" status set to ${newStatus === 'active' ? 'Published' : 'Hidden'}!`, "success");
         renderAccountView();
       } catch (err) {
         showNotification(err.message, "danger");
@@ -2017,14 +2152,51 @@ function setupAccountListeners(user) {
     });
   });
 
+  // Duplicate Product Trigger
+  document.querySelectorAll('.prod-duplicate-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pId = btn.getAttribute('data-id');
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      if (!p) return;
+      
+      if (!confirm(`Are you sure you want to duplicate product "${p.name}"?`)) {
+        return;
+      }
+      
+      btn.disabled = true;
+      showNotification(`Duplicating "${p.name}"...`, 'info');
+      
+      const newId = `${p.id}-copy-${Math.floor(100 + Math.random() * 900)}`;
+      const duplicatedData = {
+        ...p,
+        id: newId,
+        productId: newId,
+        name: `${p.name} (Copy)`,
+        productName: `${p.name} (Copy)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      try {
+        await window.addProductToCatalog(duplicatedData, null); // pass null since we copy images directly inside duplicatedData
+        showNotification(`Product duplicated successfully as "${duplicatedData.name}"!`, 'success');
+        renderAccountView();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+        renderAccountView();
+      }
+    });
+  });
+
   // Delete Product Trigger
   document.querySelectorAll('.prod-delete-trigger-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const pId = btn.getAttribute('data-id');
-      if (confirm("Are you sure you want to permanently delete this product?")) {
+      if (confirm("Are you sure you want to permanently delete this product and its stored images from Firebase Storage? This action is irreversible.")) {
         try {
           await window.deleteProductFromCatalog(pId);
-          showNotification("Product deleted from system catalog successfully.", "success");
+          showNotification("Product and associated images permanently deleted successfully.", "success");
           renderAccountView();
         } catch (err) {
           showNotification(err.message, "danger");
@@ -2039,6 +2211,7 @@ function setupAccountListeners(user) {
     addProdBtn.addEventListener('click', () => {
       adminEditingProduct = null; // Adding mode
       selectedProductImageFile = null;
+      selectedProductImageFiles = []; // Clear multi-image array
       const container = document.getElementById('admin-product-crud-form-container');
       if (container) {
         container.innerHTML = getInlineEditProductFormHtml(null);
@@ -2057,6 +2230,7 @@ function setupAccountListeners(user) {
       
       adminEditingProduct = p; // Editing mode
       selectedProductImageFile = null;
+      selectedProductImageFiles = []; // Reset multi-image array
       const container = document.getElementById('admin-product-crud-form-container');
       if (container) {
         container.innerHTML = getInlineEditProductFormHtml(p);
@@ -2066,6 +2240,64 @@ function setupAccountListeners(user) {
     });
   });
 
+  // Client-side image compression helper
+  const compressImage = async (file, maxKB = 500) => {
+    if (file.size <= maxKB * 1024) return file;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.src = ev.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_RES = 1200;
+          if (width > MAX_RES || height > MAX_RES) {
+            if (width > height) {
+              height = Math.round((height * MAX_RES) / width);
+              width = MAX_RES;
+            } else {
+              width = Math.round((width * MAX_RES) / height);
+              height = MAX_RES;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          let quality = 0.85;
+          let dataUrl = canvas.toDataURL('image/jpeg', quality);
+          
+          const getBlobSize = (url) => {
+            const head = 'data:image/jpeg;base64,';
+            return Math.round((url.length - head.length) * 3 / 4);
+          };
+          
+          while (getBlobSize(dataUrl) > maxKB * 1024 && quality > 0.15) {
+            quality -= 0.08;
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+          
+          const arr = dataUrl.split(',');
+          const mime = arr[0].match(/:(.*?);/)[1];
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          
+          resolve(new File([u8arr], file.name, { type: mime }));
+        };
+      };
+    });
+  };
+
   const setupEditProductFormListeners = (isEdit, prod = null) => {
     const cancelBtn = document.getElementById('admin-edit-product-cancel-btn');
     if (cancelBtn) {
@@ -2074,35 +2306,109 @@ function setupAccountListeners(user) {
         if (container) container.classList.add('hidden');
         adminEditingProduct = null;
         selectedProductImageFile = null;
+        selectedProductImageFiles = [];
       });
     }
 
     const editZone = document.getElementById('edit-image-drag-drop-zone');
     const editFileInput = document.getElementById('edit-prod-image-file');
-    const editPreviewContainer = document.getElementById('edit-image-preview-container');
-    const editPreviewImg = document.getElementById('edit-image-preview-img');
-    const editPreviewFilename = document.getElementById('edit-image-preview-filename');
 
-    const handleEditFileSelection = (file) => {
-      if (!file || !file.type.startsWith('image/')) {
-        showNotification('Please select a valid image file.', 'info');
+    // Auto slug/id generation on create
+    const nameInput = document.getElementById('edit-prod-name');
+    const idInput = document.getElementById('edit-prod-id');
+    if (nameInput && idInput && !isEdit) {
+      nameInput.addEventListener('input', () => {
+        idInput.value = nameInput.value
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      });
+    }
+
+    // Dynamic on-the-fly discount calculation
+    const priceInput = document.getElementById('edit-prod-price');
+    const oldPriceInput = document.getElementById('edit-prod-old-price');
+    const discountInput = document.getElementById('edit-prod-discount');
+    
+    const updateDiscountOnFly = () => {
+      const price = parseFloat(priceInput.value || 0);
+      const oldPrice = parseFloat(oldPriceInput.value || 0);
+      if (oldPrice && oldPrice > price) {
+        const pct = Math.round(((oldPrice - price) / oldPrice) * 100);
+        discountInput.value = `${pct}%`;
+      } else {
+        discountInput.value = '0%';
+      }
+    };
+    
+    if (priceInput && oldPriceInput && discountInput) {
+      priceInput.addEventListener('input', updateDiscountOnFly);
+      oldPriceInput.addEventListener('input', updateDiscountOnFly);
+    }
+
+    // Multi-image preview rendering
+    const renderImagePreviews = () => {
+      const listContainer = document.getElementById('edit-image-previews-list');
+      if (!listContainer) return;
+      
+      if (selectedProductImageFiles.length === 0) {
+        listContainer.innerHTML = `<p class="text-[10px] text-slate-400 italic col-span-full">No new images selected</p>`;
         return;
       }
-      selectedProductImageFile = file;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (editPreviewImg) editPreviewImg.src = e.target.result;
-        if (editPreviewFilename) editPreviewFilename.textContent = file.name;
-        if (editPreviewContainer) editPreviewContainer.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
+      
+      listContainer.innerHTML = selectedProductImageFiles.map((file, idx) => {
+        const objectUrl = URL.createObjectURL(file);
+        return `
+          <div class="flex items-center gap-2 bg-slate-50 border p-1.5 rounded-lg text-xs">
+            <img src="${objectUrl}" class="w-8 h-8 object-cover rounded border bg-white flex-shrink-0">
+            <div class="flex-1 min-w-0">
+              <p class="text-[9px] font-bold text-slate-800 truncate">${file.name}</p>
+              <p class="text-[8px] text-slate-400 font-bold uppercase">${(file.size / 1024).toFixed(1)} KB</p>
+            </div>
+            <button type="button" class="remove-preview-img-btn text-slate-400 hover:text-red-500 bg-transparent border-0 cursor-pointer p-0.5" data-index="${idx}">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+      
+      if (window.lucide) window.lucide.createIcons();
+      
+      listContainer.querySelectorAll('.remove-preview-img-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const index = parseInt(btn.getAttribute('data-index'));
+          selectedProductImageFiles.splice(index, 1);
+          renderImagePreviews();
+        });
+      });
+    };
+
+    const handleFilesSelection = async (filesList) => {
+      const arr = Array.from(filesList).filter(f => f.type.startsWith('image/'));
+      if (arr.length === 0) return;
+      
+      if (selectedProductImageFiles.length + arr.length > 6) {
+        showNotification('You can upload a maximum of 6 images per product.', 'danger');
+        return;
+      }
+      
+      showNotification('Processing and compressing selected images...', 'info');
+      
+      for (const file of arr) {
+        const compressed = await compressImage(file, 500);
+        selectedProductImageFiles.push(compressed);
+      }
+      
+      renderImagePreviews();
     };
 
     if (editZone && editFileInput) {
       editZone.addEventListener('click', () => editFileInput.click());
       editFileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleEditFileSelection(e.target.files[0]);
+        if (e.target.files) {
+          handleFilesSelection(e.target.files);
         }
       });
       editZone.addEventListener('dragover', (e) => {
@@ -2117,8 +2423,8 @@ function setupAccountListeners(user) {
       editZone.addEventListener('drop', (e) => {
         e.preventDefault();
         editZone.classList.remove('border-brand-orange', 'bg-orange-50/10');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          handleEditFileSelection(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files) {
+          handleFilesSelection(e.dataTransfer.files);
         }
       });
     }
@@ -2128,8 +2434,8 @@ function setupAccountListeners(user) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        if (!isEdit && !selectedProductImageFile) {
-          showNotification('A product image upload is required for new designs.', 'info');
+        if (!isEdit && selectedProductImageFiles.length === 0) {
+          showNotification('Please select between 1 and 6 product images to register.', 'info');
           return;
         }
 
@@ -2137,14 +2443,26 @@ function setupAccountListeners(user) {
         const originalHTML = submitBtn ? submitBtn.innerHTML : '';
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.innerHTML = `Saving Product...`;
+          submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Processing & Uploading...</span>`;
+          if (window.lucide) window.lucide.createIcons();
         }
 
         const idVal = document.getElementById('edit-prod-id').value.trim();
         const nameVal = document.getElementById('edit-prod-name').value.trim();
         const catVal = document.getElementById('edit-prod-category').value;
-        const priceVal = parseFloat(document.getElementById('edit-prod-price').value);
+        const priceVal = parseFloat(document.getElementById('edit-prod-price').value || 0);
+        const oldPriceVal = parseFloat(document.getElementById('edit-prod-old-price').value || 0) || null;
+        const stockVal = parseInt(document.getElementById('edit-prod-stock').value || 0);
         const descVal = document.getElementById('edit-prod-description').value.trim();
+        const specsVal = document.getElementById('edit-prod-specifications').value.trim();
+        const coloursVal = document.getElementById('edit-prod-colours').value.trim();
+        const sizesVal = document.getElementById('edit-prod-sizes').value.trim();
+        
+        const featuredVal = document.getElementById('edit-prod-featured').checked;
+        const flashVal = document.getElementById('edit-prod-flash').checked;
+        const newVal = document.getElementById('edit-prod-new').checked;
+        const bestVal = document.getElementById('edit-prod-best').checked;
+        const statusVal = document.getElementById('edit-prod-status').value;
 
         if (!catVal) {
           showNotification("Please choose a product category.", "danger");
@@ -2160,18 +2478,29 @@ function setupAccountListeners(user) {
           name: nameVal,
           category: catVal,
           price: priceVal,
-          description: descVal
+          oldPrice: oldPriceVal,
+          stock: stockVal,
+          description: descVal,
+          specifications: specsVal,
+          colours: coloursVal,
+          sizes: sizesVal,
+          featured: featuredVal,
+          flashSale: flashVal,
+          newArrival: newVal,
+          bestSeller: bestVal,
+          status: statusVal
         };
 
         try {
+          const filesToSend = selectedProductImageFiles.length > 0 ? selectedProductImageFiles : null;
           if (isEdit) {
-            await window.editProductInCatalog(prod.id, dataObj, selectedProductImageFile);
-            showNotification(`Product "${nameVal}" updated successfully!`, 'success');
+            await window.editProductInCatalog(prod.id, dataObj, filesToSend);
+            showNotification(`Product "${nameVal}" details successfully updated!`, 'success');
           } else {
-            await window.addProductToCatalog(dataObj, selectedProductImageFile);
-            showNotification(`Product "${nameVal}" created and added to catalog successfully!`, 'success');
+            await window.addProductToCatalog(dataObj, filesToSend);
+            showNotification(`Product "${nameVal}" has been registered and uploaded successfully!`, 'success');
           }
-          selectedProductImageFile = null;
+          selectedProductImageFiles = [];
           adminEditingProduct = null;
           renderAccountView();
         } catch (err) {
