@@ -5,15 +5,38 @@ let paymentMethod = 'bank_transfer';
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 
-  cartItems = getMockCart();
-  if (cartItems.length === 0) {
-    window.location.href = 'cart.html';
-    return;
-  }
+  const checkAuthAndProceed = () => {
+    const currentUser = getMockCurrentUser();
+    if (currentUser) {
+      cartItems = getMockCart();
+      if (cartItems.length === 0) {
+        window.location.href = 'cart.html';
+        return;
+      }
+      renderCheckoutForm();
+      if (window.lucide) window.lucide.createIcons();
+    } else if (window.__authInitialized) {
+      window.location.href = 'account.html?redirect=checkout';
+    } else {
+      // Wait for authUpdated event or timeout to see if user is logged in
+      const handleAuthUpdate = () => {
+        window.removeEventListener('authUpdated', handleAuthUpdate);
+        clearTimeout(timeout);
+        checkAuthAndProceed();
+      };
+      window.addEventListener('authUpdated', handleAuthUpdate);
+      const timeout = setTimeout(() => {
+        window.removeEventListener('authUpdated', handleAuthUpdate);
+        if (!getMockCurrentUser()) {
+          window.location.href = 'account.html?redirect=checkout';
+        } else {
+          checkAuthAndProceed();
+        }
+      }, 800);
+    }
+  };
 
-  renderCheckoutForm();
-
-  if (window.lucide) window.lucide.createIcons();
+  checkAuthAndProceed();
 });
 
 function renderCheckoutForm() {

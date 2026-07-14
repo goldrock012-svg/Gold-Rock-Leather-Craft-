@@ -16,6 +16,19 @@ function initCommonUI() {
   setupCartDrawerListeners();
   updateCommonBadges();
 
+  // Intercept checkout clicks to enforce account registration/login before checkout
+  document.addEventListener('click', (e) => {
+    const checkoutLink = e.target.closest('#cart-drawer-checkout-btn, #cart-page-checkout-btn, [href="checkout.html"]');
+    if (checkoutLink) {
+      const currentUser = getMockCurrentUser();
+      if (!currentUser) {
+        e.preventDefault();
+        showNotification('A customer account is required before checking out.', 'info');
+        window.location.href = 'account.html?redirect=checkout';
+      }
+    }
+  });
+
   // Listen to state changes to update badges & cart drawer
   window.addEventListener('cartUpdated', () => {
     updateCommonBadges();

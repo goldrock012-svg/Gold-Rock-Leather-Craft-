@@ -79,9 +79,14 @@ function getSidebarMenuHtml(user) {
   const menuItems = [
     { id: 'my-profile', label: 'My Profile', icon: 'user' },
     { id: 'my-orders', label: 'My Orders', icon: 'package' },
+    { id: 'pending-orders', label: 'Pending Orders', icon: 'clock' },
+    { id: 'processing-orders', label: 'Processing Orders', icon: 'loader' },
+    { id: 'shipped-orders', label: 'Shipped Orders', icon: 'truck' },
+    { id: 'delivered-orders', label: 'Delivered Orders', icon: 'check-circle' },
+    { id: 'cancelled-orders', label: 'Cancelled Orders', icon: 'x-circle' },
+    { id: 'payment-history', label: 'Payment History', icon: 'credit-card' },
     { id: 'wishlist', label: 'Wishlist', icon: 'heart' },
     { id: 'saved-addresses', label: 'Saved Addresses', icon: 'map-pin' },
-    { id: 'payment-history', label: 'Payment History', icon: 'credit-card' },
     { id: 'admin-console', label: 'Admin Console (Verify Payments)', icon: 'shield-alert' },
     { id: 'about-us', label: 'About GR STORE', icon: 'info' },
     { id: 'contact-us', label: 'Contact Us', icon: 'phone' },
@@ -139,7 +144,10 @@ function getSidebarMenuHtml(user) {
 }
 
 function getActiveTabContentHtml(user) {
-  const isAuthRequired = ['my-orders', 'saved-addresses', 'payment-history', 'settings', 'admin-console'].includes(activeTab) || (activeTab === 'my-profile' && !user);
+  const isAuthRequired = [
+    'my-orders', 'pending-orders', 'processing-orders', 'shipped-orders', 'delivered-orders', 'cancelled-orders',
+    'saved-addresses', 'payment-history', 'settings', 'admin-console'
+  ].includes(activeTab) || (activeTab === 'my-profile' && !user);
   
   if (isAuthRequired && !user) {
     return getAuthLockedHtml();
@@ -150,6 +158,16 @@ function getActiveTabContentHtml(user) {
       return !editMode ? getProfileViewHtml(user) : getProfileEditFormHtml(user);
     case 'my-orders':
       return getOrdersViewHtml();
+    case 'pending-orders':
+      return getOrdersViewHtml('pending');
+    case 'processing-orders':
+      return getOrdersViewHtml('Processing');
+    case 'shipped-orders':
+      return getOrdersViewHtml('Shipped');
+    case 'delivered-orders':
+      return getOrdersViewHtml('Delivered');
+    case 'cancelled-orders':
+      return getOrdersViewHtml('Cancelled');
     case 'wishlist':
       return getWishlistViewHtml();
     case 'saved-addresses':
@@ -355,13 +373,40 @@ function getProfileEditFormHtml(user) {
   `;
 }
 
-function getOrdersViewHtml() {
-  const orders = getMockOrders();
+function getOrdersViewHtml(statusFilter = null) {
+  let orders = getMockOrders() || [];
+  let title = 'My Orders';
+  let icon = 'package';
+
+  if (statusFilter) {
+    if (statusFilter === 'pending') {
+      orders = orders.filter(o => o.status && o.status.toLowerCase().includes('pending'));
+      title = 'Pending Orders';
+      icon = 'clock';
+    } else if (statusFilter === 'Processing') {
+      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'processing' || o.status.toLowerCase() === 'packaging'));
+      title = 'Processing Orders';
+      icon = 'loader';
+    } else if (statusFilter === 'Shipped') {
+      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'shipped' || o.status.toLowerCase().includes('dispatch')));
+      title = 'Shipped Orders';
+      icon = 'truck';
+    } else if (statusFilter === 'Delivered') {
+      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'delivered' || o.status.toLowerCase() === 'completed'));
+      title = 'Delivered Orders';
+      icon = 'check-circle';
+    } else if (statusFilter === 'Cancelled') {
+      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'cancelled' || o.status.toLowerCase() === 'canceled'));
+      title = 'Cancelled Orders';
+      icon = 'x-circle';
+    }
+  }
+
   return `
     <div class="animate-in fade-in duration-300">
       <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-5">
-        <i data-lucide="package" class="w-4 h-4 text-brand-orange"></i>
-        My Orders
+        <i data-lucide="${icon}" class="w-4 h-4 text-brand-orange"></i>
+        ${title}
       </h3>
 
       <div class="flex flex-col gap-4" id="orders-list-rows">
@@ -375,7 +420,7 @@ function getOrdersListHtml(orders) {
   if (orders.length === 0) {
     return `
       <div class="text-center py-8">
-        <p class="text-slate-400 text-xs italic">You haven't placed any orders yet.</p>
+        <p class="text-slate-400 text-xs italic">You don't have any orders under this category.</p>
         <a href="categories.html" class="mt-3 inline-block bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-bold px-4 py-2 rounded-xl transition-all">
           Shop Handcrafted Bags
         </a>
@@ -399,46 +444,73 @@ function getOrdersListHtml(orders) {
       </div>
     `).join('<div class="h-2"></div>');
 
+    const payStatus = ord.paymentStatus || 'Pending';
+    const ordStatus = ord.status || 'Pending Payment Verification';
+
     return `
       <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-slate-50/20">
         <!-- Order header card -->
         <div class="bg-slate-100/80 px-4 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
           <div class="flex flex-col">
-            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Order ID</span>
+            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Order ID / Number</span>
             <span class="font-mono font-bold text-xs text-slate-800 mt-1">${ord.id}</span>
           </div>
           <div class="flex flex-col items-end">
-            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Placed On</span>
+            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Date Ordered</span>
             <span class="font-bold text-xs text-slate-800 mt-1">${dateFormatted}</span>
           </div>
         </div>
 
         <!-- Order details rows -->
         <div class="p-4 flex flex-col gap-3">
-          ${itemsList}
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Products Ordered</span>
+            ${itemsList}
+          </div>
 
           <div class="border-t border-slate-150 pt-2.5 mt-1 flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-600">Total Paid (₦1,500 Delivery):</span>
+            <span class="text-xs font-bold text-slate-600">Total Amount (including delivery):</span>
             <span class="font-mono font-extrabold text-brand-orange text-sm md:text-base">₦${ord.total.toLocaleString()}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 border-t border-slate-150 pt-3 mt-1 text-xs">
+            <div class="flex flex-col gap-1">
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payment Status</span>
+              <div>
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase border ${
+                  payStatus === 'Approved'
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : payStatus === 'Rejected'
+                      ? 'bg-red-50 text-red-600 border-red-100'
+                      : 'bg-amber-50 text-amber-600 border-amber-100'
+                }">
+                  ${payStatus}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Status</span>
+              <div>
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase border ${
+                  ordStatus === 'Paid Successfully' || ordStatus === 'Delivered' || ordStatus === 'completed'
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : ordStatus === 'Cancelled'
+                      ? 'bg-red-50 text-red-600 border-red-100'
+                      : ordStatus === 'Shipped' || ordStatus === 'Verified Dispatch'
+                        ? 'bg-blue-50 text-blue-600 border-blue-100'
+                        : 'bg-amber-50 text-amber-600 border-amber-100'
+                }">
+                  ${ordStatus === 'completed' || ordStatus === 'Verified Dispatch' ? 'Verified Dispatch' : ordStatus}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div class="flex gap-2 justify-end mt-2">
             <a href="https://wa.me/2348126730784?text=Hello%20Gold%20%26%20Rock%2C%20I%20want%20to%20confirm%20my%20Order%20ID%3A%20${ord.id}%20totaling%20%E2%82%A6${ord.total.toLocaleString()}" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center gap-1">
               <i data-lucide="message-circle" class="w-3.5 h-3.5 fill-white"></i> Confirm on WhatsApp
             </a>
-            <span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg border flex items-center justify-center ${
-              ord.status === 'Paid Successfully' 
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                : ord.status === 'completed' || ord.status === 'Verified Dispatch'
-                  ? 'bg-blue-50 text-blue-600 border-blue-100'
-                  : 'bg-amber-50 text-amber-600 border-amber-100'
-            }">
-              ${ord.status === 'Paid Successfully' 
-                ? 'Paid Successfully' 
-                : ord.status === 'completed' || ord.status === 'Verified Dispatch'
-                  ? 'Verified Dispatch' 
-                  : 'Pending Payment Verification'}
-            </span>
           </div>
         </div>
       </div>
@@ -648,11 +720,23 @@ function getForceChangePasswordHtml() {
 
 function getInlineEditProductFormHtml(prod = null) {
   const isEdit = !!prod;
-  const categories = getMockCategories() || [];
+  const requiredCategories = [
+    "School Bags",
+    "Ladies Handbags",
+    "Laptop Bags",
+    "Lunch Bags",
+    "Office Bags",
+    "Men's Purse",
+    "Travel Bags",
+    "Accessories"
+  ];
   
-  const options = categories.map(c => `
-    <option value="${c.id}" ${isEdit && prod.category === c.id ? 'selected' : ''}>${c.name}</option>
-  `).join('');
+  const options = `
+    <option value="">-- Choose Category --</option>
+    ${requiredCategories.map(cat => `
+      <option value="${cat}" ${isEdit && prod.category === cat ? 'selected' : ''}>${cat}</option>
+    `).join('')}
+  `;
 
   return `
     <form id="admin-edit-product-form" class="bg-white border-2 border-[#0f1e36] rounded-xl p-5 flex flex-col gap-4 shadow-md mb-5 animate-in slide-in-from-top duration-300 text-left">
@@ -2057,6 +2141,15 @@ function setupAccountListeners(user) {
         const priceVal = parseFloat(document.getElementById('edit-prod-price').value);
         const descVal = document.getElementById('edit-prod-description').value.trim();
 
+        if (!catVal) {
+          showNotification("Please choose a product category.", "danger");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHTML;
+          }
+          return;
+        }
+
         const dataObj = {
           id: idVal,
           name: nameVal,
@@ -2637,7 +2730,12 @@ function setupAccountListeners(user) {
       try {
         await loginMockUser(email, password);
         showNotification('Signed in successfully! Welcome back to GR STORE.', 'success');
-        renderAccountView();
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('redirect') === 'checkout') {
+          window.location.href = 'checkout.html';
+        } else {
+          renderAccountView();
+        }
       } catch (err) {
         showNotification(err.message, 'danger');
         if (submitBtn) {
@@ -2695,7 +2793,12 @@ function setupAccountListeners(user) {
           password
         });
         showNotification('Account registered successfully! Welcome to GR STORE.', 'success');
-        renderAccountView();
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('redirect') === 'checkout') {
+          window.location.href = 'checkout.html';
+        } else {
+          renderAccountView();
+        }
       } catch (err) {
         showNotification(err.message, 'danger');
         if (submitBtn) {

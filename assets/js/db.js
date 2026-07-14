@@ -340,6 +340,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     // Merge any existing local items into Firestore on login
     await mergeLocalStateToFirestore(firebaseUser.uid);
 
+    window.__authInitialized = true;
     window.dispatchEvent(new Event('authUpdated'));
   } else {
     console.log("Logged out from Firebase Auth");
@@ -354,6 +355,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     // Reset back to guest local storage fallbacks
     loadLocalCaches();
     
+    window.__authInitialized = true;
     window.dispatchEvent(new Event('authUpdated'));
     window.dispatchEvent(new Event('cartUpdated'));
     window.dispatchEvent(new Event('wishlistUpdated'));
