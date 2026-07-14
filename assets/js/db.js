@@ -799,7 +799,7 @@ const uploadFile = async (file, folderPath) => {
     return await getDownloadURL(storageRef);
   } catch (err) {
     console.error("File upload failed:", err);
-    throw new Error("Failed to upload file to Firebase Storage.");
+    throw new Error(`Firebase Storage upload failed: ${err.message || err}`);
   }
 };
 
@@ -887,7 +887,7 @@ const adminChangePassword = async (newPassword) => {
 };
 
 // Product Catalog operations
-const addProductToCatalog = async (productData, imageFileOrFiles) => {
+const addProductToCatalog = async (productData, imageFileOrFiles, onStageChange = null) => {
   if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
     throw new Error("Administrative permission required.");
   }
@@ -897,6 +897,7 @@ const addProductToCatalog = async (productData, imageFileOrFiles) => {
 
     // If there are files, upload them
     if (imageFileOrFiles) {
+      if (onStageChange) onStageChange('uploading');
       if (Array.isArray(imageFileOrFiles)) {
         images = await uploadMultipleFiles(imageFileOrFiles, 'products');
         if (images.length > 0) mainImage = images[0];
@@ -907,7 +908,10 @@ const addProductToCatalog = async (productData, imageFileOrFiles) => {
           images = [url];
         }
       }
+      console.log("Image upload completed");
     }
+
+    if (onStageChange) onStageChange('saving');
 
     const docId = productData.id || `gr-${Math.floor(1000 + Math.random() * 9000)}`;
     const nowIso = new Date().toISOString();
@@ -977,14 +981,16 @@ const addProductToCatalog = async (productData, imageFileOrFiles) => {
     };
 
     await setDoc(doc(db, 'products', docId), fullProd);
+    console.log("Firestore save completed");
+    if (onStageChange) onStageChange('saved');
     return fullProd;
   } catch (err) {
     console.error("Error adding product to catalog:", err);
-    throw new Error(err.message || "Failed to add product to database.");
+    throw err;
   }
 };
 
-const editProductInCatalog = async (productId, productData, imageFileOrFiles) => {
+const editProductInCatalog = async (productId, productData, imageFileOrFiles, onStageChange = null) => {
   if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
     throw new Error("Administrative permission required.");
   }
@@ -996,6 +1002,7 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles) =>
 
     // Upload new image files if provided
     if (imageFileOrFiles) {
+      if (onStageChange) onStageChange('uploading');
       if (Array.isArray(imageFileOrFiles) && imageFileOrFiles.length > 0) {
         const urls = await uploadMultipleFiles(imageFileOrFiles, 'products');
         if (urls.length > 0) {
@@ -1009,7 +1016,10 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles) =>
           updatedFields.images = [url];
         }
       }
+      console.log("Image upload completed");
     }
+
+    if (onStageChange) onStageChange('saving');
 
     // Convert values
     if (updatedFields.price !== undefined) updatedFields.price = Number(updatedFields.price);
@@ -1064,10 +1074,11 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles) =>
     if (updatedFields.status !== undefined) updatedFields.enabled = updatedFields.status !== 'hidden';
 
     await updateDoc(prodRef, updatedFields);
-    console.log(`Product ${productId} successfully edited in catalog.`);
+    console.log("Firestore save completed");
+    if (onStageChange) onStageChange('saved');
   } catch (err) {
     console.error("Error editing product in catalog:", err);
-    throw new Error(err.message || "Failed to update product details.");
+    throw err;
   }
 };
 
