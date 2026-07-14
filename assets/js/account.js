@@ -2428,131 +2428,145 @@ function setupAccountListeners(user) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        if (!isEdit && selectedProductImageFiles.length === 0) {
-          showNotification('Please select between 1 and 6 product images to register.', 'info');
-          return;
-        }
-
         const submitBtn = document.getElementById('admin-edit-product-btn');
         const originalHTML = submitBtn ? submitBtn.innerHTML : '';
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Compressing image...</span>`;
-          if (window.lucide) window.lucide.createIcons();
-        }
-
-        const idVal = document.getElementById('edit-prod-id').value.trim();
-        const nameVal = document.getElementById('edit-prod-name').value.trim();
-        const catVal = document.getElementById('edit-prod-category').value;
-        const priceVal = parseFloat(document.getElementById('edit-prod-price').value || 0);
-        const oldPriceVal = parseFloat(document.getElementById('edit-prod-old-price').value || 0) || null;
-        const stockVal = parseInt(document.getElementById('edit-prod-stock').value || 0);
-        const descVal = document.getElementById('edit-prod-description').value.trim();
-        const specsVal = document.getElementById('edit-prod-specifications').value.trim();
-        const coloursVal = document.getElementById('edit-prod-colours').value.trim();
-        const sizesVal = document.getElementById('edit-prod-sizes').value.trim();
-        
-        const featuredVal = document.getElementById('edit-prod-featured').checked;
-        const flashVal = document.getElementById('edit-prod-flash').checked;
-        const newVal = document.getElementById('edit-prod-new').checked;
-        const bestVal = document.getElementById('edit-prod-best').checked;
-        const statusVal = document.getElementById('edit-prod-status').value;
-
-        if (!catVal) {
-          showNotification("Please choose a product category.", "danger");
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalHTML;
-          }
-          return;
-        }
-
-        const dataObj = {
-          id: idVal,
-          name: nameVal,
-          category: catVal,
-          price: priceVal,
-          oldPrice: oldPriceVal,
-          stock: stockVal,
-          description: descVal,
-          specifications: specsVal,
-          colours: coloursVal,
-          sizes: sizesVal,
-          featured: featuredVal,
-          flashSale: flashVal,
-          newArrival: newVal,
-          bestSeller: bestVal,
-          status: statusVal
-        };
-
-        // Create a timeout promise to stop after 30 seconds
-        let timeoutId;
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Upload timed out. Please try again."));
-          }, 30000);
-        });
-
-        const uploadAndSavePromise = (async () => {
-          // 1. COMPRESSION STAGE
-          console.log("Image compression started");
-          if (submitBtn) {
-            submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Compressing image...</span>`;
-            if (window.lucide) window.lucide.createIcons();
-          }
-
-          const processedFiles = [];
-          if (selectedProductImageFiles.length > 0) {
-            for (const file of selectedProductImageFiles) {
-              const compressed = await compressImage(file, 500);
-              processedFiles.push(compressed);
-            }
-          }
-
-          // Define progress changes
-          const onStageChange = (stage) => {
-            if (!submitBtn) return;
-            if (stage === 'uploading') {
-              submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Uploading image...</span>`;
-            } else if (stage === 'saving') {
-              submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving product...</span>`;
-            } else if (stage === 'saved') {
-              submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Product created successfully.</span>`;
-            }
-            if (window.lucide) window.lucide.createIcons();
-          };
-
-          const filesToSend = processedFiles.length > 0 ? processedFiles : null;
-
-          if (isEdit) {
-            await window.editProductInCatalog(prod.id, dataObj, filesToSend, onStageChange);
-          } else {
-            await window.addProductToCatalog(dataObj, filesToSend, onStageChange);
-          }
-
-          console.log("Product registration completed");
-        })();
 
         try {
-          await Promise.race([uploadAndSavePromise, timeoutPromise]);
-          clearTimeout(timeoutId);
+          if (!isEdit && selectedProductImageFiles.length === 0) {
+            showNotification('Please select between 1 and 6 product images to register.', 'info');
+            return;
+          }
 
           if (submitBtn) {
-            submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Product created successfully.</span>`;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Processing...</span>`;
+            if (window.lucide) window.lucide.createIcons();
+          }
+
+          const idVal = document.getElementById('edit-prod-id').value.trim();
+          const nameVal = document.getElementById('edit-prod-name').value.trim();
+          const catVal = document.getElementById('edit-prod-category').value;
+          const priceVal = parseFloat(document.getElementById('edit-prod-price').value || 0);
+          const oldPriceVal = parseFloat(document.getElementById('edit-prod-old-price').value || 0) || null;
+          const stockVal = parseInt(document.getElementById('edit-prod-stock').value || 0);
+          const descVal = document.getElementById('edit-prod-description').value.trim();
+          const specsVal = document.getElementById('edit-prod-specifications').value.trim();
+          const coloursVal = document.getElementById('edit-prod-colours').value.trim();
+          const sizesVal = document.getElementById('edit-prod-sizes').value.trim();
+          
+          const featuredVal = document.getElementById('edit-prod-featured').checked;
+          const flashVal = document.getElementById('edit-prod-flash').checked;
+          const newVal = document.getElementById('edit-prod-new').checked;
+          const bestVal = document.getElementById('edit-prod-best').checked;
+          const statusVal = document.getElementById('edit-prod-status').value;
+
+          if (!catVal) {
+            showNotification("Please choose a product category.", "danger");
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalHTML;
+            }
+            return;
+          }
+
+          console.log("Form validation complete.");
+
+          const dataObj = {
+            id: idVal,
+            name: nameVal,
+            category: catVal,
+            price: priceVal,
+            oldPrice: oldPriceVal,
+            stock: stockVal,
+            description: descVal,
+            specifications: specsVal,
+            colours: coloursVal,
+            sizes: sizesVal,
+            featured: featuredVal,
+            flashSale: flashVal,
+            newArrival: newVal,
+            bestSeller: bestVal,
+            status: statusVal
+          };
+
+          const uploadAndSave = async () => {
+            // 1. COMPRESSION STAGE
+            console.log("Image compression started");
+            if (submitBtn) {
+              submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Compressing image...</span>`;
+              if (window.lucide) window.lucide.createIcons();
+            }
+
+            const processedFiles = [];
+            if (selectedProductImageFiles.length > 0) {
+              for (const file of selectedProductImageFiles) {
+                const compressed = await compressImage(file, 500);
+                processedFiles.push(compressed);
+              }
+            }
+            console.log("Image compression complete.");
+
+            // Define progress changes
+            const onStageChange = (stage) => {
+              if (!submitBtn) return;
+              if (stage === 'uploading') {
+                submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Uploading image...</span>`;
+              } else if (stage === 'saving') {
+                submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving product...</span>`;
+              } else if (stage === 'saved') {
+                submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Product created successfully.</span>`;
+              }
+              if (window.lucide) window.lucide.createIcons();
+            };
+
+            const filesToSend = processedFiles.length > 0 ? processedFiles : null;
+
+            if (isEdit) {
+              await window.editProductInCatalog(prod.id, dataObj, filesToSend, onStageChange);
+            } else {
+              await window.addProductToCatalog(dataObj, filesToSend, onStageChange);
+            }
+          };
+
+          // Create a timeout promise to stop after 30 seconds
+          let timeoutId;
+          const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+              reject(new Error("Upload timed out. Please try again."));
+            }, 30000);
+          });
+
+          // Run them race-conditioned
+          await Promise.race([uploadAndSave(), timeoutPromise]);
+          clearTimeout(timeoutId);
+
+          console.log("Upload finished.");
+
+          if (submitBtn) {
+            submitBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Product uploaded successfully.</span>`;
             if (window.lucide) window.lucide.createIcons();
           }
 
           // Show success feedback
           await new Promise(r => setTimeout(r, 800));
-          showNotification(isEdit ? `Product "${nameVal}" details successfully updated!` : `Product "${nameVal}" has been registered and uploaded successfully!`, 'success');
+          showNotification("Product uploaded successfully.", 'success');
 
+          // Reset forms and selections
           selectedProductImageFiles = [];
           adminEditingProduct = null;
+
+          // Clear the form
+          form.reset();
+          const previewContainer = document.getElementById('image-previews-container');
+          if (previewContainer) previewContainer.innerHTML = '';
+
+          // Refresh the product table
           renderAccountView();
-        } catch (err) {
-          clearTimeout(timeoutId);
-          console.error("Product upload or save failed:", err);
-          showNotification(err.message || String(err), 'danger');
+
+        } catch (error) {
+          console.error(error);
+          alert(error.message || String(error));
+          
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalHTML;

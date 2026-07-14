@@ -795,11 +795,15 @@ const uploadFile = async (file, folderPath) => {
   try {
     const fileName = `${Date.now()}_${file.name}`;
     const storageRef = ref(storage, `${folderPath}/${fileName}`);
+    console.log("Uploading image to Firebase Storage...");
     await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    console.log("Image uploaded successfully.");
+    const url = await getDownloadURL(storageRef);
+    console.log("Download URL generated.");
+    return url;
   } catch (err) {
     console.error("File upload failed:", err);
-    throw new Error(`Firebase Storage upload failed: ${err.message || err}`);
+    throw err;
   }
 };
 
@@ -980,7 +984,9 @@ const addProductToCatalog = async (productData, imageFileOrFiles, onStageChange 
       updatedAt: nowIso
     };
 
+    console.log("Saving product to Firestore...");
     await setDoc(doc(db, 'products', docId), fullProd);
+    console.log("Product saved successfully.");
     console.log("Firestore save completed");
     if (onStageChange) onStageChange('saved');
     return fullProd;
@@ -1073,7 +1079,9 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles, on
     if (updatedFields.newArrival !== undefined) updatedFields.isNew = !!updatedFields.newArrival;
     if (updatedFields.status !== undefined) updatedFields.enabled = updatedFields.status !== 'hidden';
 
+    console.log("Saving product to Firestore...");
     await updateDoc(prodRef, updatedFields);
+    console.log("Product saved successfully.");
     console.log("Firestore save completed");
     if (onStageChange) onStageChange('saved');
   } catch (err) {
