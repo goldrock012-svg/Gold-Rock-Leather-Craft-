@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "GR STORE static copy helper for preview",
   "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
     "build": "mkdir -p dist && cp -r index.html categories.html product.html cart.html wishlist.html account.html checkout.html assets dist/",
     "lint": "echo 'No lint needed'"
   }

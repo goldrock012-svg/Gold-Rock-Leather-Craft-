@@ -793,31 +793,31 @@ const markAllNotificationsAsRead = async () => {
 const uploadFile = async (file, folderPath) => {
   if (!file) return '';
   try {
-    console.log("Uploading image to ImgBB...");
+    console.log("Uploading image to Cloudinary...");
     
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
+    formData.append('upload_preset', 'goldrock_products');
     
-    const apiKey = 'fa275afebdd74a6525df4d8742755579';
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    const cloudName = 'dhirznlm';
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: 'POST',
       body: formData
     });
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errMsg = (errorData.error && errorData.error.message) || `ImgBB HTTP error! Status: ${response.status}`;
-      throw new Error(`ImgBB upload failed: ${errMsg}`);
+      const errMsg = (errorData.error && errorData.error.message) || `Cloudinary HTTP error! Status: ${response.status}`;
+      throw new Error(`Cloudinary upload failed: ${errMsg}`);
     }
     
     const result = await response.json();
-    if (!result.success || !result.data || !result.data.url) {
-      const errMsg = (result.error && result.error.message) || "Invalid response from ImgBB";
-      throw new Error(`ImgBB upload failed: ${errMsg}`);
+    if (!result.secure_url) {
+      throw new Error("Invalid response from Cloudinary (missing secure_url)");
     }
     
     console.log("Image uploaded successfully.");
-    const url = result.data.url;
+    const url = result.secure_url;
     console.log("Download URL generated.");
     return url;
   } catch (err) {
