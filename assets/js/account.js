@@ -9,6 +9,10 @@ let adminActiveSection = 'dashboard';
 let adminEditingProduct = null;
 let adminEditingCategory = null;
 
+let orderSearchQuery = '';
+let orderActiveFilter = 'all';
+let selectedOrderForDetails = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 
@@ -157,6 +161,15 @@ function getActiveTabContentHtml(user) {
   
   if (isAuthRequired && !user) {
     return getAuthLockedHtml();
+  }
+
+  if (selectedOrderForDetails) {
+    const freshOrders = getMockOrders() || [];
+    const freshOrder = freshOrders.find(o => o.id === selectedOrderForDetails.id);
+    if (freshOrder) {
+      selectedOrderForDetails = freshOrder;
+    }
+    return getOrderDetailPageHtml(selectedOrderForDetails);
   }
 
   switch (activeTab) {
@@ -379,44 +392,510 @@ function getProfileEditFormHtml(user) {
   `;
 }
 
-function getOrdersViewHtml(statusFilter = null) {
-  let orders = getMockOrders() || [];
-  let title = 'My Orders';
-  let icon = 'package';
+function getActiveStepIndex(ord) {
+  const status = ord.orderStatus || ord.status || 'Pending Payment';
+  const payStatus = ord.paymentStatus || 'Pending';
+  
+  if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('reject')) {
+    return -1; // Special case for Cancelled/Rejected
+  }
+  
+  if (status === 'Delivered' || status === 'completed') return 6;
+  if (status === 'Out For Delivery') return 5;
+  if (status === 'Shipped') return 4;
+  if (status === 'Packed' || status === 'Packaging') return 3;
+  if (status === 'Processing') return 2;
+  if (payStatus === 'Approved' || status === 'Payment Verified') return 1;
+  return 0; // Pending Payment
+}
 
-  if (statusFilter) {
-    if (statusFilter === 'pending') {
-      orders = orders.filter(o => o.status && o.status.toLowerCase().includes('pending'));
-      title = 'Pending Orders';
-      icon = 'clock';
-    } else if (statusFilter === 'Processing') {
-      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'processing' || o.status.toLowerCase() === 'packaging'));
-      title = 'Processing Orders';
-      icon = 'loader';
-    } else if (statusFilter === 'Shipped') {
-      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'shipped' || o.status.toLowerCase().includes('dispatch')));
-      title = 'Shipped Orders';
-      icon = 'truck';
-    } else if (statusFilter === 'Delivered') {
-      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'delivered' || o.status.toLowerCase() === 'completed'));
-      title = 'Delivered Orders';
-      icon = 'check-circle';
-    } else if (statusFilter === 'Cancelled') {
-      orders = orders.filter(o => o.status && (o.status.toLowerCase() === 'cancelled' || o.status.toLowerCase() === 'canceled'));
-      title = 'Cancelled Orders';
-      icon = 'x-circle';
-    }
+function renderTimelineHtml(ord) {
+  const steps = [
+    'Pending Payment',
+    'Payment Verified',
+    'Processing',
+    'Packed',
+    'Shipped',
+    'Out For Delivery',
+    'Delivered'
+  ];
+  const activeIndex = getActiveStepIndex(ord);
+  const isCancelled = activeIndex === -1;
+
+  if (isCancelled) {
+    return `
+      <div class="bg-red-50 border border-red-100 rounded-xl p-3.5 flex items-center gap-3 mt-2 text-xs text-red-700">
+        <i data-lucide="x-circle" class="w-5 h-5 text-red-500 shrink-0"></i>
+        <div>
+          <p class="font-bold">Order Cancelled / Payment Rejected</p>
+          <p class="text-[10px] text-red-500">This order has been cancelled and is no longer being processed.</p>
+        </div>
+      </div>
+    `;
   }
 
   return `
+    <div class="mt-4 border-t border-slate-100 pt-4">
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Order Tracking Status</p>
+      
+      <!-- Desktop & Mobile Timeline -->
+      <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-2">
+        <!-- Connecting Line for Desktop -->
+        <div class="hidden md:block absolute top-[14px] left-[20px] right-[20px] h-0.5 bg-slate-250 -z-10">
+          <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(activeIndex / 6) * 100}%"></div>
+        </div>
+
+        ${steps.map((step, idx) => {
+          const isCompleted = idx < activeIndex;
+          const isActive = idx === activeIndex;
+          
+          let circleClass = '';
+          let textClass = '';
+          let icon = 'circle';
+          
+          if (isCompleted) {
+            circleClass = 'bg-emerald-500 text-white border-emerald-500';
+            textClass = 'text-emerald-600 font-bold';
+            icon = 'check';
+          } else if (isActive) {
+            circleClass = 'bg-brand-orange text-white border-brand-orange ring-4 ring-orange-100 animate-pulse';
+            textClass = 'text-brand-orange font-extrabold';
+            icon = 'clock';
+          } else {
+            circleClass = 'bg-white text-slate-300 border-slate-200';
+            textClass = 'text-slate-400 font-normal';
+          }
+
+          // Step specific icons
+          if (step === 'Pending Payment') icon = 'credit-card';
+          else if (step === 'Payment Verified') icon = 'shield-check';
+          else if (step === 'Processing') icon = 'cpu';
+          else if (step === 'Packed') icon = 'package';
+          else if (step === 'Shipped') icon = 'truck';
+          else if (step === 'Out For Delivery') icon = 'map-pin';
+          else if (step === 'Delivered') icon = 'home';
+
+          return `
+            <div class="flex md:flex-col items-center gap-3 md:gap-2 flex-1 md:text-center w-full relative">
+              <!-- Connecting vertical line on mobile -->
+              ${idx < steps.length - 1 ? `
+                <div class="md:hidden absolute top-7 left-3.5 bottom-[-16px] w-0.5 -z-10 ${isCompleted ? 'bg-emerald-500' : 'bg-slate-200'}"></div>
+              ` : ''}
+              
+              <!-- Circle indicator -->
+              <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 z-10 ${circleClass} transition-all duration-300">
+                <i data-lucide="${icon}" class="w-4 h-4"></i>
+              </div>
+              
+              <!-- Label -->
+              <div class="flex flex-col md:items-center">
+                <span class="text-[10px] md:text-[9px] uppercase tracking-wider font-bold block ${textClass}">${step}</span>
+                ${isActive && ord.lastUpdated ? `
+                  <span class="text-[9px] text-slate-400 font-mono mt-0.5">${new Date(ord.lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function printOrderReceipt(ord) {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    showNotification("Popup blocked! Please allow popups to print receipt.", "danger");
+    return;
+  }
+  
+  const subtotal = ord.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const deliveryFee = 1500;
+  
+  const receiptHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Receipt - ${ord.id}</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 40px; line-height: 1.6; }
+        .receipt-container { max-width: 800px; margin: 0 auto; border: 1px solid #eaeaea; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-b: 2px solid #0f1e36; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo-title { font-size: 24px; font-weight: bold; color: #0f1e36; text-transform: uppercase; letter-spacing: 1px; }
+        .logo-sub { font-size: 12px; color: #f68b1e; font-weight: bold; }
+        .invoice-details { text-align: right; font-size: 13px; }
+        .section-title { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #0f1e36; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .info-block p { margin: 4px 0; font-size: 13px; }
+        .info-label { font-weight: bold; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f9f9f9; text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+        .totals-row.grand { border-top: 2px solid #0f1e36; font-size: 16px; font-weight: bold; color: #0f1e36; padding-top: 12px; }
+        .footer { text-align: center; margin-top: 100px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+        @media print {
+          body { margin: 0; }
+          .receipt-container { border: none; box-shadow: none; padding: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="receipt-container">
+        <div class="header">
+          <div>
+            <div class="logo-title">Gold & Rock</div>
+            <div class="logo-sub">Leather Craft Studio</div>
+          </div>
+          <div class="invoice-details">
+            <p><strong>Receipt / Invoice</strong></p>
+            <p>Order #: ${ord.id}</p>
+            <p>Invoice #: ${ord.invoiceNumber || ('INV-' + ord.id.split('-')[1])}</p>
+            <p>Date: ${ord.date}</p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="info-block">
+            <div class="section-title">Customer Information</div>
+            <p><span class="info-label">Name:</span> ${ord.shippingDetails.fullName}</p>
+            <p><span class="info-label">Email:</span> ${ord.shippingDetails.email || 'N/A'}</p>
+            <p><span class="info-label">Phone:</span> ${ord.shippingDetails.phoneNumber}</p>
+          </div>
+          <div class="info-block">
+            <div class="section-title">Shipping Address</div>
+            <p>${ord.shippingDetails.address}</p>
+            <p>${ord.shippingDetails.city}, ${ord.shippingDetails.state}</p>
+            <p><span class="info-label">Payment Method:</span> ${ord.paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : 'Bank Transfer'}</p>
+            <p><span class="info-label">Payment Status:</span> ${ord.paymentStatus || 'Pending'}</p>
+          </div>
+        </div>
+
+        <div class="section-title">Items Ordered</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Quantity</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ord.items.map(item => `
+              <tr>
+                <td>${item.product.name} ${item.selectedColor ? `(${item.selectedColor})` : ''}</td>
+                <td class="text-right">₦${item.product.price.toLocaleString()}</td>
+                <td class="text-right">${item.quantity}</td>
+                <td class="text-right">₦${(item.product.price * item.quantity).toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>₦${subtotal.toLocaleString()}</span>
+          </div>
+          <div class="totals-row">
+            <span>Delivery Fee:</span>
+            <span>₦${deliveryFee.toLocaleString()}</span>
+          </div>
+          <div class="totals-row grand">
+            <span>Grand Total:</span>
+            <span>₦${ord.total.toLocaleString()}</span>
+          </div>
+        </div>
+        <div style="clear: both;"></div>
+
+        <div class="footer">
+          <p>Thank you for shopping with Gold & Rock Leather Craft!</p>
+          <p>We handcraft each item with premium Nigerian leather and maximum precision.</p>
+          <p>Kwara State, Nigeria | +234 812 673 0784 | support@goldandrock.com</p>
+        </div>
+      </div>
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      </script>
+    </body>
+    </html>
+  `;
+  
+  printWindow.document.open();
+  printWindow.document.write(receiptHtml);
+  printWindow.document.close();
+}
+
+function getOrderDetailPageHtml(ord) {
+  const subtotal = ord.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const deliveryFee = 1500;
+  const grandTotal = ord.total || (subtotal + deliveryFee);
+  const invoiceNum = ord.invoiceNumber || `INV-${ord.id.split('-')[1] || ord.id}`;
+  const orderDateStr = ord.date ? new Date(ord.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
+  
+  // Custom tracking timeline HTML
+  const timelineHtml = renderTimelineHtml(ord);
+  
+  // Products list
+  const productsHtml = ord.items.map(item => `
+    <div class="flex items-center gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0">
+      <img src="${item.product.image || (item.product.images && item.product.images[0]) || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=150&q=80'}" class="w-14 h-14 object-cover rounded-xl border border-slate-100 shrink-0" alt="${item.product.name}">
+      <div class="min-w-0 flex-1 text-left">
+        <p class="font-bold text-slate-850 text-xs">${item.product.name}</p>
+        <p class="text-[10px] text-slate-400 mt-0.5">
+          Quantity: ${item.quantity} ${item.selectedColor ? `| Color: ${item.selectedColor}` : ''}
+        </p>
+      </div>
+      <div class="text-right">
+        <span class="font-mono font-bold text-slate-800 text-xs block">₦${(item.product.price * item.quantity).toLocaleString()}</span>
+        <span class="text-[9px] text-slate-400 font-mono block">₦${item.product.price.toLocaleString()} each</span>
+      </div>
+    </div>
+  `).join('');
+
+  const waMessage = `Hello Gold & Rock, I want to inquire about my Order ID: ${ord.id} (${invoiceNum}) under status ${ord.orderStatus || ord.status || 'Pending'}`;
+  const waLink = `https://wa.me/2348126730784?text=${encodeURIComponent(waMessage)}`;
+
+  return `
+    <div class="animate-in fade-in duration-300 text-left">
+      <!-- Top Action Navigation -->
+      <div class="flex items-center justify-between border-b pb-3 mb-4">
+        <button id="back-to-orders-list-btn" class="text-slate-600 hover:text-slate-900 text-xs font-bold flex items-center gap-1 cursor-pointer border-0 bg-transparent">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to My Orders
+        </button>
+        
+        <div class="flex gap-1.5">
+          <button id="download-order-receipt-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer border-0">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Receipt
+          </button>
+          <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 no-underline">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 fill-white text-white"></i> Support
+          </a>
+        </div>
+      </div>
+
+      <!-- Order ID, Invoice and Date Header -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 bg-slate-50 p-4 border border-slate-150 rounded-xl text-xs">
+        <div>
+          <span class="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Order Number</span>
+          <span class="font-mono font-bold text-sm text-[#0f1e36] mt-0.5 block">${ord.id}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Invoice Number</span>
+          <span class="font-mono font-bold text-sm text-slate-700 mt-0.5 block">${invoiceNum}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Order Date</span>
+          <span class="font-bold text-sm text-slate-700 mt-0.5 block">${orderDateStr}</span>
+        </div>
+      </div>
+
+      <!-- Visual Progress Tracking Timeline -->
+      ${timelineHtml}
+
+      <!-- Detailed Bento Grid Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
+        <!-- Products Summary Column -->
+        <div class="lg:col-span-2 border border-slate-200 rounded-xl p-4 bg-white flex flex-col gap-4">
+          <h4 class="font-bold text-xs text-[#0f1e36] border-b pb-2 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-brand-orange"></i> Ordered Products
+          </h4>
+          
+          <div class="flex flex-col gap-3">
+            ${productsHtml}
+          </div>
+
+          <!-- Financial calculations breakdown -->
+          <div class="border-t border-slate-100 pt-3.5 flex flex-col gap-2 mt-2 text-xs">
+            <div class="flex justify-between text-slate-500">
+              <span>Subtotal:</span>
+              <span class="font-mono">₦${subtotal.toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between text-slate-500">
+              <span>Delivery Fee:</span>
+              <span class="font-mono">₦${deliveryFee.toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between font-bold text-sm text-[#0f1e36] border-t border-dashed pt-2.5 mt-1">
+              <span>Grand Total:</span>
+              <span class="font-mono">₦${grandTotal.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Panels Column -->
+        <div class="flex flex-col gap-4">
+          <!-- Shipping Panel -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-white">
+            <h4 class="font-bold text-xs text-[#0f1e36] border-b pb-2 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="w-4 h-4 text-brand-orange"></i> Shipping Details
+            </h4>
+            <div class="text-xs flex flex-col gap-1.5 text-slate-600 text-left">
+              <p class="font-bold text-slate-800">${ord.shippingDetails.fullName}</p>
+              <p>${ord.shippingDetails.address}</p>
+              <p>${ord.shippingDetails.city}, ${ord.shippingDetails.state}</p>
+              <p class="font-mono mt-1">${ord.shippingDetails.phoneNumber}</p>
+            </div>
+          </div>
+
+          <!-- Payment Panel -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-white">
+            <h4 class="font-bold text-xs text-[#0f1e36] border-b pb-2 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="credit-card" class="w-4 h-4 text-brand-orange"></i> Payment Details
+            </h4>
+            <div class="text-xs flex flex-col gap-2 text-slate-600">
+              <div class="flex justify-between">
+                <span>Method:</span>
+                <span class="font-semibold text-slate-850">${ord.paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : 'Bank Transfer'}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>Status:</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${
+                  ord.paymentStatus === 'Approved'
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : ord.paymentStatus === 'Rejected'
+                      ? 'bg-red-50 text-red-600 border-red-100'
+                      : 'bg-amber-50 text-amber-600 border-amber-100'
+                }">${ord.paymentStatus || 'Pending'}</span>
+              </div>
+              <div class="mt-1 p-2 bg-amber-50/50 border border-amber-100/50 rounded-lg text-[10px] text-amber-700 text-left">
+                <p class="font-bold">Estimated Arrival:</p>
+                <p class="mt-0.5">${ord.estimatedDelivery || 'Within 3 days'}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Panel -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-white text-left">
+            <h4 class="font-bold text-xs text-[#0f1e36] border-b pb-2 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="clipboard-list" class="w-4 h-4 text-brand-orange"></i> Order Notes
+            </h4>
+            <p class="text-[10px] text-slate-500 italic mt-1 leading-relaxed">
+              ${ord.shippingDetails.additionalNotes || 'No custom shipping notes or requests was specified.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Big Reorder Action Block -->
+      <div class="mt-5 border border-slate-200 rounded-xl p-4 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="text-left w-full md:w-auto">
+          <p class="font-bold text-xs text-slate-850">Would you buy these crafts again?</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Instantly reload all items from this order directly into your shopping cart.</p>
+        </div>
+        <button id="reorder-this-order-btn" class="w-full md:w-auto bg-brand-orange hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border-0 shadow-xs">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reorder Now
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function getOrdersViewHtml(statusFilter = null) {
+  // If statusFilter is provided from the sidebar click, let's sync it to orderActiveFilter
+  if (statusFilter) {
+    orderActiveFilter = statusFilter;
+  }
+  
+  let orders = getMockOrders() || [];
+  
+  // 1. Filter by status
+  let filteredOrders = orders.filter(ord => {
+    if (orderActiveFilter !== 'all') {
+      const status = (ord.orderStatus || ord.status || 'Pending Payment').toLowerCase();
+      const payStatus = (ord.paymentStatus || 'Pending').toLowerCase();
+      
+      if (orderActiveFilter === 'pending') {
+        if (!status.includes('pending') && payStatus !== 'pending') return false;
+      } else if (orderActiveFilter === 'Processing') {
+        if (!status.includes('processing') && !status.includes('packaging')) return false;
+      } else if (orderActiveFilter === 'Packed') {
+        if (!status.includes('packed') && !status.includes('packaging')) return false;
+      } else if (orderActiveFilter === 'Shipped') {
+        if (!status.includes('shipped') && !status.includes('dispatch')) return false;
+      } else if (orderActiveFilter === 'Out For Delivery') {
+        if (!status.includes('out for delivery') && !status.includes('out')) return false;
+      } else if (orderActiveFilter === 'Delivered') {
+        if (!status.includes('delivered') && !status.includes('completed')) return false;
+      } else if (orderActiveFilter === 'Cancelled') {
+        if (!status.includes('cancelled') && !status.includes('canceled') && !status.includes('rejected')) return false;
+      }
+    }
+
+    // 2. Filter by search query
+    if (orderSearchQuery) {
+      const query = orderSearchQuery.toLowerCase().trim();
+      const matchId = ord.id && ord.id.toLowerCase().includes(query);
+      const matchInvoice = ord.invoiceNumber && ord.invoiceNumber.toLowerCase().includes(query);
+      const matchProduct = ord.items && ord.items.some(item => item.product.name && item.product.name.toLowerCase().includes(query));
+      
+      if (!matchId && !matchInvoice && !matchProduct) return false;
+    }
+
+    return true;
+  });
+
+  const filterChips = [
+    { id: 'all', label: 'All Orders' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'Processing', label: 'Processing' },
+    { id: 'Packed', label: 'Packed' },
+    { id: 'Shipped', label: 'Shipped' },
+    { id: 'Out For Delivery', label: 'Out For Delivery' },
+    { id: 'Delivered', label: 'Delivered' },
+    { id: 'Cancelled', label: 'Cancelled' }
+  ].map(chip => {
+    const active = orderActiveFilter === chip.id;
+    return `
+      <button data-filter="${chip.id}" class="order-filter-chip px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border shrink-0 cursor-pointer ${
+        active 
+          ? 'bg-[#0f1e36] text-white border-[#0f1e36] shadow-xs' 
+          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+      }">
+        ${chip.label}
+      </button>
+    `;
+  }).join('');
+
+  return `
     <div class="animate-in fade-in duration-300">
-      <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-5">
-        <i data-lucide="${icon}" class="w-4 h-4 text-brand-orange"></i>
-        ${title}
+      <h3 class="font-sans font-extrabold text-slate-900 text-xs md:text-sm uppercase tracking-wider flex items-center gap-2 border-b pb-3 mb-4">
+        <i data-lucide="package" class="w-4 h-4 text-brand-orange"></i>
+        My Orders
       </h3>
 
+      <!-- Search and Filter Row -->
+      <div class="flex flex-col gap-3 mb-5">
+        <!-- Search Bar -->
+        <div class="relative w-full">
+          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="order-search-input" 
+            value="${orderSearchQuery}" 
+            placeholder="Search by Order ID, Product Name, or Invoice Number..." 
+            class="w-full pl-10 pr-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:border-[#0f1e36] focus:ring-1 focus:ring-[#0f1e36] transition-all bg-white"
+          />
+          ${orderSearchQuery ? `
+            <button id="clear-order-search-btn" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer border-0 bg-transparent">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          ` : ''}
+        </div>
+
+        <!-- Filter Chips Row -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+          ${filterChips}
+        </div>
+      </div>
+
       <div class="flex flex-col gap-4" id="orders-list-rows">
-        ${getOrdersListHtml(orders)}
+        ${getOrdersListHtml(filteredOrders)}
       </div>
     </div>
   `;
@@ -425,11 +904,15 @@ function getOrdersViewHtml(statusFilter = null) {
 function getOrdersListHtml(orders) {
   if (orders.length === 0) {
     return `
-      <div class="text-center py-8">
-        <p class="text-slate-400 text-xs italic">You don't have any orders under this category.</p>
-        <a href="categories.html" class="mt-3 inline-block bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-bold px-4 py-2 rounded-xl transition-all">
-          Shop Handcrafted Bags
-        </a>
+      <div class="text-center py-12 bg-slate-50 border border-dashed rounded-2xl p-6 flex flex-col items-center justify-center">
+        <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        </div>
+        <p class="text-slate-750 font-bold text-xs mb-1">No orders match your criteria</p>
+        <p class="text-slate-400 text-[10px] mb-4">Try clearing your search query or choosing another filter category.</p>
+        <button id="reset-order-filters-btn" class="bg-[#0f1e36] hover:bg-slate-800 text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all cursor-pointer border-0">
+          Reset Search & Filters
+        </button>
       </div>
     `;
   }
@@ -439,27 +922,43 @@ function getOrdersListHtml(orders) {
     const dateFormatted = ord.date ? new Date(ord.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
     
     let itemsList = ord.items.map(item => `
-      <div class="flex justify-between items-start text-xs border-b border-slate-50 pb-2 last:border-b-0 last:pb-0">
-        <div class="min-w-0 flex-1">
-          <p class="font-bold text-slate-700 truncate">${item.product.name}</p>
+      <div class="flex items-center gap-3 border-b border-slate-50 pb-2.5 last:border-b-0 last:pb-0">
+        <img src="${item.product.image || (item.product.images && item.product.images[0]) || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=150&q=80'}" class="w-11 h-11 object-cover rounded-lg border border-slate-100 shrink-0" alt="${item.product.name}">
+        <div class="min-w-0 flex-1 text-left">
+          <p class="font-bold text-slate-800 text-xs truncate">${item.product.name}</p>
           <p class="text-[10px] text-slate-400 mt-0.5">
             Qty: ${item.quantity} ${item.selectedColor ? `| Color: ${item.selectedColor}` : ''}
           </p>
         </div>
-        <span class="font-mono font-bold text-slate-800 shrink-0">₦${(item.product.price * item.quantity).toLocaleString()}</span>
+        <span class="font-mono font-bold text-slate-850 text-xs shrink-0">₦${(item.product.price * item.quantity).toLocaleString()}</span>
       </div>
     `).join('<div class="h-2"></div>');
 
     const payStatus = ord.paymentStatus || 'Pending';
-    const ordStatus = ord.status || 'Pending Payment Verification';
+    const ordStatus = ord.orderStatus || ord.status || 'Pending Payment';
+    
+    // Status colors
+    const payColors = payStatus === 'Approved'
+      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+      : payStatus === 'Rejected'
+        ? 'bg-red-50 text-red-600 border-red-100'
+        : 'bg-amber-50 text-amber-600 border-amber-100';
+
+    const ordColors = ordStatus === 'Paid Successfully' || ordStatus === 'Delivered' || ordStatus === 'completed'
+      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+      : ordStatus === 'Cancelled' || ordStatus === 'Cancelled (Payment Rejected)'
+        ? 'bg-red-50 text-red-600 border-red-100'
+        : ordStatus === 'Shipped' || ordStatus === 'Verified Dispatch'
+          ? 'bg-blue-50 text-blue-600 border-blue-100'
+          : 'bg-amber-50 text-amber-600 border-amber-100';
 
     return `
-      <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-slate-50/20">
+      <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white transition-all hover:border-slate-350">
         <!-- Order header card -->
-        <div class="bg-slate-100/80 px-4 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
-          <div class="flex flex-col">
-            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Order ID / Number</span>
-            <span class="font-mono font-bold text-xs text-slate-800 mt-1">${ord.id}</span>
+        <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+          <div class="flex flex-col text-left">
+            <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Order ID</span>
+            <span class="font-mono font-bold text-xs text-[#0f1e36] mt-1">${ord.id}</span>
           </div>
           <div class="flex flex-col items-end">
             <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">Date Ordered</span>
@@ -467,61 +966,53 @@ function getOrdersListHtml(orders) {
           </div>
         </div>
 
-        <!-- Order details rows -->
-        <div class="p-4 flex flex-col gap-3">
-          <div class="flex flex-col gap-1.5">
-            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Products Ordered</span>
+        <!-- Order details body -->
+        <div class="p-4 flex flex-col gap-3.5">
+          <div class="flex flex-col gap-2">
             ${itemsList}
           </div>
 
-          <div class="border-t border-slate-150 pt-2.5 mt-1 flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-600">Total Amount (including delivery):</span>
-            <span class="font-mono font-extrabold text-brand-orange text-sm md:text-base">₦${ord.total.toLocaleString()}</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4 border-t border-slate-150 pt-3 mt-1 text-xs">
-            <div class="flex flex-col gap-1">
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payment Status</span>
-              <div>
-                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase border ${
-                  payStatus === 'Approved'
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    : payStatus === 'Rejected'
-                      ? 'bg-red-50 text-red-600 border-red-100'
-                      : 'bg-amber-50 text-amber-600 border-amber-100'
-                }">
-                  ${payStatus}
+          <!-- Progress tracking line (brief view) -->
+          <div class="border-t border-slate-100 pt-3">
+            <div class="flex justify-between items-center text-[10px]">
+              <span class="font-bold text-slate-400 uppercase tracking-wider">Status:</span>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-md font-bold uppercase border text-[9px] ${payColors}">
+                  Pay: ${payStatus}
+                </span>
+                <span class="px-2 py-0.5 rounded-md font-bold uppercase border text-[9px] ${ordColors}">
+                  Ship: ${ordStatus}
                 </span>
               </div>
             </div>
-
-            <div class="flex flex-col gap-1">
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order Status</span>
-              <div>
-                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase border ${
-                  ordStatus === 'Paid Successfully' || ordStatus === 'Delivered' || ordStatus === 'completed'
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    : ordStatus === 'Cancelled'
-                      ? 'bg-red-50 text-red-600 border-red-100'
-                      : ordStatus === 'Shipped' || ordStatus === 'Verified Dispatch'
-                        ? 'bg-blue-50 text-blue-600 border-blue-100'
-                        : 'bg-amber-50 text-amber-600 border-amber-100'
-                }">
-                  ${ordStatus === 'completed' || ordStatus === 'Verified Dispatch' ? 'Verified Dispatch' : ordStatus}
-                </span>
-              </div>
+            
+            <!-- Quick tracking text -->
+            <div class="mt-2 text-left bg-slate-50/50 rounded-lg px-3 py-2 flex items-center gap-2 text-[10px] text-slate-600">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-brand-orange shrink-0"></i>
+              <span>Estimated Delivery: <strong>${ord.estimatedDelivery || 'Within 3 days'}</strong></span>
             </div>
           </div>
 
-          <div class="flex gap-2 justify-end mt-2">
-            <a href="https://wa.me/2348126730784?text=Hello%20Gold%20%26%20Rock%2C%20I%20want%20to%20confirm%20my%20Order%20ID%3A%20${ord.id}%20totaling%20%E2%82%A6${ord.total.toLocaleString()}" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white text-[10px] font-bold px-3 py-2 rounded-lg flex items-center gap-1">
-              <i data-lucide="message-circle" class="w-3.5 h-3.5 fill-white"></i> Confirm on WhatsApp
-            </a>
+          <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+            <div class="text-left">
+              <span class="text-[10px] text-slate-400 block">Total Amount</span>
+              <span class="font-mono font-extrabold text-[#0f1e36] text-sm">₦${ord.total.toLocaleString()}</span>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center gap-1.5">
+              <button 
+                data-track-id="${ord.id}" 
+                class="view-order-details-btn bg-[#0f1e36] hover:bg-slate-800 text-white text-[10px] font-bold px-3.5 py-2 rounded-lg flex items-center gap-1 cursor-pointer transition-all border-0"
+              >
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Track & View
+              </button>
+            </div>
           </div>
         </div>
       </div>
     `;
-  }).join('');
+  }).join('<div class="h-4"></div>');
 }
 
 function getWishlistViewHtml() {
@@ -1278,9 +1769,24 @@ function getAdminConsoleViewHtml() {
           </div>
         `).join('');
 
-        const statusOptions = ["pending", "Processing", "Packaging", "Shipped", "Delivered", "Cancelled"].map(st => {
-          const isSelected = ord.status === st || (st === 'pending' && (ord.status === 'Pending Payment Verification' || ord.status === 'pending'));
-          return `<option value="${st}" ${isSelected ? 'selected' : ''}>${st === 'pending' ? 'Pending Verification' : st}</option>`;
+        const currentStatus = ord.orderStatus || ord.status || 'Pending Payment';
+        const buttonStates = ['Processing', 'Packed', 'Shipped', 'Out For Delivery', 'Delivered'];
+        
+        const actionButtonsHtml = buttonStates.map(st => {
+          const isCurrent = currentStatus === st || (st === 'Packed' && currentStatus === 'Packaging') || (st === 'Delivered' && currentStatus === 'completed');
+          return `
+            <button 
+              data-id="${ord.id}" 
+              data-status="${st}" 
+              class="admin-order-status-action-btn px-2 py-1 rounded text-[9px] font-bold uppercase transition-all cursor-pointer border ${
+                isCurrent 
+                  ? 'bg-brand-orange text-white border-brand-orange shadow-xs' 
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+              }"
+            >
+              ${st}
+            </button>
+          `;
         }).join('');
 
         const waLink = generateWhatsAppOrderLink(ord);
@@ -1308,12 +1814,17 @@ function getAdminConsoleViewHtml() {
               </div>
             </div>
 
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span class="text-[9px] font-bold text-slate-400 uppercase block">Modifier</span>
-                <select data-id="${ord.id}" class="order-status-change-select px-2 py-1 text-xs border rounded bg-slate-50">
-                  ${statusOptions}
-                </select>
+            <div class="flex flex-col gap-2.5">
+              <span class="text-[9px] font-bold text-slate-400 uppercase text-left">Update Tracking Status</span>
+              <div class="flex flex-wrap gap-1">
+                ${actionButtonsHtml}
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-slate-100 pt-2.5 mt-1">
+              <div class="text-left">
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Current Tracker Status</span>
+                <span class="text-[10px] font-bold text-brand-orange uppercase bg-orange-50 px-2 py-0.5 rounded border border-orange-100 inline-block mt-0.5">${currentStatus}</span>
               </div>
 
               <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-[9px] px-3 py-1.5 rounded-lg flex items-center gap-1 uppercase no-underline">
@@ -2797,20 +3308,122 @@ function setupAccountListeners(user) {
     }
   };
 
-  // 6. Live Order Status Select Dropdown Change
-  document.querySelectorAll('.order-status-change-select').forEach(sel => {
-    sel.addEventListener('change', async () => {
-      const orderId = sel.getAttribute('data-id');
-      const newStatus = sel.value;
+  // 6. Live Order Status Change Action Buttons
+  document.querySelectorAll('.admin-order-status-action-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orderId = btn.getAttribute('data-id');
+      const targetStatus = btn.getAttribute('data-status');
+      btn.disabled = true;
       try {
-        await window.updateOrderStatus(orderId, newStatus);
-        showNotification(`Order ${orderId} status successfully updated to: ${newStatus}`, "success");
+        await window.updateOrderStatus(orderId, targetStatus);
+        showNotification(`Order ${orderId} successfully transitioned to ${targetStatus}!`, "success");
         renderAccountView();
       } catch (err) {
         showNotification(err.message, "danger");
+        btn.disabled = false;
       }
     });
   });
+
+  // --- CUSTOMER ORDERS EVENT HANDLERS ---
+  
+  // A. Search input change/keyup
+  const orderSearchInput = document.getElementById('order-search-input');
+  if (orderSearchInput) {
+    orderSearchInput.addEventListener('input', (e) => {
+      orderSearchQuery = e.target.value;
+      renderAccountView();
+      // Refocus and keep cursor position at the end of text
+      const newInput = document.getElementById('order-search-input');
+      if (newInput) {
+        newInput.focus();
+        newInput.setSelectionRange(newInput.value.length, newInput.value.length);
+      }
+    });
+  }
+
+  // B. Clear search
+  const clearSearchBtn = document.getElementById('clear-order-search-btn');
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      orderSearchQuery = '';
+      renderAccountView();
+    });
+  }
+
+  // C. Filter chips click
+  document.querySelectorAll('.order-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      orderActiveFilter = chip.getAttribute('data-filter');
+      renderAccountView();
+    });
+  });
+
+  // D. Reset filters
+  const resetFiltersBtn = document.getElementById('reset-order-filters-btn');
+  if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', () => {
+      orderSearchQuery = '';
+      orderActiveFilter = 'all';
+      renderAccountView();
+    });
+  }
+
+  // E. View Order Details button click
+  document.querySelectorAll('.view-order-details-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ordId = btn.getAttribute('data-track-id');
+      const orders = getMockOrders() || [];
+      const matched = orders.find(o => o.id === ordId);
+      if (matched) {
+        selectedOrderForDetails = matched;
+        renderAccountView();
+      }
+    });
+  });
+
+  // F. Back to Orders list
+  const backToOrdersBtn = document.getElementById('back-to-orders-list-btn');
+  if (backToOrdersBtn) {
+    backToOrdersBtn.addEventListener('click', () => {
+      selectedOrderForDetails = null;
+      renderAccountView();
+    });
+  }
+
+  // G. Reorder button
+  const reorderBtn = document.getElementById('reorder-this-order-btn');
+  if (reorderBtn) {
+    reorderBtn.addEventListener('click', () => {
+      if (selectedOrderForDetails) {
+        const currentCart = [];
+        selectedOrderForDetails.items.forEach(item => {
+          currentCart.push({
+            id: `${item.product.id}-${item.selectedColor || 'default'}`,
+            product: item.product,
+            quantity: item.quantity,
+            selectedColor: item.selectedColor
+          });
+        });
+        saveMockCart(currentCart);
+        showNotification("All items from this order have been added to your Cart!", "success");
+        setTimeout(() => {
+          window.location.href = 'cart.html';
+        }, 1200);
+      }
+    });
+  }
+
+  // H. Download Receipt print
+  const downloadReceiptBtn = document.getElementById('download-order-receipt-btn');
+  if (downloadReceiptBtn) {
+    downloadReceiptBtn.addEventListener('click', () => {
+      if (selectedOrderForDetails) {
+        printOrderReceipt(selectedOrderForDetails);
+        showNotification("Printing/Downloading Receipt...", "success");
+      }
+    });
+  }
 
   // 7. Payment Verification Actions (Approve/Reject)
   document.querySelectorAll('.payment-verify-approve-btn').forEach(btn => {

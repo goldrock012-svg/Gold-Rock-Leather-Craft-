@@ -685,6 +685,11 @@ const placeMockOrder = async (shippingDetails, paymentMethod) => {
   const total = subtotal + deliveryFee;
   const orderId = `GR-${Math.floor(100000 + Math.random() * 900000)}`;
 
+  const estimatedDeliveryDate = new Date();
+  estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 3);
+  const estimatedDeliveryStr = estimatedDeliveryDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const invoiceNum = `INV-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
   const newOrder = {
     id: orderId,
     userId: auth.currentUser ? auth.currentUser.uid : 'guest',
@@ -692,9 +697,16 @@ const placeMockOrder = async (shippingDetails, paymentMethod) => {
     items: cartItems,
     total: total,
     status: 'Pending Payment Verification',
+    orderStatus: 'Pending Payment',
     paymentStatus: 'Pending', // Pending, Approved, Rejected as per Req 11
     shippingDetails: shippingDetails,
     paymentMethod: paymentMethod,
+    invoiceNumber: invoiceNum,
+    estimatedDelivery: estimatedDeliveryStr,
+    trackingHistory: [
+      { status: 'Pending Payment', time: new Date().toISOString() }
+    ],
+    lastUpdated: new Date().toISOString(),
   };
 
   try {
@@ -1240,13 +1252,27 @@ const approveOrderPayment = async (orderId) => {
     const adminEmail = auth.currentUser ? auth.currentUser.email : 'goldrock012@gmail.com';
     const timestamp = new Date().toISOString();
 
+    let currentHistory = orderData.trackingHistory || [
+      { status: 'Pending Payment', time: orderData.date || timestamp }
+    ];
+    
+    // Add steps if they don't already exist
+    if (!currentHistory.some(h => h.status === 'Payment Verified')) {
+      currentHistory.push({ status: 'Payment Verified', time: timestamp });
+    }
+    if (!currentHistory.some(h => h.status === 'Processing')) {
+      currentHistory.push({ status: 'Processing', time: timestamp });
+    }
+
     // 1. Update Order status and Payment status
     await updateDoc(orderRef, {
       paymentStatus: 'Approved',
       status: 'Processing',
       orderStatus: 'Processing',
       approvedBy: adminEmail,
-      approvedAt: timestamp
+      approvedAt: timestamp,
+      trackingHistory: currentHistory,
+      lastUpdated: timestamp
     });
 
     // 2. Update Payment record status
@@ -1270,7 +1296,7 @@ const approveOrderPayment = async (orderId) => {
     await addDoc(userNotifRef, {
       userId: orderData.userId || 'guest',
       title: 'Order Confirmed',
-      message: `Your order ${orderId} is confirmed and is now Processing. Gold & Rock masters are preparing your package!`,
+      message: `🔔 Your order is now Processing.`,
       date: new Date().toISOString(),
       read: false,
       type: 'success'
@@ -1297,13 +1323,20 @@ const rejectOrderPayment = async (orderId) => {
     const adminEmail = auth.currentUser ? auth.currentUser.email : 'goldrock012@gmail.com';
     const timestamp = new Date().toISOString();
 
+    let currentHistory = orderData.trackingHistory || [
+      { status: 'Pending Payment', time: orderData.date || timestamp }
+    ];
+    currentHistory.push({ status: 'Cancelled', time: timestamp });
+
     // Update statuses
     await updateDoc(orderRef, {
       paymentStatus: 'Rejected',
       status: 'Cancelled (Payment Rejected)',
-      orderStatus: 'Rejected',
+      orderStatus: 'Cancelled',
       rejectedBy: adminEmail,
-      rejectedAt: timestamp
+      rejectedAt: timestamp,
+      trackingHistory: currentHistory,
+      lastUpdated: timestamp
     });
 
     await updateDoc(doc(db, 'payments', orderId), {
@@ -1337,24 +1370,41 @@ const updateOrderStatus = async (orderId, status) => {
     if (!orderSnap.exists()) throw new Error("Order not found.");
     
     const orderData = orderSnap.data();
-    await updateDoc(orderRef, { status: status });
+    const timestamp = new Date().toISOString();
+
+    let currentHistory = orderData.trackingHistory || [
+      { status: 'Pending Payment', time: orderData.date || timestamp }
+    ];
+    
+    // Add status if it's not the same as last one
+    if (currentHistory.length === 0 || currentHistory[currentHistory.length - 1].status !== status) {
+      currentHistory.push({ status: status, time: timestamp });
+    }
+
+    await updateDoc(orderRef, { 
+      status: status,
+      orderStatus: status,
+      trackingHistory: currentHistory,
+      lastUpdated: timestamp
+    });
 
     // Notify customer dynamically
     let type = 'info';
-    let msg = `Your order ${orderId} has changed status to: ${status}.`;
-    if (status === 'Processing') msg = `Your order ${orderId} is being handcrafted at our Kwara State workshop!`;
-    if (status === 'Packaging') msg = `Your order ${orderId} is double-checked and packaged nicely!`;
-    if (status === 'Shipped') {
+    let msg = `Your order ${orderId} is now at state: ${status}`;
+    if (status === 'Processing') msg = `🔔 Your order is now Processing.`;
+    else if (status === 'Packed' || status === 'Packaging') msg = `🔔 Your order has been Packed.`;
+    else if (status === 'Shipped') {
       type = 'success';
-      msg = `Your order ${orderId} has been shipped! Instant chat alert: check your WhatsApp.`;
+      msg = `🔔 Your order has been Shipped.`;
     }
-    if (status === 'Delivered') {
+    else if (status === 'Out For Delivery') msg = `🔔 Your order is Out For Delivery.`;
+    else if (status === 'Delivered') {
       type = 'success';
-      msg = `Congratulations! Your package ${orderId} has been successfully delivered.`;
+      msg = `🔔 Your order has been Delivered.`;
     }
 
     await addDoc(collection(db, 'notifications'), {
-      userId: orderData.userId,
+      userId: orderData.userId || 'guest',
       title: `Order Status: ${status}`,
       message: msg,
       date: new Date().toISOString(),
