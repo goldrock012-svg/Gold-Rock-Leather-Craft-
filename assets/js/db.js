@@ -611,6 +611,48 @@ const isProductInWishlist = (productId) => {
 };
 
 // ===================== AUTHENTICATION & PROFILE API =====================
+const getFriendlyErrorMessage = (err) => {
+  if (!err) return "An unexpected error occurred.";
+  
+  const code = err.code || "";
+  const message = err.message || String(err);
+  
+  // Specific required mappings:
+  if (code === 'auth/user-not-found' || message.includes('user-not-found') || message.includes('auth/user-not-found')) {
+    return "Incorrect email or password.";
+  }
+  if (code === 'auth/wrong-password' || message.includes('wrong-password') || message.includes('auth/wrong-password')) {
+    return "Incorrect email or password.";
+  }
+  if (code === 'auth/invalid-credential' || message.includes('invalid-credential') || message.includes('auth/invalid-credential')) {
+    return "Incorrect email or password.";
+  }
+  if (code === 'auth/invalid-email' || message.includes('invalid-email') || message.includes('auth/invalid-email')) {
+    return "Please enter a valid email address.";
+  }
+  if (code === 'auth/network-request-failed' || message.includes('network-request-failed') || message.includes('auth/network-request-failed')) {
+    return "Internet connection lost. Please check your connection.";
+  }
+  if (code === 'auth/too-many-requests' || message.includes('too-many-requests') || message.includes('auth/too-many-requests')) {
+    return "Too many failed login attempts. Please try again later.";
+  }
+
+  // Other common Auth errors mapped to user friendly messages
+  if (code === 'auth/email-already-in-use' || message.includes('email-already-in-use')) {
+    return "This email address is already in use by another account.";
+  }
+  if (code === 'auth/weak-password' || message.includes('weak-password')) {
+    return "Password must be at least 6 characters.";
+  }
+
+  // Fallback for technical Firebase errors
+  if (message.includes('auth/') || message.includes('Firebase') || code.startsWith('auth/')) {
+    return "An error occurred during authentication. Please try again.";
+  }
+
+  return message;
+};
+
 const getMockCurrentUser = () => {
   return currentUserCache;
 };
@@ -620,7 +662,7 @@ const loginMockUser = async (email, password) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return cred.user;
   } catch (err) {
-    throw new Error(err.message || 'Failed to sign in. Please check your credentials.');
+    throw err;
   }
 };
 
@@ -645,7 +687,7 @@ const registerMockUser = async (profile) => {
     
     return cred.user;
   } catch (err) {
-    throw new Error(err.message || 'Failed to register account.');
+    throw err;
   }
 };
 
@@ -1818,6 +1860,7 @@ window.saveMockWishlist = saveMockWishlist;
 window.toggleMockWishlist = toggleMockWishlist;
 window.isProductInWishlist = isProductInWishlist;
 window.getMockCurrentUser = getMockCurrentUser;
+window.getFriendlyErrorMessage = getFriendlyErrorMessage;
 window.loginMockUser = loginMockUser;
 window.registerMockUser = registerMockUser;
 window.updateMockUserProfile = updateMockUserProfile;
@@ -1870,6 +1913,7 @@ export {
   toggleMockWishlist,
   isProductInWishlist,
   getMockCurrentUser,
+  getFriendlyErrorMessage,
   loginMockUser,
   registerMockUser,
   updateMockUserProfile,

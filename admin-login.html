@@ -259,7 +259,8 @@
           }
         } catch (err) {
           console.error("Auth failure:", err);
-          showDenied(err.message || "Invalid master credentials. Please check again.");
+          const friendlyMsg = window.getFriendlyErrorMessage ? window.getFriendlyErrorMessage(err) : (err.message || "Invalid master credentials. Please check again.");
+          showDenied(friendlyMsg);
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalBtnHTML;
         }
@@ -337,7 +338,8 @@
           }
         } catch (err) {
           console.error("Password reset error:", err);
-          showResetError(err.message || "Failed to transmit recovery link. Please try again.");
+          const friendlyMsg = window.getFriendlyErrorMessage ? window.getFriendlyErrorMessage(err) : (err.message || "Failed to transmit recovery link. Please try again.");
+          showResetError(friendlyMsg);
           resetSubmitBtn.disabled = false;
           resetSubmitBtn.innerHTML = originalResetBtnHTML;
         }

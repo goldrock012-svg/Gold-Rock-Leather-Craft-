@@ -3541,7 +3541,7 @@ function setupAccountListeners(user) {
 
         } catch (error) {
           console.error(error);
-          alert(error.message || String(error));
+          showNotification(error.message || String(error), 'danger');
           
           if (submitBtn) {
             submitBtn.disabled = false;

@@ -3549,7 +3549,7 @@ function setupAccountListeners(user) {
 
         } catch (error) {
           console.error(error);
-          alert(error.message || String(error));
+          showNotification(error.message || String(error), 'danger');
           
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -4220,7 +4220,9 @@ function setupAccountListeners(user) {
           renderAccountView();
         }
       } catch (err) {
-        showNotification(err.message, 'danger');
+        console.error("Sign-in failure:", err);
+        const friendlyMsg = window.getFriendlyErrorMessage ? window.getFriendlyErrorMessage(err) : (err.message || String(err));
+        showNotification(friendlyMsg, 'danger');
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalHTML;
@@ -4278,13 +4280,18 @@ function setupAccountListeners(user) {
         renderAccountView();
       } catch (err) {
         console.error("Password reset error:", err);
-        const code = err.code;
-        if (code === 'auth/user-not-found' || err.message.includes('user-not-found')) {
+        const code = err.code || "";
+        const msg = err.message || String(err);
+        if (code === 'auth/user-not-found' || msg.includes('user-not-found')) {
           showNotification("No account was found with this email address.", "danger");
-        } else if (code === 'auth/invalid-email' || err.message.includes('invalid-email')) {
+        } else if (code === 'auth/invalid-email' || msg.includes('invalid-email')) {
           showNotification("Please enter a valid email address.", "danger");
+        } else if (code === 'auth/network-request-failed' || msg.includes('network-request-failed')) {
+          showNotification("Internet connection lost. Please check your connection.", "danger");
+        } else if (code === 'auth/too-many-requests' || msg.includes('too-many-requests')) {
+          showNotification("Too many failed login attempts. Please try again later.", "danger");
         } else {
-          showNotification(err.message || "Failed to send password reset email.", "danger");
+          showNotification("Failed to send password reset email. Please try again.", "danger");
         }
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -4348,7 +4355,9 @@ function setupAccountListeners(user) {
           renderAccountView();
         }
       } catch (err) {
-        showNotification(err.message, 'danger');
+        console.error("Registration failure:", err);
+        const friendlyMsg = window.getFriendlyErrorMessage ? window.getFriendlyErrorMessage(err) : (err.message || String(err));
+        showNotification(friendlyMsg, 'danger');
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalHTML;
