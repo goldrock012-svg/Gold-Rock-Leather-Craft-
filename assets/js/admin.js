@@ -13,6 +13,11 @@ let orderSearchQuery = '';
 let orderActiveFilter = 'all';
 let selectedOrderForDetails = null;
 
+let adminProdSearchQuery = '';
+let adminProdCategoryFilter = 'all';
+let adminProdStatusFilter = 'all';
+let adminProdStockFilter = 'all';
+
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 
@@ -1536,6 +1541,95 @@ function getAdminConsoleViewHtml() {
           </div>
         ` : ''}
 
+        <!-- Admin Shortcuts and Management Modules -->
+        <div class="flex flex-col gap-2">
+          <h4 class="font-sans font-bold text-slate-800 text-[10px] uppercase tracking-wider border-b pb-1">
+            Admin Management Cards
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <button data-section="products" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">📦 Products</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Products</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Manage catalog items</span>
+              </div>
+            </button>
+            <button data-section="categories" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">📁 Categories</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Categories</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Edit item taxonomy</span>
+              </div>
+            </button>
+            <button data-section="orders" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">🛒 Orders</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Orders</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Fulfill customer sales</span>
+              </div>
+            </button>
+            <button data-section="payments" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">💳 Payments</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Payments</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Verify order payments</span>
+              </div>
+            </button>
+            <button data-section="customers" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">👥 Customers</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Customers</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Inspect user accounts</span>
+              </div>
+            </button>
+            <button data-section="flash-sales" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">⚡ Flash Sales</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Flash Sales</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Flash deals control</span>
+              </div>
+            </button>
+            <button data-section="analytics" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">📈 Analytics</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Analytics</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">Sales projections</span>
+              </div>
+            </button>
+            <button data-section="settings" class="admin-card-shortcut-btn text-left bg-white border border-slate-200 hover:border-brand-orange hover:bg-orange-50/10 p-3.5 rounded-xl flex flex-col gap-2 cursor-pointer transition-all border-0 shadow-2xs w-full">
+              <div class="flex items-center justify-between w-full">
+                <span class="text-base">⚙️ Settings</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-400"></i>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-900 font-extrabold block">Settings</span>
+                <span class="text-[9px] text-slate-400 font-light block mt-0.5">System preferences</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <div class="border border-slate-200 rounded-xl p-3.5">
           <h4 class="font-sans font-bold text-slate-800 text-[10px] uppercase tracking-wider mb-2 border-b pb-1.5">
             Recent Orders Log
@@ -1568,7 +1662,53 @@ function getAdminConsoleViewHtml() {
   }
 
   else if (adminActiveSection === 'products') {
-    let productRows = products.map((p, idx) => {
+    // 1. Calculate Statistics based on ALL products
+    const totalProductsCount = products.length;
+    const publishedProductsCount = products.filter(p => p.status !== 'hidden').length;
+    const hiddenProductsCount = products.filter(p => p.status === 'hidden').length;
+    const outOfStockCount = products.filter(p => (p.stock ?? 0) === 0).length;
+    const lowStockCount = products.filter(p => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5).length;
+
+    // 2. Filter products based on search & filter state
+    let filteredProducts = [...products];
+
+    // Search query filter (matches name, id, category, description)
+    if (adminProdSearchQuery.trim()) {
+      const q = adminProdSearchQuery.toLowerCase().trim();
+      filteredProducts = filteredProducts.filter(p => 
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.id || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Category filter
+    if (adminProdCategoryFilter !== 'all') {
+      filteredProducts = filteredProducts.filter(p => p.category === adminProdCategoryFilter);
+    }
+
+    // Status filter
+    if (adminProdStatusFilter !== 'all') {
+      if (adminProdStatusFilter === 'published') {
+        filteredProducts = filteredProducts.filter(p => p.status !== 'hidden');
+      } else if (adminProdStatusFilter === 'hidden') {
+        filteredProducts = filteredProducts.filter(p => p.status === 'hidden');
+      }
+    }
+
+    // Stock filter
+    if (adminProdStockFilter !== 'all') {
+      if (adminProdStockFilter === 'instock') {
+        filteredProducts = filteredProducts.filter(p => (p.stock ?? 0) > 5);
+      } else if (adminProdStockFilter === 'lowstock') {
+        filteredProducts = filteredProducts.filter(p => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5);
+      } else if (adminProdStockFilter === 'outofstock') {
+        filteredProducts = filteredProducts.filter(p => (p.stock ?? 0) === 0);
+      }
+    }
+
+    let productRows = filteredProducts.map((p, idx) => {
       // Visual indicators/badges
       let badges = [];
       if (p.featured) badges.push(`<span class="text-[8px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded font-extrabold uppercase tracking-wide">Featured</span>`);
@@ -1665,9 +1805,10 @@ function getAdminConsoleViewHtml() {
 
     contentHTML = `
       <div class="flex flex-col gap-4 text-left animate-in fade-in duration-300">
+        <!-- Section Header -->
         <div class="flex justify-between items-center border-b pb-2">
           <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="package" class="w-4.5 h-4.5 text-brand-orange"></i> Catalog Products (${products.length})
+            <i data-lucide="package" class="w-4.5 h-4.5 text-brand-orange"></i> Catalog Product Manager
           </h4>
           <button id="admin-add-prod-btn" class="bg-[#0f1e36] hover:bg-[#1c355c] text-white font-bold text-[10px] px-3.5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1 uppercase tracking-wide border-0 shadow-xs">
             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add New Product
@@ -1675,6 +1816,67 @@ function getAdminConsoleViewHtml() {
         </div>
 
         <div id="admin-product-crud-form-container" class="hidden"></div>
+
+        <!-- Product Statistics Grid (WooCommerce style) -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5 mb-2">
+          <div class="bg-white border border-slate-200 p-3 rounded-xl shadow-2xs flex flex-col gap-0.5">
+            <span class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Total Products</span>
+            <span class="text-slate-900 font-extrabold text-sm font-mono">${totalProductsCount}</span>
+          </div>
+          <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl shadow-2xs flex flex-col gap-0.5">
+            <span class="text-[8px] text-emerald-600 font-bold uppercase tracking-wider">Published</span>
+            <span class="text-emerald-800 font-extrabold text-sm font-mono">${publishedProductsCount}</span>
+          </div>
+          <div class="bg-slate-50/80 border border-slate-100 p-3 rounded-xl shadow-2xs flex flex-col gap-0.5">
+            <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Drafts/Hidden</span>
+            <span class="text-slate-700 font-extrabold text-sm font-mono">${hiddenProductsCount}</span>
+          </div>
+          <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl shadow-2xs flex flex-col gap-0.5">
+            <span class="text-[8px] text-amber-600 font-bold uppercase tracking-wider">Low Stock</span>
+            <span class="text-amber-800 font-extrabold text-sm font-mono">${lowStockCount}</span>
+          </div>
+          <div class="bg-red-50/50 border border-red-100 p-3 rounded-xl shadow-2xs flex flex-col gap-0.5">
+            <span class="text-[8px] text-red-600 font-bold uppercase tracking-wider">Out of Stock</span>
+            <span class="text-red-800 font-extrabold text-sm font-mono">${outOfStockCount}</span>
+          </div>
+        </div>
+
+        <!-- Search and Filter Panel -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-150 flex flex-col md:flex-row gap-3 items-center">
+          <!-- Search input -->
+          <div class="relative w-full md:flex-1">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="admin-prod-search-input" value="${adminProdSearchQuery}" placeholder="Search products by ID, name, details..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange text-slate-800">
+          </div>
+          
+          <!-- Filter selectors -->
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <select id="admin-prod-category-filter" class="flex-1 md:flex-none bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none">
+              <option value="all">All Categories</option>
+              <option value="school-bags" ${adminProdCategoryFilter === 'school-bags' ? 'selected' : ''}>School Bags</option>
+              <option value="ladies-hand-bags" ${adminProdCategoryFilter === 'ladies-hand-bags' ? 'selected' : ''}>Ladies Handbags</option>
+              <option value="laptop-bags" ${adminProdCategoryFilter === 'laptop-bags' ? 'selected' : ''}>Laptop Bags</option>
+              <option value="lunch-bags" ${adminProdCategoryFilter === 'lunch-bags' ? 'selected' : ''}>Lunch Bags</option>
+              <option value="office-bags" ${adminProdCategoryFilter === 'office-bags' ? 'selected' : ''}>Office Bags</option>
+              <option value="mens-purses" ${adminProdCategoryFilter === 'mens-purses' ? 'selected' : ''}>Men's Purse</option>
+              <option value="travelling-bags" ${adminProdCategoryFilter === 'travelling-bags' ? 'selected' : ''}>Travel Bags</option>
+              <option value="accessories" ${adminProdCategoryFilter === 'accessories' ? 'selected' : ''}>Accessories</option>
+            </select>
+            
+            <select id="admin-prod-status-filter" class="flex-1 md:flex-none bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none">
+              <option value="all" ${adminProdStatusFilter === 'all' ? 'selected' : ''}>All Status</option>
+              <option value="published" ${adminProdStatusFilter === 'published' ? 'selected' : ''}>Published</option>
+              <option value="hidden" ${adminProdStatusFilter === 'hidden' ? 'selected' : ''}>Hidden</option>
+            </select>
+            
+            <select id="admin-prod-stock-filter" class="flex-1 md:flex-none bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none">
+              <option value="all" ${adminProdStockFilter === 'all' ? 'selected' : ''}>All Stock</option>
+              <option value="instock" ${adminProdStockFilter === 'instock' ? 'selected' : ''}>In Stock</option>
+              <option value="lowstock" ${adminProdStockFilter === 'lowstock' ? 'selected' : ''}>Low Stock</option>
+              <option value="outofstock" ${adminProdStockFilter === 'outofstock' ? 'selected' : ''}>Out of Stock</option>
+            </select>
+          </div>
+        </div>
 
         <div class="overflow-x-auto border rounded-xl bg-white max-h-[600px] shadow-xs">
           <table class="w-full text-left border-collapse">
@@ -1691,7 +1893,11 @@ function getAdminConsoleViewHtml() {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${productRows}
+              ${productRows.length === 0 ? `
+                <tr>
+                  <td colspan="8" class="text-center py-10 text-slate-400 text-xs italic">No products matching the selected criteria.</td>
+                </tr>
+              ` : productRows}
             </tbody>
           </table>
         </div>
@@ -2999,6 +3205,55 @@ function setupAccountListeners(user) {
     });
   });
 
+  // Admin Dashboard Management Card Clicks
+  document.querySelectorAll('.admin-card-shortcut-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      adminActiveSection = btn.getAttribute('data-section');
+      adminEditingProduct = null;
+      adminEditingCategory = null;
+      selectedProductImageFile = null;
+      renderAccountView();
+    });
+  });
+
+  // Admin Products Search and Filters
+  const prodSearchInput = document.getElementById('admin-prod-search-input');
+  if (prodSearchInput) {
+    prodSearchInput.addEventListener('input', (e) => {
+      adminProdSearchQuery = e.target.value;
+      renderAccountView();
+      const newInput = document.getElementById('admin-prod-search-input');
+      if (newInput) {
+        newInput.focus();
+        newInput.setSelectionRange(newInput.value.length, newInput.value.length);
+      }
+    });
+  }
+
+  const prodCatFilter = document.getElementById('admin-prod-category-filter');
+  if (prodCatFilter) {
+    prodCatFilter.addEventListener('change', (e) => {
+      adminProdCategoryFilter = e.target.value;
+      renderAccountView();
+    });
+  }
+
+  const prodStatusFilter = document.getElementById('admin-prod-status-filter');
+  if (prodStatusFilter) {
+    prodStatusFilter.addEventListener('change', (e) => {
+      adminProdStatusFilter = e.target.value;
+      renderAccountView();
+    });
+  }
+
+  const prodStockFilter = document.getElementById('admin-prod-stock-filter');
+  if (prodStockFilter) {
+    prodStockFilter.addEventListener('change', (e) => {
+      adminProdStockFilter = e.target.value;
+      renderAccountView();
+    });
+  }
+
   // 2. Admin Force Change Password Form
   const forcePasswordForm = document.getElementById('admin-force-password-form');
   if (forcePasswordForm) {
@@ -3183,7 +3438,7 @@ function setupAccountListeners(user) {
         <!-- Modal Body -->
         <div class="p-6">
           <p class="text-xs font-bold text-slate-900 mb-2">
-            Are you sure you want to delete this product?
+            Are you sure you want to permanently delete this product?
           </p>
           <div class="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50 border p-3 rounded-lg">
             Product: <strong class="text-slate-800 font-extrabold font-mono">${productName}</strong><br>
