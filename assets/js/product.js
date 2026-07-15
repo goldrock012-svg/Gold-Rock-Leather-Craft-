@@ -8,6 +8,8 @@ let activeImg = 0;
 let selectedColor = COLORS[0].name;
 let quantity = 1;
 let product = null;
+let reviewsSortOrder = 'newest';
+let selectedReviewStars = 5;
 
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
@@ -270,46 +272,385 @@ function setupQuantityCounter() {
 }
 
 // 5. Review Section List
-function renderReviewsList() {
-  const reviewsCountEl = document.getElementById('reviews-title-count');
-  const reviewsContainer = document.getElementById('prod-reviews-list');
+async function renderReviewsList() {
+  const root = document.getElementById('reviews-section-root');
+  if (!root) return;
 
-  if (reviewsCountEl) {
-    reviewsCountEl.textContent = `Customer Reviews (${product.reviews ? product.reviews.length : 0})`;
-  }
+  root.innerHTML = `
+    <div class="flex items-center justify-center py-8">
+      <svg class="animate-spin h-6 w-6 text-brand-orange" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  `;
 
-  if (!reviewsContainer) return;
+  try {
+    const reviews = await window.getReviewsForProduct(product.id);
+    const totalReviews = reviews.length;
+    let averageRating = 0;
+    const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
-  if (!product.reviews || product.reviews.length === 0) {
-    reviewsContainer.innerHTML = `
-      <p class="text-slate-400 text-xs italic py-4">No reviews yet. Be the first to purchase and review this item!</p>
-    `;
-    return;
-  }
+    if (totalReviews > 0) {
+      const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+      averageRating = (sum / totalReviews).toFixed(1);
+      reviews.forEach(r => {
+        const rounded = Math.round(r.rating);
+        if (starCounts[rounded] !== undefined) {
+          starCounts[rounded]++;
+        }
+      });
+    }
 
-  reviewsContainer.innerHTML = product.reviews.map(rev => `
-    <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-xs">
-      <div class="flex items-center justify-between gap-1 mb-2">
+    // Sort Reviews in memory based on current selection
+    if (reviewsSortOrder === 'highest') {
+      reviews.sort((a, b) => b.rating - a.rating);
+    } else if (reviewsSortOrder === 'lowest') {
+      reviews.sort((a, b) => a.rating - b.rating);
+    } else {
+      reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    const currentUser = window.getMockCurrentUser ? window.getMockCurrentUser() : null;
+    const isAdmin = currentUser && currentUser.email === "goldrock012@gmail.com";
+    const orders = window.getMockOrders ? window.getMockOrders() : [];
+    const hasPurchased = orders.some(o => 
+      o.items && o.items.some(item => (item.product.id === product.id || (item.product.productId && item.product.productId === product.id)))
+    );
+
+    root.innerHTML = `
+      <!-- Header with count -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-4 gap-2">
+        <div>
+          <h3 class="font-sans font-extrabold text-slate-900 text-sm md:text-base uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="message-square" class="w-4.5 h-4.5 text-brand-orange"></i>
+            Customer Reviews & Ratings
+          </h3>
+          <p class="text-[11px] text-slate-400 font-light mt-0.5">Real, verified customer feedback from Gold & Rock Leather Craft orders.</p>
+        </div>
+        
+        <!-- Sorting dropdown -->
         <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center">
-            ${rev.userName.charAt(0)}
-          </div>
-          <div>
-            <h5 class="text-xs font-bold text-slate-800">${rev.userName}</h5>
-            <!-- Star stars -->
-            <div class="flex items-center text-amber-400 -mt-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sort By:</span>
+          <select id="review-sort-select" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange cursor-pointer">
+            <option value="newest" ${reviewsSortOrder === 'newest' ? 'selected' : ''}>Newest Reviews</option>
+            <option value="highest" ${reviewsSortOrder === 'highest' ? 'selected' : ''}>Highest Rating</option>
+            <option value="lowest" ${reviewsSortOrder === 'lowest' ? 'selected' : ''}>Lowest Rating</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Two Column Stats and Review writing section -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <!-- Stats column -->
+        <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex flex-col gap-4">
+          <div class="text-center md:text-left">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Average Rating</span>
+            <div class="flex items-baseline justify-center md:justify-start gap-1.5 mt-1">
+              <span class="text-3xl md:text-4xl font-extrabold text-slate-800 font-mono">${totalReviews > 0 ? averageRating : '0.0'}</span>
+              <span class="text-sm font-medium text-slate-400">/ 5.0</span>
+            </div>
+            
+            <div class="flex items-center justify-center md:justify-start text-amber-400 mt-1 gap-0.5">
               ${Array.from({ length: 5 }).map((_, i) => `
-                <i data-lucide="star" class="w-3 h-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}"></i>
+                <i data-lucide="star" class="w-4 h-4 ${i < Math.round(averageRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}"></i>
               `).join('')}
             </div>
+            <span class="text-[10px] text-slate-400 mt-1 block">Based on ${totalReviews} verified reviews</span>
+          </div>
+
+          <!-- Star breakdown -->
+          <div class="flex flex-col gap-2 border-t border-slate-200/60 pt-4">
+            ${[5, 4, 3, 2, 1].map(stars => {
+              const count = starCounts[stars];
+              const percent = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+              return `
+                <div class="flex items-center gap-2 text-xs text-slate-500">
+                  <span class="w-3 text-right font-bold font-mono text-[10px]">${stars}</span>
+                  <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                  <div class="flex-1 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-brand-orange h-full rounded-full" style="width: ${percent}%"></div>
+                  </div>
+                  <span class="w-8 text-right text-[10px] text-slate-400 font-mono font-medium">${percent}%</span>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
-        <span class="text-[10px] text-slate-400 font-mono font-medium">${rev.date}</span>
+
+        <!-- Review form or verification message -->
+        <div class="md:col-span-2 bg-white border border-slate-100 p-5 rounded-2xl flex flex-col gap-4 shadow-xs">
+          ${!currentUser ? `
+            <div class="text-center py-6 flex flex-col items-center">
+              <div class="w-10 h-10 bg-amber-50 text-brand-orange border border-amber-100 rounded-full flex items-center justify-center mb-3">
+                <i data-lucide="lock" class="w-4.5 h-4.5"></i>
+              </div>
+              <h4 class="font-sans font-bold text-slate-800 text-xs uppercase tracking-wider">Sign In to Review</h4>
+              <p class="text-[10px] text-slate-400 font-light max-w-xs mt-1 mb-4 leading-relaxed">
+                Only verified customers who have purchased this leather item can submit a product review.
+              </p>
+              <a href="account.html" class="bg-[#0f1e36] hover:bg-slate-800 text-white text-xs font-bold py-2 px-5 rounded-lg transition-colors uppercase tracking-wide">
+                Go to Sign In
+              </a>
+            </div>
+          ` : !hasPurchased ? `
+            <div class="text-center py-6 flex flex-col items-center">
+              <div class="w-10 h-10 bg-blue-50 text-brand-blue border border-blue-100 rounded-full flex items-center justify-center mb-3">
+                <i data-lucide="shield-check" class="w-4.5 h-4.5 text-brand-orange"></i>
+              </div>
+              <h4 class="font-sans font-bold text-slate-800 text-xs uppercase tracking-wider">Verified Purchase Policy</h4>
+              <p class="text-[10px] text-slate-400 font-light max-w-xs mt-1 leading-relaxed">
+                Only customers with a completed purchase of this product on their account record can leave a review. This maintains absolute authenticity for Gold & Rock Leather Craft.
+              </p>
+            </div>
+          ` : `
+            <form id="product-review-submission-form" class="flex flex-col gap-3">
+              <div class="border-b border-slate-100 pb-2">
+                <h4 class="font-sans font-extrabold text-slate-800 text-xs uppercase tracking-wider">Write A Product Review</h4>
+                <p class="text-[10px] text-slate-400 font-light mt-0.5">Share your leather craft experience with other buyers.</p>
+              </div>
+              
+              <!-- Interactive Star Selection -->
+              <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overall Rating *</label>
+                <div class="flex items-center gap-1.5" id="form-interactive-stars-row">
+                  ${[1, 2, 3, 4, 5].map(star => `
+                    <button type="button" class="star-rating-btn text-2xl focus:outline-none bg-transparent border-0 p-0 cursor-pointer transition-transform hover:scale-110" data-star="${star}">
+                      <i data-lucide="star" class="w-6 h-6 ${star <= selectedReviewStars ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}"></i>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Review Title -->
+              <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" for="review-title-input">Review Title *</label>
+                <input type="text" id="review-title-input" required placeholder="e.g. Unbelievable Quality, Highly Durable" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+              </div>
+
+              <!-- Review Message -->
+              <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" for="review-message-input">Review Details *</label>
+                <textarea id="review-message-input" required rows="3" placeholder="Describe the stitching, leather thickness, premium feel, packaging etc..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange resize-none"></textarea>
+              </div>
+
+              <button type="submit" id="review-submit-btn" class="w-full sm:w-auto self-end bg-[#0f1e36] hover:bg-slate-800 text-white font-bold py-2 px-6 rounded-lg text-xs transition-colors uppercase tracking-wide cursor-pointer mt-1 border-0">
+                Submit Verified Review
+              </button>
+            </form>
+          `}
+        </div>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed font-light">${rev.comment}</p>
-    </div>
-  `).join('');
+
+      <!-- Reviews List Section -->
+      <div class="flex flex-col gap-4 mt-2">
+        <h4 class="font-sans font-bold text-slate-800 text-xs uppercase tracking-wider">Reviews List</h4>
+        
+        ${reviews.length === 0 ? `
+          <p class="text-slate-400 text-xs italic py-6 text-center bg-white border border-dashed border-slate-200 rounded-2xl">No reviews found matching the criteria.</p>
+        ` : `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${reviews.map(rev => {
+              return `
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs relative flex flex-col gap-2.5">
+                  
+                  <!-- Review Header -->
+                  <div class="flex items-center justify-between gap-2 border-b border-slate-50 pb-2.5">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center border border-slate-200/50">
+                        ${rev.userName ? rev.userName.charAt(0).toUpperCase() : 'C'}
+                      </div>
+                      <div>
+                        <div class="flex items-center gap-1.5">
+                          <h5 class="text-xs font-extrabold text-slate-800">${rev.userName}</h5>
+                          ${rev.verifiedPurchase ? `
+                            <span class="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-emerald-100">
+                              <i data-lucide="check" class="w-2 h-2 stroke-[4px]"></i> Verified Purchase
+                            </span>
+                          ` : ''}
+                        </div>
+                        <div class="flex items-center text-amber-400 mt-0.5">
+                          ${Array.from({ length: 5 }).map((_, i) => `
+                            <i data-lucide="star" class="w-3 h-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}"></i>
+                          `).join('')}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <span class="text-[9px] text-slate-400 font-mono font-medium">${rev.date}</span>
+                  </div>
+
+                  <!-- Review Content -->
+                  <div class="flex flex-col gap-1">
+                    <h6 class="text-xs font-bold text-slate-800">${rev.title || 'Leather Review'}</h6>
+                    <p class="text-xs text-slate-600 leading-relaxed font-light">${rev.comment}</p>
+                  </div>
+
+                  <!-- CEO Reply (if exists) -->
+                  ${rev.reply ? `
+                    <div class="bg-amber-50/20 border-l-2 border-brand-orange p-3 rounded-r-xl mt-1">
+                      <div class="flex items-center gap-1 mb-1">
+                        <i data-lucide="shield" class="w-3 h-3 text-brand-orange"></i>
+                        <span class="text-[9px] font-extrabold text-brand-orange uppercase tracking-wider">CEO Reply</span>
+                      </div>
+                      <p class="text-xs text-slate-600 font-light leading-relaxed">${rev.reply}</p>
+                    </div>
+                  ` : ''}
+
+                  <!-- Administrative Controls -->
+                  ${isAdmin ? `
+                    <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl flex flex-col gap-2 mt-2">
+                      <div class="flex items-center justify-between text-[9px] font-extrabold text-amber-800 uppercase tracking-wider">
+                        <span>Admin Controls</span>
+                        <span class="text-slate-400 font-mono">${rev.id}</span>
+                      </div>
+                      <div class="flex items-center gap-2 mt-1">
+                        <button class="admin-review-hide-btn flex-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 font-bold py-1 px-2.5 rounded text-[10px] uppercase cursor-pointer" data-id="${rev.id}" data-hidden="${rev.isHidden}">
+                          ${rev.isHidden ? 'Unhide' : 'Hide Review'}
+                        </button>
+                        <button class="admin-review-delete-btn flex-1 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold py-1 px-2.5 rounded text-[10px] uppercase cursor-pointer" data-id="${rev.id}">
+                          Delete
+                        </button>
+                      </div>
+                      
+                      <!-- Inline Reply Form -->
+                      <form class="admin-review-reply-form flex items-center gap-2 border-t border-slate-200/50 pt-2 mt-1" data-id="${rev.id}">
+                        <input type="text" placeholder="Write CEO reply..." value="${rev.reply || ''}" class="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-xs focus:outline-none focus:border-brand-orange">
+                        <button type="submit" class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-1 px-3 rounded text-[10px] uppercase cursor-pointer border-0">
+                          Reply
+                        </button>
+                      </form>
+                    </div>
+                  ` : rev.isHidden ? `
+                    <div class="bg-slate-100 border border-slate-200 text-slate-400 p-2 rounded-xl text-[10px] text-center italic mt-1">
+                      This review has been flagged and is hidden from public viewing.
+                    </div>
+                  ` : ''}
+
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+
+    // Bind event handlers
+    const sortSelect = document.getElementById('review-sort-select');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        reviewsSortOrder = e.target.value;
+        renderReviewsList();
+      });
+    }
+
+    const starBtns = document.querySelectorAll('.star-rating-btn');
+    starBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedReviewStars = parseInt(btn.getAttribute('data-star'));
+        renderReviewsList();
+      });
+    });
+
+    const submitForm = document.getElementById('product-review-submission-form');
+    if (submitForm) {
+      submitForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById('review-title-input');
+        const msgInput = document.getElementById('review-message-input');
+        const submitBtn = document.getElementById('review-submit-btn');
+
+        if (!titleInput || !msgInput) return;
+
+        const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting...';
+        }
+
+        try {
+          await window.addReviewForProduct(product.id, {
+            rating: selectedReviewStars,
+            title: titleInput.value.trim(),
+            comment: msgInput.value.trim()
+          });
+          showNotification("Thank you! Your verified customer review has been posted successfully.", "success");
+          selectedReviewStars = 5;
+          renderReviewsList();
+        } catch (err) {
+          console.error("Failed to submit review:", err);
+          showNotification(err.message || "Failed to submit review.", "danger");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHTML;
+          }
+        }
+      });
+    }
+
+    const deleteBtns = document.querySelectorAll('.admin-review-delete-btn');
+    deleteBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const revId = btn.getAttribute('data-id');
+        if (confirm("Are you sure you want to permanently delete this product review?")) {
+          try {
+            await window.updateReviewState(revId, { delete: true });
+            showNotification("Review deleted successfully.", "success");
+            renderReviewsList();
+          } catch (err) {
+            showNotification("Failed to delete review: " + err.message, "danger");
+          }
+        }
+      });
+    });
+
+    const hideBtns = document.querySelectorAll('.admin-review-hide-btn');
+    hideBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const revId = btn.getAttribute('data-id');
+        const isCurrentlyHidden = btn.getAttribute('data-hidden') === 'true';
+        try {
+          await window.updateReviewState(revId, { isHidden: !isCurrentlyHidden });
+          showNotification(!isCurrentlyHidden ? "Review is now hidden from public." : "Review is now public.", "success");
+          renderReviewsList();
+        } catch (err) {
+          showNotification("Failed to update visibility: " + err.message, "danger");
+        }
+      });
+    });
+
+    const replyForms = document.querySelectorAll('.admin-review-reply-form');
+    replyForms.forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const revId = form.getAttribute('data-id');
+        const input = form.querySelector('input');
+        if (!input) return;
+        const replyText = input.value.trim();
+        try {
+          await window.updateReviewState(revId, { reply: replyText });
+          showNotification("Official CEO reply updated successfully.", "success");
+          renderReviewsList();
+        } catch (err) {
+          showNotification("Failed to update response: " + err.message, "danger");
+        }
+      });
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+  } catch (err) {
+    console.error("Failed to load reviews list:", err);
+    root.innerHTML = `<p class="text-xs text-red-500 italic py-4">Failed to load verified reviews. Please try again later.</p>`;
+  }
 }
+
+// Listen for authentications to refresh form accessibility
+window.addEventListener('authUpdated', () => {
+  renderReviewsList();
+});
+window.addEventListener('ordersUpdated', () => {
+  renderReviewsList();
+});
 
 // 6. Bind click events (Add to Cart, WhatsApp, Wishlist)
 function setupProductActions() {

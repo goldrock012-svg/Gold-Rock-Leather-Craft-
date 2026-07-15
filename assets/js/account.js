@@ -2221,68 +2221,481 @@ function getAdminConsoleViewHtml() {
   }
 
   else if (adminActiveSection === 'analytics') {
-    const totalRevenueSum = orders.filter(o => o.paymentStatus === 'Approved' || o.status === 'Paid Successfully' || o.status === 'completed' || o.status === 'Verified Dispatch').reduce((sum, o) => sum + (o.total || 0), 0);
-    const topSellers = [...products].sort((a,b) => (b.soldCount || 0) - (a.soldCount || 0)).slice(0, 3);
-
     contentHTML = `
-      <div class="flex flex-col gap-5 text-left animate-in fade-in duration-300">
+      <div class="flex flex-col gap-5 text-left animate-in fade-in duration-300" id="admin-analytics-dashboard-container">
         <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5 border-b pb-2">
-          <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 text-brand-orange"></i> Shop Analytics Intelligence
+          <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 text-brand-orange"></i> Sales Analytics Dashboard
         </h4>
-
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Live Revenue Ledger</span>
-          <div class="h-32 flex items-end gap-3.5 border-b border-l border-slate-200 pb-1 pl-1 pt-4 relative">
-            <div class="absolute left-2 top-2 text-[8px] text-slate-400 font-bold uppercase font-mono">Current Peak: ₦${(totalRevenueSum || 500000).toLocaleString()}</div>
-            
-            <div class="flex-1 bg-gradient-to-t from-[#0f1e36]/20 to-[#0f1e36]/80 rounded-t-md h-[40%] flex items-center justify-center relative">
-              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Q1</span>
-            </div>
-            <div class="flex-1 bg-gradient-to-t from-[#0f1e36]/20 to-[#0f1e36]/80 rounded-t-md h-[65%] flex items-center justify-center relative">
-              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Q2</span>
-            </div>
-            <div class="flex-1 bg-gradient-to-t from-orange-200 to-brand-orange rounded-t-md h-[95%] flex items-center justify-center relative">
-              <span class="text-[8px] font-mono font-bold text-slate-600 absolute -top-4">Live</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="border border-slate-200 rounded-xl p-3.5">
-            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Top Performance Products</span>
-            <div class="flex flex-col gap-2.5">
-              ${topSellers.map(p => `
-                <div class="flex items-center justify-between text-xs p-1">
-                  <div class="flex items-center gap-1.5">
-                    <img src="${p.image}" class="w-7 h-7 object-cover rounded border">
-                    <span class="font-bold text-slate-900">${p.name}</span>
-                  </div>
-                  <span class="font-mono font-extrabold text-brand-orange">${p.soldCount || 0} sold</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <div class="border border-slate-200 rounded-xl p-3.5">
-            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Order Distribution</span>
-            <div class="flex flex-col gap-2 font-mono text-[10px]">
-              <div class="flex justify-between">
-                <span>Completed / Delivered:</span>
-                <span class="font-bold">${orders.filter(o => o.status === 'Delivered').length}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Handcrafting / Processing:</span>
-                <span class="font-bold">${orders.filter(o => o.status === 'Processing').length}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Shipped / Dispatched:</span>
-                <span class="font-bold">${orders.filter(o => o.status === 'Shipped').length}</span>
-              </div>
-            </div>
-          </div>
+        
+        <!-- Loading Spinner -->
+        <div class="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-slate-100 rounded-2xl shadow-xs">
+          <svg class="animate-spin h-8 w-8 text-brand-orange" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Compiling Financial Ledger...</span>
         </div>
       </div>
     `;
+
+    setTimeout(async () => {
+      const container = document.getElementById('admin-analytics-dashboard-container');
+      if (!container) return;
+
+      try {
+        const customers = await window.getCustomersList();
+        const currentDateStr = "2026-07-15";
+        const currentDate = new Date(currentDateStr);
+
+        // Sales Calculations (All approved / paid / completed / delivered)
+        const approvedOrders = orders.filter(o => 
+          o.paymentStatus === 'Approved' || 
+          o.status === 'Paid Successfully' || 
+          o.status === 'completed' || 
+          o.status === 'Delivered'
+        );
+
+        // Today's Sales
+        const todayOrders = approvedOrders.filter(o => o.date === currentDateStr);
+        const todaySales = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Weekly Sales (7 Days)
+        const oneWeekAgo = new Date(currentDate);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const weeklyOrders = approvedOrders.filter(o => {
+          const oDate = new Date(o.date);
+          return oDate >= oneWeekAgo && oDate <= currentDate;
+        });
+        const weeklySales = weeklyOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Monthly Sales (30 Days)
+        const oneMonthAgo = new Date(currentDate);
+        oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+        const monthlyOrders = approvedOrders.filter(o => {
+          const oDate = new Date(o.date);
+          return oDate >= oneMonthAgo && oDate <= currentDate;
+        });
+        const monthlySales = monthlyOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Yearly Sales (365 Days)
+        const oneYearAgo = new Date(currentDate);
+        oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+        const yearlyOrders = approvedOrders.filter(o => {
+          const oDate = new Date(o.date);
+          return oDate >= oneYearAgo && oDate <= currentDate;
+        });
+        const yearlySales = yearlyOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Total Revenue
+        const totalRevenue = approvedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Orders Status Counts
+        const pendingOrdersCount = orders.filter(o => o.status && o.status.toLowerCase().includes('pending')).length;
+        const completedOrdersCount = orders.filter(o => o.status && (o.status.toLowerCase().includes('delivered') || o.status.toLowerCase().includes('completed'))).length;
+        const cancelledOrdersCount = orders.filter(o => o.status && o.status.toLowerCase().includes('cancel')).length;
+
+        // Products Sold
+        let totalProductsSold = 0;
+        orders.forEach(o => {
+          if (o.items) {
+            o.items.forEach(item => {
+              totalProductsSold += (item.quantity || 0);
+            });
+          }
+        });
+
+        // Customers Analysis
+        const totalCustomersCount = customers.length;
+        const returningCustomers = customers.filter(c => {
+          const cOrders = orders.filter(o => o.userId === c.uid);
+          return cOrders.length > 1;
+        });
+        const returningCustomersCount = returningCustomers.length;
+
+        const newCustomers = customers.filter(c => {
+          const cOrders = orders.filter(o => o.userId === c.uid);
+          return cOrders.length === 1;
+        });
+        const newCustomersCount = newCustomers.length;
+
+        // Product Catalog Stocks
+        const lowStockProducts = products.filter(p => p.stock > 0 && p.stock <= 5);
+        const outOfStockProducts = products.filter(p => p.stock === 0 || !p.stock);
+
+        // Top Selling Products List
+        const productSales = {};
+        orders.forEach(o => {
+          if (o.items) {
+            o.items.forEach(item => {
+              const name = item.product.name;
+              productSales[name] = (productSales[name] || 0) + (item.quantity || 0);
+            });
+          }
+        });
+
+        // --- CHARTS CALCULATIONS ---
+        
+        // 1. Daily Revenue (last 7 days)
+        const dailyRevenueData = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(currentDate);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const dayOrders = approvedOrders.filter(o => o.date === dateStr);
+          const revenue = dayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+          const label = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+          dailyRevenueData.push({ label, revenue });
+        }
+        const maxDailyRev = Math.max(...dailyRevenueData.map(d => d.revenue)) || 1;
+
+        // 2. Monthly Revenue (last 6 months)
+        const monthlyRevenueData = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(currentDate);
+          d.setMonth(d.getMonth() - i);
+          const year = d.getFullYear();
+          const month = d.getMonth();
+          const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          const monthOrders = approvedOrders.filter(o => {
+            const oDate = new Date(o.date);
+            return oDate.getFullYear() === year && oDate.getMonth() === month;
+          });
+          const revenue = monthOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+          monthlyRevenueData.push({ label, revenue });
+        }
+        const maxMonthlyRev = Math.max(...monthlyRevenueData.map(m => m.revenue)) || 1;
+
+        // 3. Sales by Category
+        const salesByCategory = {};
+        orders.forEach(o => {
+          if (o.items) {
+            o.items.forEach(item => {
+              const cat = item.product.category || 'Uncategorized';
+              const amount = (item.product.price * item.quantity);
+              salesByCategory[cat] = (salesByCategory[cat] || 0) + amount;
+            });
+          }
+        });
+        const categoryData = Object.keys(salesByCategory).map(cat => ({
+          label: cat.replace('-', ' ').toUpperCase(),
+          value: salesByCategory[cat]
+        })).sort((a, b) => b.value - a.value);
+        const maxCatVal = Math.max(...categoryData.map(c => c.value)) || 1;
+
+        // 4. Best Selling Products (top 5 quantities)
+        const bestSellersData = Object.keys(productSales).map(name => ({
+          label: name,
+          value: productSales[name]
+        })).sort((a, b) => b.value - a.value).slice(0, 5);
+        const maxBestVal = Math.max(...bestSellersData.map(b => b.value)) || 1;
+
+        // 5. Order Status Distribution
+        const statusCounts = {};
+        orders.forEach(o => {
+          const status = o.status || 'Pending Payment';
+          statusCounts[status] = (statusCounts[status] || 0) + 1;
+        });
+        const statusData = Object.keys(statusCounts).map(status => ({
+          label: status,
+          count: statusCounts[status]
+        })).sort((a, b) => b.count - a.count);
+        const maxStatusCount = Math.max(...statusData.map(s => s.count)) || 1;
+
+        // 6. Payment Verification Stats
+        const paymentStats = {
+          Approved: orders.filter(o => o.paymentStatus === 'Approved').length,
+          Pending: orders.filter(o => o.paymentStatus === 'Pending' || !o.paymentStatus).length,
+          Rejected: orders.filter(o => o.paymentStatus === 'Rejected').length
+        };
+        const maxPaymentVal = Math.max(paymentStats.Approved, paymentStats.Pending, paymentStats.Rejected) || 1;
+
+        // RENDER SALES ANALYTICS VIEW HTML
+        container.innerHTML = `
+          <div class="flex flex-col gap-6 text-left animate-in fade-in duration-500">
+            <!-- Header section -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 gap-2">
+              <div>
+                <h4 class="font-extrabold text-xs text-[#0f1e36] uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 text-brand-orange"></i> Gold & Rock Sales Analytics Dashboard
+                </h4>
+                <p class="text-[10px] text-slate-400 font-light mt-0.5">Real-time ledger audit computed on local time ${currentDateStr}.</p>
+              </div>
+              <span class="bg-[#f68b1e]/10 text-[#f68b1e] text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border border-[#f68b1e]/20 flex items-center gap-1 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#f68b1e] animate-pulse"></span> CEO Executive Access Only
+              </span>
+            </div>
+
+            <!-- Bento Financial Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+              <!-- Giant Total Revenue Card -->
+              <div class="col-span-2 bg-[#0f1e36] text-white p-4.5 rounded-2xl flex flex-col justify-between shadow-sm border border-slate-800">
+                <div class="flex justify-between items-start">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total Audited Revenue</span>
+                  <i data-lucide="dollar-sign" class="w-4 h-4 text-brand-orange"></i>
+                </div>
+                <div class="my-3">
+                  <span class="text-2xl md:text-3xl font-extrabold font-mono text-brand-orange">₦${totalRevenue.toLocaleString()}</span>
+                  <p class="text-[9px] text-slate-400 font-light mt-1">Cumulated from all approved transactions.</p>
+                </div>
+              </div>
+
+              <!-- Today Sales -->
+              <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col justify-between shadow-2xs">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Today's Revenue</span>
+                <div class="my-2">
+                  <span class="text-lg font-extrabold font-mono text-[#0f1e36]">₦${todaySales.toLocaleString()}</span>
+                  <p class="text-[8px] text-slate-400 font-medium font-mono mt-0.5">${todayOrders.length} Completed Order(s)</p>
+                </div>
+              </div>
+
+              <!-- Weekly Sales -->
+              <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col justify-between shadow-2xs">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Weekly Revenue</span>
+                <div class="my-2">
+                  <span class="text-lg font-extrabold font-mono text-[#0f1e36]">₦${weeklySales.toLocaleString()}</span>
+                  <p class="text-[8px] text-slate-400 font-medium font-mono mt-0.5">${weeklyOrders.length} Order(s) (7 days)</p>
+                </div>
+              </div>
+
+              <!-- Monthly Sales -->
+              <div class="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col justify-between shadow-2xs">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Monthly Revenue</span>
+                <div class="my-2">
+                  <span class="text-lg font-extrabold font-mono text-[#0f1e36]">₦${monthlySales.toLocaleString()}</span>
+                  <p class="text-[8px] text-slate-400 font-medium font-mono mt-0.5">${monthlyOrders.length} Order(s) (30 days)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- More Bento Metrics: Customers, Orders & Inventory -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <!-- Customer cards -->
+              <div class="bg-slate-50 border p-4 rounded-2xl shadow-2xs">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Total Customers</span>
+                <span class="text-xl font-extrabold font-mono text-slate-900">${totalCustomersCount} Accounts</span>
+                <div class="flex items-center gap-1.5 mt-1.5 text-[8px] text-slate-400 font-semibold uppercase">
+                  <span>New: <b class="font-mono text-slate-700">${newCustomersCount}</b></span>
+                  <span>•</span>
+                  <span>Returning: <b class="font-mono text-slate-700">${returningCustomersCount}</b></span>
+                </div>
+              </div>
+
+              <!-- Orders Performance -->
+              <div class="bg-slate-50 border p-4 rounded-2xl shadow-2xs">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Orders Breakdown</span>
+                <span class="text-xl font-extrabold font-mono text-slate-900">${orders.length} Placed</span>
+                <div class="flex items-center gap-1 mt-1 text-[8px] font-bold uppercase text-slate-400">
+                  <span class="text-amber-600 bg-amber-50 px-1 rounded">${pendingOrdersCount} Pend</span>
+                  <span class="text-emerald-600 bg-emerald-50 px-1 rounded">${completedOrdersCount} Comp</span>
+                  <span class="text-red-600 bg-red-50 px-1 rounded">${cancelledOrdersCount} Cancel</span>
+                </div>
+              </div>
+
+              <!-- Products Sold count -->
+              <div class="bg-slate-50 border p-4 rounded-2xl shadow-2xs">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Products Sold</span>
+                <span class="text-xl font-extrabold font-mono text-slate-900">${totalProductsSold} Units</span>
+                <span class="text-[8px] text-slate-400 font-light mt-1 block">Accumulated total across all logs.</span>
+              </div>
+
+              <!-- Low/Out Stocks indicators -->
+              <div class="bg-slate-50 border p-4 rounded-2xl shadow-2xs flex flex-col justify-between">
+                <div>
+                  <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Inventory Warnings</span>
+                  <span class="text-base font-extrabold text-slate-900">${lowStockProducts.length + outOfStockProducts.length} Alerts</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1 text-[8px] font-bold uppercase">
+                  <span class="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">${lowStockProducts.length} Low Stock</span>
+                  <span class="text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">${outOfStockProducts.length} Sold Out</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Container -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+              
+              <!-- 1. Daily Revenue Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-4 border-b pb-1.5">Daily Revenue (Last 7 Days)</span>
+                <div class="flex items-end gap-3 h-32 pt-4 border-b border-l pb-1 pl-1">
+                  ${dailyRevenueData.map(d => {
+                    const percent = Math.min(100, Math.round((d.revenue / maxDailyRev) * 100));
+                    return `
+                      <div class="flex-1 flex flex-col items-center gap-1 group relative h-full justify-end">
+                        <div class="w-full bg-slate-100 h-24 rounded-t flex items-end overflow-hidden">
+                          <div class="w-full bg-gradient-to-t from-[#0f1e36] to-[#f68b1e] transition-all" style="height: ${percent}%"></div>
+                        </div>
+                        <span class="text-[8px] text-slate-400 font-mono truncate max-w-full font-medium" title="${d.label}">${d.label}</span>
+                        <!-- Hover metrics tooltip -->
+                        <span class="absolute bottom-full mb-1 bg-slate-900 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
+                          ₦${d.revenue.toLocaleString()}
+                        </span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 2. Monthly Revenue Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-4 border-b pb-1.5">Monthly Revenue (Last 6 Months)</span>
+                <div class="flex items-end gap-3 h-32 pt-4 border-b border-l pb-1 pl-1">
+                  ${monthlyRevenueData.map(m => {
+                    const percent = Math.min(100, Math.round((m.revenue / maxMonthlyRev) * 100));
+                    return `
+                      <div class="flex-1 flex flex-col items-center gap-1 group relative h-full justify-end">
+                        <div class="w-full bg-slate-100 h-24 rounded-t flex items-end overflow-hidden">
+                          <div class="w-full bg-gradient-to-t from-[#0f1e36] to-[#f68b1e] transition-all" style="height: ${percent}%"></div>
+                        </div>
+                        <span class="text-[8px] text-slate-400 font-mono truncate max-w-full font-medium" title="${m.label}">${m.label}</span>
+                        <span class="absolute bottom-full mb-1 bg-slate-900 text-white font-mono text-[8px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
+                          ₦${m.revenue.toLocaleString()}
+                        </span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 3. Sales by Category Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-3 border-b pb-1.5">Sales by Category (Audited Volume)</span>
+                <div class="flex flex-col gap-3 max-h-36 overflow-y-auto pr-1">
+                  ${categoryData.length === 0 ? '<p class="text-[10px] text-slate-400 italic py-2">No categories sold yet.</p>' : categoryData.map(c => {
+                    const percent = Math.min(100, Math.round((c.value / maxCatVal) * 100));
+                    return `
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between text-[9px] font-bold text-slate-700">
+                          <span class="truncate capitalize">${c.label.toLowerCase()}</span>
+                          <span class="font-mono">₦${c.value.toLocaleString()}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div class="bg-[#f68b1e] h-full rounded-full" style="width: ${percent}%"></div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 4. Best Selling Products Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-3 border-b pb-1.5">Best Selling Products (Unit Sales)</span>
+                <div class="flex flex-col gap-3 max-h-36 overflow-y-auto pr-1">
+                  ${bestSellersData.length === 0 ? '<p class="text-[10px] text-slate-400 italic py-2">No units sold yet.</p>' : bestSellersData.map(b => {
+                    const percent = Math.min(100, Math.round((b.value / maxBestVal) * 100));
+                    return `
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between text-[9px] font-bold text-slate-700">
+                          <span class="truncate">${b.label}</span>
+                          <span class="font-mono text-slate-500">${b.value} sold</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div class="bg-[#0f1e36] h-full rounded-full" style="width: ${percent}%"></div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 5. Order Status Distribution Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-3 border-b pb-1.5">Order Status Distribution</span>
+                <div class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1">
+                  ${statusData.length === 0 ? '<p class="text-[10px] text-slate-400 italic py-2">No order distribution logs.</p>' : statusData.map(s => {
+                    return `
+                      <div class="flex items-center justify-between p-2 rounded-lg border bg-slate-50 text-[10px] font-bold text-slate-700">
+                        <span class="truncate capitalize">${s.label}</span>
+                        <span class="bg-[#0f1e36] text-white px-2 py-0.5 rounded font-mono text-[9px] font-extrabold">${s.count} Unit(s)</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 6. Payment Verification Statistics Chart -->
+              <div class="bg-white border border-slate-200 rounded-2xl p-4.5 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-3 border-b pb-1.5">Payment Verification Statistics</span>
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-1">
+                    <div class="flex justify-between text-[9px] font-bold text-slate-700">
+                      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Approved Payments</span>
+                      <span class="font-mono text-emerald-600">${paymentStats.Approved} Orders</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div class="bg-emerald-500 h-full rounded-full" style="width: ${Math.min(100, Math.round((paymentStats.Approved / maxPaymentVal) * 100))}%"></div>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex justify-between text-[9px] font-bold text-slate-700">
+                      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pending Verification</span>
+                      <span class="font-mono text-amber-600">${paymentStats.Pending} Orders</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(100, Math.round((paymentStats.Pending / maxPaymentVal) * 100))}%"></div>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex justify-between text-[9px] font-bold text-slate-700">
+                      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Rejected Payments</span>
+                      <span class="font-mono text-red-600">${paymentStats.Rejected} Orders</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div class="bg-red-500 h-full rounded-full" style="width: ${Math.min(100, Math.round((paymentStats.Rejected / maxPaymentVal) * 100))}%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Inventory Details list -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <!-- Out of stock products -->
+              <div class="border rounded-2xl bg-white p-4 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-2 border-b pb-1">Out Of Stock Products (${outOfStockProducts.length})</span>
+                ${outOfStockProducts.length === 0 ? `
+                  <p class="text-[10px] text-slate-400 italic py-3 text-center">Perfect! All products in stock.</p>
+                ` : `
+                  <div class="flex flex-col gap-2 max-h-32 overflow-y-auto">
+                    ${outOfStockProducts.map(p => `
+                      <div class="flex items-center justify-between text-[10px] font-semibold text-slate-700 p-1.5 border-b last:border-0 border-slate-50">
+                        <span class="truncate font-bold">${p.name}</span>
+                        <span class="bg-red-50 text-red-600 border border-red-100 text-[8px] font-bold px-1.5 py-0.5 rounded">SOLD OUT</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </div>
+
+              <!-- Low stock products -->
+              <div class="border rounded-2xl bg-white p-4 shadow-2xs">
+                <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mb-2 border-b pb-1">Low Stock Products (${lowStockProducts.length})</span>
+                ${lowStockProducts.length === 0 ? `
+                  <p class="text-[10px] text-slate-400 italic py-3 text-center">Excellent! All products well-stocked.</p>
+                ` : `
+                  <div class="flex flex-col gap-2 max-h-32 overflow-y-auto">
+                    ${lowStockProducts.map(p => `
+                      <div class="flex items-center justify-between text-[10px] font-semibold text-slate-700 p-1.5 border-b last:border-0 border-slate-50">
+                        <span class="truncate font-bold">${p.name}</span>
+                        <span class="bg-amber-50 text-amber-600 border border-amber-100 text-[8px] font-bold px-1.5 py-0.5 rounded">${p.stock} Left</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        if (window.lucide) window.lucide.createIcons();
+      } catch (err) {
+        console.error("Failed to load full analytics:", err);
+        container.innerHTML = `<p class="text-xs text-red-500 py-4 italic">Failed to calculate live ledger: ` + err.message + `</p>`;
+      }
+    });
   }
 
   else if (adminActiveSection === 'settings') {

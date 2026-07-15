@@ -682,7 +682,321 @@ const sendMockPasswordResetEmail = async (email) => {
   }
 };
 
+// ===================== REVIEWS API =====================
+const getReviewsForProduct = async (productId) => {
+  try {
+    const q = query(collection(db, 'reviews'), where('productId', '==', productId));
+    const snap = await getDocs(q);
+    const fsReviews = [];
+    snap.forEach(doc => {
+      fsReviews.push({ id: doc.id, ...doc.data() });
+    });
+
+    const product = getMockProductById(productId);
+    const initialReviews = (product && product.reviews) ? product.reviews.map((rev, idx) => ({
+      id: `initial-${productId}-${idx}`,
+      productId,
+      userName: rev.userName,
+      rating: rev.rating,
+      comment: rev.comment,
+      title: rev.title || "Leather Craft Review",
+      date: rev.date,
+      verifiedPurchase: true,
+      isHidden: false,
+      reply: ""
+    })) : [];
+
+    const combined = [];
+    initialReviews.forEach(initRev => {
+      const fsOverride = fsReviews.find(f => f.id === initRev.id);
+      if (fsOverride) {
+        if (!fsOverride.isDeleted) {
+          combined.push(fsOverride);
+        }
+      } else {
+        combined.push(initRev);
+      }
+    });
+
+    fsReviews.forEach(f => {
+      if (!f.id.startsWith('initial-')) {
+        combined.push(f);
+      }
+    });
+
+    const isCeo = currentUserCache && currentUserCache.email === "goldrock012@gmail.com";
+    const filtered = isCeo ? combined : combined.filter(r => !r.isHidden && !r.isDeleted);
+    
+    // Sort reviews (default newest)
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return filtered;
+  } catch (err) {
+    console.error("Error getting reviews:", err);
+    const product = getMockProductById(productId);
+    return (product && product.reviews) ? product.reviews.map((rev, idx) => ({
+      id: `initial-${productId}-${idx}`,
+      productId,
+      userName: rev.userName,
+      rating: rev.rating,
+      comment: rev.comment,
+      title: rev.title || "Leather Craft Review",
+      date: rev.date,
+      verifiedPurchase: true,
+      isHidden: false,
+      reply: ""
+    })) : [];
+  }
+};
+
+const addReviewForProduct = async (productId, reviewData) => {
+  if (!auth.currentUser) throw new Error("Authentication required to leave a review.");
+  
+  const orders = ordersCache || [];
+  const hasPurchased = orders.some(o => 
+    o.items && o.items.some(item => (item.product.id === productId || (item.product.productId && item.product.productId === productId)))
+  );
+  
+  if (!hasPurchased) {
+    throw new Error("Only verified customers who have purchased this product can leave a review.");
+  }
+  
+  const reviewDoc = {
+    productId,
+    userId: auth.currentUser.uid,
+    userName: currentUserCache ? currentUserCache.fullName : (auth.currentUser.displayName || "Anonymous Customer"),
+    rating: Number(reviewData.rating),
+    title: reviewData.title,
+    comment: reviewData.comment,
+    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    verifiedPurchase: true,
+    isHidden: false,
+    reply: ""
+  };
+  
+  const docRef = await addDoc(collection(db, 'reviews'), reviewDoc);
+  return { id: docRef.id, ...reviewDoc };
+};
+
+const updateReviewState = async (reviewId, updates) => {
+  try {
+    const docRef = doc(db, 'reviews', reviewId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      if (updates.delete) {
+        await deleteDoc(docRef);
+      } else {
+        await updateDoc(docRef, updates);
+      }
+    } else {
+      if (reviewId.startsWith('initial-')) {
+        const parts = reviewId.split('-');
+        const productId = parts[1];
+        const initialIdx = parseInt(parts[2]);
+        const product = getMockProductById(productId);
+        if (product && product.reviews && product.reviews[initialIdx]) {
+          const initialReview = product.reviews[initialIdx];
+          if (updates.delete) {
+            await setDoc(docRef, {
+              id: reviewId,
+              productId,
+              isDeleted: true
+            });
+          } else {
+            await setDoc(docRef, {
+              id: reviewId,
+              productId,
+              userId: 'initial',
+              userName: initialReview.userName,
+              rating: initialReview.rating,
+              title: initialReview.title || "Leather Craft Review",
+              comment: initialReview.comment,
+              date: initialReview.date,
+              verifiedPurchase: true,
+              isHidden: updates.isHidden !== undefined ? updates.isHidden : false,
+              reply: updates.reply !== undefined ? updates.reply : ""
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error updating review state:", err);
+    throw err;
+  }
+};
+
 // ===================== ORDERS API =====================
+const sendEmailNotification = async (event, order, customerName, customerEmail) => {
+  // 1. Ensure EmailJS is loaded dynamically
+  if (!window.emailjs) {
+    await new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      script.onload = () => {
+        const publicKey = window.VITE_EMAILJS_PUBLIC_KEY || "AIzaSy_MockPublicEmailJSKey";
+        window.emailjs.init(publicKey);
+        resolve();
+      };
+      document.head.appendChild(script);
+    });
+  } else {
+    const publicKey = window.VITE_EMAILJS_PUBLIC_KEY || "AIzaSy_MockPublicEmailJSKey";
+    window.emailjs.init(publicKey);
+  }
+
+  // 2. Format products
+  let productsHTML = '';
+  if (order.items) {
+    productsHTML = order.items.map(item => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px 0; text-align: left; font-size: 13px; color: #334155;">
+          <strong>${item.product.name}</strong><br>
+          <span style="font-size: 11px; color: #64748b;">Color: ${item.color || 'Default'}</span>
+        </td>
+        <td style="padding: 10px 0; text-align: center; font-size: 13px; color: #334155; font-weight: bold;">x${item.quantity}</td>
+        <td style="padding: 10px 0; text-align: right; font-size: 13px; color: #334155; font-family: monospace;">₦${item.product.price.toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  // 3. Format beautiful Gold & Rock email body
+  const serviceId = window.VITE_EMAILJS_SERVICE_ID || "service_goldrock";
+  const templateId = window.VITE_EMAILJS_TEMPLATE_ID || "template_goldrock_order";
+
+  const goldRockLogo = "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=150&q=80";
+  const origin = window.location.origin;
+  const invoiceLink = `${origin}/account.html?tab=orders&orderId=${order.id}`;
+  const supportLink = `https://wa.me/2348123456789?text=Hello%20Gold%20And%20Rock,%20I%20have%20a%20question%20about%20order%20${order.id}`;
+  const trackingLink = `${origin}/account.html?tab=orders&orderId=${order.id}&track=true`;
+
+  const htmlMessage = `
+    <div style="background-color: #f8fafc; padding: 40px 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <!-- Banner Header -->
+        <tr>
+          <td align="center" style="background-color: #0f1e36; padding: 30px 20px; border-bottom: 4px solid #f68b1e;">
+            <img src="${goldRockLogo}" alt="Gold & Rock Leather Craft Logo" style="width: 70px; height: 70px; object-fit: cover; border-radius: 50%; border: 2px solid #f68b1e; margin-bottom: 12px;">
+            <h1 style="color: #ffffff; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 2px;">Gold & Rock</h1>
+            <p style="color: #f68b1e; font-size: 11px; font-weight: 600; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Masterfully Crafted Leather Goods</p>
+          </td>
+        </tr>
+
+        <!-- Main Body -->
+        <tr>
+          <td style="padding: 30px 25px;">
+            <p style="font-size: 15px; color: #1e293b; margin: 0 0 10px 0; font-weight: 600;">Dear ${customerName},</p>
+            
+            <!-- Dynamic Event Specific Copy -->
+            ${event === 'CONFIRMATION' ? `
+              <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0 0 20px 0;">
+                Thank you for your order! We have successfully received your purchase request. Our leather smiths are now processing your exquisite hand-stitched selection with maximum care.
+              </p>
+              <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <span style="font-size: 10px; font-weight: bold; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px;">Status Update</span>
+                <p style="font-size: 14px; font-weight: 800; color: #1e293b; margin: 4px 0 0 0; text-transform: uppercase;">ORDER CONFIRMED & PROCESSING</p>
+              </div>
+            ` : event === 'SHIPPED' ? `
+              <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0 0 20px 0;">
+                Great news! Your custom leather piece has completed our artisan workbench audits and has been officially handed over to our dispatch services for transport.
+              </p>
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <span style="font-size: 10px; font-weight: bold; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">Status Update</span>
+                <p style="font-size: 14px; font-weight: 800; color: #1e293b; margin: 4px 0 0 0; text-transform: uppercase;">SHIPPED & DISPATCHED</p>
+              </div>
+            ` : `
+              <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0 0 20px 0;">
+                Your order has been safely delivered! We hope your brand-new, hand-crafted leather item brings you years of premium quality and timeless durability.
+              </p>
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <span style="font-size: 10px; font-weight: bold; color: #047857; text-transform: uppercase; letter-spacing: 0.5px;">Status Update</span>
+                <p style="font-size: 14px; font-weight: 800; color: #1e293b; margin: 4px 0 0 0; text-transform: uppercase;">DELIVERED SUCCESSFULLY</p>
+              </div>
+            `}
+
+            <!-- Order Details Box -->
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-top: 1px solid #e2e8f0; padding-top: 15px; margin-bottom: 20px;">
+              <tr>
+                <td style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Order Identifier</td>
+                <td align="right" style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Invoice Number</td>
+              </tr>
+              <tr>
+                <td style="font-size: 14px; color: #0f1e36; font-weight: 800; padding: 2px 0 15px 0; font-family: monospace;">#${order.id}</td>
+                <td align="right" style="font-size: 14px; color: #0f1e36; font-weight: 800; padding: 2px 0 15px 0; font-family: monospace;">${order.invoiceNumber || 'N/A'}</td>
+              </tr>
+            </table>
+
+            <!-- Products Summary Table -->
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
+              <thead>
+                <tr style="border-bottom: 2px solid #0f1e36;">
+                  <th align="left" style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px;">Product</th>
+                  <th align="center" style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px;">Qty</th>
+                  <th align="right" style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productsHTML}
+                <!-- Total Row -->
+                <tr>
+                  <td colspan="2" style="padding: 15px 0 0 0; font-size: 13px; color: #1e293b; font-weight: bold; text-align: left;">GRAND TOTAL:</td>
+                  <td style="padding: 15px 0 0 0; font-size: 16px; color: #f68b1e; font-weight: 800; text-align: right; font-family: monospace;">₦${order.total.toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Action Buttons Grid -->
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 10px; margin-bottom: 10px;">
+              <tr>
+                <td align="center" style="padding: 5px;">
+                  <a href="${trackingLink}" target="_blank" style="display: block; background-color: #0f1e36; color: #ffffff; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 10px 15px; border-radius: 8px; letter-spacing: 0.5px;">
+                    Track Order
+                  </a>
+                </td>
+                <td align="center" style="padding: 5px;">
+                  <a href="${invoiceLink}" target="_blank" style="display: block; background-color: #f1f5f9; color: #0f1e36; border: 1px solid #cbd5e1; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 10px 15px; border-radius: 8px; letter-spacing: 0.5px;">
+                    View Invoice
+                  </a>
+                </td>
+                <td align="center" style="padding: 5px;">
+                  <a href="${supportLink}" target="_blank" style="display: block; background-color: #f68b1e; color: #ffffff; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 10px 15px; border-radius: 8px; letter-spacing: 0.5px;">
+                    Contact Care
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td align="center" style="background-color: #f1f5f9; padding: 20px 15px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0 0 5px 0; font-weight: bold;">Gold & Rock Leather Craft Enterprise Ltd.</p>
+            <p style="margin: 0; font-light">Custom Handcrafting Workshop, Nigeria.</p>
+            <p style="margin: 10px 0 0 0; font-size: 10px; color: #94a3b8;">This is an automated operational notification. Please do not reply directly to this email.</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  const templateParams = {
+    to_name: customerName,
+    to_email: customerEmail,
+    subject: event === 'CONFIRMATION' ? `[Gold & Rock] Order Confirmed: #${order.id}` : event === 'SHIPPED' ? `[Gold & Rock] Order Shipped: #${order.id}` : `[Gold & Rock] Order Safely Delivered! #${order.id}`,
+    message_html: htmlMessage,
+    order_id: order.id,
+    order_status: order.status || 'Processing'
+  };
+
+  try {
+    const res = await window.emailjs.send(serviceId, templateId, templateParams);
+    console.log("EmailJS operational notification sent successfully!", res);
+  } catch (err) {
+    console.error("EmailJS operational notification failed to send:", err);
+  }
+};
+
 const getMockOrders = () => {
   return ordersCache;
 };
@@ -760,6 +1074,13 @@ const placeMockOrder = async (shippingDetails, paymentMethod) => {
 
     // Clear cart on success
     clearMockCart();
+
+    // 5. Send automated confirmation email via EmailJS
+    const customerEmail = auth.currentUser ? auth.currentUser.email : (shippingDetails.email || 'customer@goldrock.com');
+    const customerName = auth.currentUser ? (auth.currentUser.displayName || currentUserCache?.fullName || shippingDetails.fullName || 'Valued Customer') : (shippingDetails.fullName || 'Valued Customer');
+    setTimeout(() => {
+      sendEmailNotification('CONFIRMATION', newOrder, customerName, customerEmail);
+    }, 100);
     
     return newOrder;
   } catch (err) {
@@ -1421,6 +1742,16 @@ const updateOrderStatus = async (orderId, status) => {
       type: type
     });
 
+    // 5. Send automated Shipment or Delivery Email notifications via EmailJS
+    if (status === 'Shipped' || status === 'Delivered') {
+      const customerEmail = orderData.shippingDetails ? orderData.shippingDetails.email : 'customer@goldrock.com';
+      const customerName = orderData.shippingDetails ? orderData.shippingDetails.fullName : 'Valued Customer';
+      const eventType = status === 'Shipped' ? 'SHIPPED' : 'DELIVERED';
+      setTimeout(() => {
+        sendEmailNotification(eventType, { ...orderData, status }, customerName, customerEmail);
+      }, 100);
+    }
+
     console.log(`Order ${orderId} status changed to ${status}.`);
   } catch (err) {
     console.error("Error updating order status:", err);
@@ -1492,6 +1823,9 @@ window.registerMockUser = registerMockUser;
 window.updateMockUserProfile = updateMockUserProfile;
 window.logoutMockUser = logoutMockUser;
 window.sendMockPasswordResetEmail = sendMockPasswordResetEmail;
+window.getReviewsForProduct = getReviewsForProduct;
+window.addReviewForProduct = addReviewForProduct;
+window.updateReviewState = updateReviewState;
 window.getMockOrders = getMockOrders;
 window.placeMockOrder = placeMockOrder;
 window.generateWhatsAppOrderLink = generateWhatsAppOrderLink;
@@ -1541,6 +1875,9 @@ export {
   updateMockUserProfile,
   logoutMockUser,
   sendMockPasswordResetEmail,
+  getReviewsForProduct,
+  addReviewForProduct,
+  updateReviewState,
   getMockOrders,
   placeMockOrder,
   generateWhatsAppOrderLink,

@@ -78,6 +78,25 @@
         "productIds": { "type": "array" }
       },
       "required": ["userId", "productIds"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Product customer review details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "number" },
+        "title": { "type": "string" },
+        "comment": { "type": "string" },
+        "date": { "type": "string" },
+        "verifiedPurchase": { "type": "boolean" },
+        "isHidden": { "type": "boolean" },
+        "reply": { "type": "string" }
+      },
+      "required": ["id", "productId", "userId", "userName", "rating", "title", "comment", "date"]
     }
   },
   "firestore": {
@@ -100,6 +119,10 @@
     "wishlists/{userId}": {
       "schema": "Wishlist",
       "description": "Wishlists synchronized state"
+    },
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Verified customer product reviews"
     }
   }
 }

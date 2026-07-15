@@ -54,5 +54,12 @@ service cloud.firestore {
     match /wishlists/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
     }
+
+    // Reviews Collection
+    match /reviews/{reviewId} {
+      allow read: if true; // Public can view reviews
+      allow create: if isSignedIn(); // Logged-in users can write reviews
+      allow update, delete: if isAdmin(); // Only Admin can reply, hide, or delete reviews
+    }
   }
 }
