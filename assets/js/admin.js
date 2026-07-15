@@ -1,4 +1,4 @@
-let activeTab = 'my-profile';
+let activeTab = 'admin-dashboard';
 let editMode = false;
 let authTab = 'signin'; // 'signin' or 'register'
 let mobileShowPane = false;
@@ -16,12 +16,8 @@ let selectedOrderForDetails = null;
 document.addEventListener('DOMContentLoaded', () => {
   initCommonUI();
 
-  const params = new URLSearchParams(window.location.search);
-  const queryTab = params.get('tab');
-  if (queryTab) {
-    activeTab = queryTab;
-    mobileShowPane = true;
-  }
+  // On admin page, activeTab is always 'admin-dashboard'
+  activeTab = 'admin-dashboard';
 
   renderAccountView();
 
@@ -31,48 +27,38 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('ordersUpdated', () => {
     renderAccountView();
   });
-  window.addEventListener('wishlistUpdated', () => {
-    if (activeTab === 'wishlist') {
-      renderAccountView();
-    }
-  });
   window.addEventListener('productsUpdated', () => {
-    if (activeTab === 'admin-dashboard') {
-      renderAccountView();
-    }
+    renderAccountView();
   });
 
   if (window.lucide) window.lucide.createIcons();
 });
 
 function renderAccountView() {
-  const container = document.getElementById('account-page-inner');
+  const container = document.getElementById('admin-page-inner');
   if (!container) return;
 
   const user = getMockCurrentUser();
+  const isSessionActive = sessionStorage.getItem('gr_admin_session_active') === 'true';
 
-  container.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-      <!-- Sidebar Menu (Visible on desktop, or on mobile when not viewing pane details) -->
-      <div class="md:col-span-4 ${mobileShowPane ? 'hidden md:block' : 'block'}" id="account-sidebar-col">
-        ${getSidebarMenuHtml(user)}
-      </div>
-
-      <!-- Active Content Panel (Visible on desktop, or on mobile when active pane details is selected) -->
-      <div class="md:col-span-8 ${!mobileShowPane ? 'hidden md:block' : 'block'}" id="account-content-col">
-        ${mobileShowPane ? `
-          <div class="flex items-center gap-2 mb-4 md:hidden">
-            <button id="back-to-menu-btn" class="text-xs font-bold text-brand-orange flex items-center gap-1.5 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-xs cursor-pointer">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Account Menu
-            </button>
-          </div>
-        ` : ''}
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-xs min-h-[350px]">
-          ${getActiveTabContentHtml(user)}
+  // Protect the dashboard: only allow email goldrock012@gmail.com with active admin session
+  if (!user || user.email.toLowerCase() !== "goldrock012@gmail.com" || !isSessionActive) {
+    container.innerHTML = `
+      <div class="text-center py-12 flex flex-col items-center justify-center max-w-sm mx-auto">
+        <div class="w-12 h-12 bg-red-50 text-red-500 border border-red-100 rounded-full flex items-center justify-center mb-3">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
         </div>
+        <h3 class="font-sans font-bold text-slate-800 text-sm">Access Restricted</h3>
+        <p class="text-[11px] text-slate-400 font-light mt-1 mb-5 leading-normal text-center">
+          You must be securely authenticated as an administrator to enter this workbench.
+        </p>
       </div>
-    </div>
-  `;
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = getAdminConsoleViewHtml();
 
   setupAccountListeners(user);
   if (window.lucide) window.lucide.createIcons();
@@ -90,6 +76,7 @@ function getSidebarMenuHtml(user) {
     { id: 'payment-history', label: 'Payment History', icon: 'credit-card' },
     { id: 'wishlist', label: 'Wishlist', icon: 'heart' },
     { id: 'saved-addresses', label: 'Saved Addresses', icon: 'map-pin' },
+    { id: 'admin-console', label: 'Admin Console (Verify Payments)', icon: 'shield-alert' },
     { id: 'about-us', label: 'About GR STORE', icon: 'info' },
     { id: 'contact-us', label: 'Contact Us', icon: 'phone' },
     { id: 'help-support', label: 'Help & Support', icon: 'help-circle' },
@@ -148,7 +135,7 @@ function getSidebarMenuHtml(user) {
 function getActiveTabContentHtml(user) {
   const isAuthRequired = [
     'my-orders', 'pending-orders', 'processing-orders', 'shipped-orders', 'delivered-orders', 'cancelled-orders',
-    'saved-addresses', 'payment-history', 'settings'
+    'saved-addresses', 'payment-history', 'settings', 'admin-console'
   ].includes(activeTab) || (activeTab === 'my-profile' && !user);
   
   if (isAuthRequired && !user) {
@@ -185,6 +172,8 @@ function getActiveTabContentHtml(user) {
       return getSavedAddressesViewHtml(user);
     case 'payment-history':
       return getPaymentHistoryViewHtml(user);
+    case 'admin-dashboard':
+      return getAdminConsoleViewHtml();
     case 'about-us':
       return getAboutUsViewHtml();
     case 'contact-us':
@@ -199,16 +188,19 @@ function getActiveTabContentHtml(user) {
 }
 
 function getAuthLockedHtml() {
+  const isAdminContext = activeTab === 'admin-console' || activeTab === 'admin-dashboard';
   return `
     <div class="text-center py-6 flex flex-col items-center justify-center max-w-sm mx-auto animate-in fade-in duration-300">
       <div class="w-12 h-12 bg-amber-50 text-brand-orange border border-amber-100 rounded-full flex items-center justify-center mb-3">
-        <i data-lucide="lock" class="w-5 h-5 text-brand-orange"></i>
+        <i data-lucide="${isAdminContext ? 'shield-alert' : 'lock'}" class="w-5 h-5 text-brand-orange"></i>
       </div>
       <h3 class="font-sans font-bold text-slate-800 text-sm">
-        Account Sign In Required
+        ${isAdminContext ? 'Administrator Sign In Required' : 'Account Sign In Required'}
       </h3>
       <p class="text-[11px] text-slate-400 font-light mt-1 mb-5 leading-normal text-center">
-        To view your order status, payment logs, saved addresses, or settings, please sign in or register below.
+        ${isAdminContext 
+          ? 'To access the CEO control panel and verify database transactions, please sign in using your admin credentials.' 
+          : 'To view your order status, payment logs, saved addresses, or settings, please sign in or register below.'}
       </p>
 
       <div class="w-full bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-xs">

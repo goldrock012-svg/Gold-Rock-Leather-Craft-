@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisan Workspace Dashboard | Gold & Rock</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#0f1e36',
+              'blue-light': '#1e3a8a',
+              orange: '#f68b1e',
+              'orange-dark': '#e07a14'
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col font-sans relative" id="gr-store-app-root">
+
+  <!-- REQUIREMENT 4 & 5: Security gate overlay to protect Admin Dashboard -->
+  <div id="admin-gate-overlay" class="fixed inset-0 z-50 bg-slate-900 flex flex-col justify-center items-center text-center px-4">
+    <div id="gate-spinner" class="flex flex-col items-center gap-3">
+      <svg class="animate-spin h-10 w-10 text-brand-orange" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-xs text-slate-400 uppercase tracking-widest font-extrabold">Securing Workspace Session...</p>
+    </div>
+    
+    <div id="gate-denied" class="hidden flex flex-col items-center gap-4 max-w-sm">
+      <div class="w-16 h-16 bg-red-950/40 text-red-500 border border-red-800/30 rounded-full flex items-center justify-center animate-bounce">
+        <i data-lucide="shield-alert" class="w-8 h-8"></i>
+      </div>
+      <h1 class="text-xl font-bold text-white uppercase tracking-wider font-display">Access Denied</h1>
+      <p class="text-xs text-slate-400 leading-normal">
+        This workstation is restricted to authorized executives. Redirecting you to the home storefront...
+      </p>
+    </div>
+  </div>
+
+  <!-- Reusable Header/Navbar -->
+  <div id="header-container"></div>
+
+  <!-- Main Area -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs md:text-sm mb-6">
+      <span class="text-slate-400 font-semibold flex items-center gap-1">
+        <i data-lucide="shield" class="w-4 h-4 text-brand-orange"></i> Executive Area
+      </span>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-bold">Artisan Console</span>
+    </div>
+
+    <!-- Title Segment -->
+    <div class="border-b border-slate-200 pb-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold font-display text-slate-900 leading-tight flex items-center gap-2">
+          Master Artisan Workbench
+        </h2>
+        <p class="text-xs text-slate-400 font-medium mt-1">
+          Review executive revenue, verify payment deposits, update custom product categories, and manage live inventories.
+        </p>
+      </div>
+      <!-- Quick Logout Button -->
+      <button id="header-admin-logout-btn" class="bg-red-50 text-red-500 hover:bg-red-100 px-4 py-2 rounded-xl text-xs font-bold border border-red-200 cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors self-start md:self-auto">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out of Console
+      </button>
+    </div>
+
+    <!-- Content Panel Container -->
+    <div id="admin-page-inner" class="bg-white rounded-3xl border border-slate-200 p-5 md:p-6 shadow-xs min-h-[450px]">
+      <!-- Dynamically filled by assets/js/admin.js -->
+    </div>
+
+  </main>
+
+  <!-- Reusable Floating WhatsApp Support Button -->
+  <button id="whatsapp-floating-btn" class="fixed bottom-24 md:bottom-8 right-6 z-30 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-all hover:scale-110 cursor-pointer border border-[#1ebd54]" title="Contact Support via WhatsApp">
+    <i data-lucide="message-circle" class="w-6 h-6 fill-white text-white"></i>
+  </button>
+
+  <!-- Footers -->
+  <div id="footer-container"></div>
+  <div id="bottom-nav-container"></div>
+  <div id="cart-drawer-container"></div>
+  <div id="toast-container"></div>
+
+  <!-- Lucide script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Shared Data & Logic Scripts -->
+  <script src="assets/js/products.js"></script>
+  <script type="module" src="assets/js/db.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/admin.js"></script>
+
+  <!-- Security Gate Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+
+      const checkAdminStatus = () => {
+        // Ensure core db functions are loaded
+        if (typeof window.getMockCurrentUser !== 'function') return;
+
+        const user = window.getMockCurrentUser();
+        const isSessionActive = sessionStorage.getItem('gr_admin_session_active') === 'true';
+
+        // Check if authentication state is initialized
+        if (window.__authInitialized) {
+          if (user && user.email.toLowerCase() === 'goldrock012@gmail.com' && isSessionActive) {
+            // Authorized! Hide the security overlay
+            const overlay = document.getElementById('admin-gate-overlay');
+            if (overlay) overlay.classList.add('hidden');
+          } else {
+            // Unauthorized! Show access denied and redirect
+            const spinner = document.getElementById('gate-spinner');
+            const denied = document.getElementById('gate-denied');
+            if (spinner) spinner.classList.add('hidden');
+            if (denied) denied.classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+
+            // Clear any partial session state
+            sessionStorage.removeItem('gr_admin_session_active');
+
+            setTimeout(() => {
+              window.location.href = 'index.html';
+            }, 3000);
+          }
+        }
+      };
+
+      // Poll/listen for the auth state changes
+      window.addEventListener('authUpdated', checkAdminStatus);
+      
+      // Fallback check after 1.5s
+      setTimeout(checkAdminStatus, 1500);
+
+      // Setup the quick admin sign out button listener
+      const adminLogoutBtn = document.getElementById('header-admin-logout-btn');
+      if (adminLogoutBtn) {
+        adminLogoutBtn.addEventListener('click', async () => {
+          adminLogoutBtn.disabled = true;
+          adminLogoutBtn.innerHTML = 'Signing out...';
+          try {
+            // Requirement 7: After logout, destroy session, clear storage, require login again
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            if (typeof window.logoutMockUser === 'function') {
+              await window.logoutMockUser();
+            }
+            window.location.href = 'admin-login.html';
+          } catch (err) {
+            console.error("Sign out error:", err);
+            window.location.href = 'admin-login.html';
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

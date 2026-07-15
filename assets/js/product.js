@@ -312,7 +312,7 @@ async function renderReviewsList() {
     }
 
     const currentUser = window.getMockCurrentUser ? window.getMockCurrentUser() : null;
-    const isAdmin = currentUser && currentUser.email === "goldrock012@gmail.com";
+    const isAdmin = currentUser && currentUser.email === "goldrock012@gmail.com" && sessionStorage.getItem('gr_admin_session_active') === 'true';
     const orders = window.getMockOrders ? window.getMockOrders() : [];
     const hasPurchased = orders.some(o => 
       o.items && o.items.some(item => (item.product.id === product.id || (item.product.productId && item.product.productId === product.id)))

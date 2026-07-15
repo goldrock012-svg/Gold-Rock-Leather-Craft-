@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisan Workspace Login | Gold & Rock</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#0f1e36',
+              'blue-light': '#1e3a8a',
+              orange: '#f68b1e',
+              'orange-dark': '#e07a14'
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-900 flex flex-col justify-center items-center font-sans px-4 py-12 relative overflow-hidden">
+  
+  <!-- Subtle decorative ambient backgrounds to fit Gold & Rock's premium brand -->
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(246,139,30,0.1),transparent_35%)] pointer-events-none"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(15,30,54,0.6),transparent_40%)] pointer-events-none"></div>
+
+  <!-- Main Container -->
+  <div class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500">
+    
+    <!-- Branding Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex w-16 h-16 rounded-full bg-brand-orange/10 border border-brand-orange/30 items-center justify-center text-brand-orange mb-4 shadow-inner">
+        <i data-lucide="shield-check" class="w-8 h-8"></i>
+      </div>
+      <h2 class="text-xl font-extrabold text-white tracking-widest uppercase font-display">
+        Artisan Workspace
+      </h2>
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 flex items-center justify-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse"></span>
+        Gold & Rock Secure Terminal
+      </p>
+    </div>
+
+    <!-- Alert placeholder for errors -->
+    <div id="error-banner" class="hidden mb-6 p-4 bg-red-950/50 border border-red-800/40 text-red-400 text-xs rounded-xl flex items-start gap-2.5 animate-in slide-in-from-top-2 duration-300">
+      <i data-lucide="alert-octagon" class="w-5 h-5 shrink-0 text-red-400"></i>
+      <div class="flex-1">
+        <strong class="font-extrabold uppercase text-[10px] tracking-wider block">Access Denied</strong>
+        <span id="error-message">Invalid administrator credentials.</span>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="admin-login-form" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Email Address *</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+          </span>
+          <input type="email" id="admin-email" required placeholder="admin@goldrock.com" class="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-brand-orange font-medium transition-colors">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Security Password *</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+          </span>
+          <input type="password" id="admin-password" required placeholder="••••••••" class="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-brand-orange font-medium transition-colors">
+        </div>
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer mt-4 flex items-center justify-center gap-2 border-0 shadow-lg shadow-brand-orange/20">
+        <i data-lucide="key" class="w-4 h-4"></i> Authenticate Workspace
+      </button>
+    </form>
+
+    <!-- Public Storefront redirection link -->
+    <div class="text-center mt-8 pt-6 border-t border-slate-800/60">
+      <a href="index.html" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-brand-orange uppercase tracking-wider transition-colors">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Public Storefront
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Lucide script -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Firebase Auth & Storage Core Layer -->
+  <script src="assets/js/products.js"></script>
+  <script type="module" src="assets/js/db.js"></script>
+  <script src="assets/js/common.js"></script>
+
+  <!-- Login Logic Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+
+      const loginForm = document.getElementById('admin-login-form');
+      const emailInput = document.getElementById('admin-email');
+      const passwordInput = document.getElementById('admin-password');
+      const errorBanner = document.getElementById('error-banner');
+      const errorMessage = document.getElementById('error-message');
+      const submitBtn = document.getElementById('login-submit-btn');
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBanner.classList.add('hidden');
+        submitBtn.disabled = true;
+        const originalBtnHTML = submitBtn.innerHTML;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="tracking-widest uppercase">Verifying Key...</span>
+        `;
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        // Requirement 4: Protect the Admin Dashboard. Only allow email goldrock012@gmail.com to access it.
+        if (email.toLowerCase() !== 'goldrock012@gmail.com') {
+          showDenied("Access Denied: Only goldrock012@gmail.com has administrative access.");
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+          return;
+        }
+
+        try {
+          // Attempt authentication via Firebase
+          if (typeof window.loginMockUser === 'function') {
+            const user = await window.loginMockUser(email, password);
+            
+            // Double check email explicitly
+            if (user && user.email.toLowerCase() === 'goldrock012@gmail.com') {
+              // Store admin flag explicitly in sessionStorage to prevent accidental crossover
+              sessionStorage.setItem('gr_admin_session_active', 'true');
+              window.location.href = 'admin.html';
+            } else {
+              // Sign out immediately if not authorized
+              if (typeof window.logoutMockUser === 'function') {
+                await window.logoutMockUser();
+              }
+              showDenied("Access Denied: You do not have permissions to access the artisan workbench.");
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalBtnHTML;
+            }
+          } else {
+            throw new Error("Core database layer not loaded completely yet.");
+          }
+        } catch (err) {
+          console.error("Auth failure:", err);
+          showDenied(err.message || "Invalid master credentials. Please check again.");
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+        }
+      });
+
+      function showDenied(msg) {
+        errorMessage.innerText = msg;
+        errorBanner.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
