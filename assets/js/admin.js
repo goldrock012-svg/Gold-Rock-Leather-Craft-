@@ -1647,15 +1647,15 @@ function getAdminConsoleViewHtml() {
           </td>
           <td class="py-2.5 px-2 font-mono text-slate-400 text-[10px]">${dateString}</td>
           <td class="py-2.5 px-2 text-right">
-            <div class="flex items-center justify-end gap-1.5">
-              <button data-id="${p.id}" class="prod-edit-trigger-btn text-slate-500 hover:text-blue-600 bg-transparent border-0 cursor-pointer p-1" title="Edit Product">
-                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            <div class="flex items-center justify-end gap-1 flex-wrap sm:flex-nowrap">
+              <button data-id="${p.id}" class="prod-view-trigger-btn bg-brand-orange hover:bg-brand-orange-dark text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="View Preview">
+                👁️ View
               </button>
-              <button data-id="${p.id}" class="prod-duplicate-trigger-btn text-slate-400 hover:text-indigo-600 bg-transparent border-0 cursor-pointer p-1" title="Duplicate/Clone Product">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <button data-id="${p.id}" class="prod-edit-trigger-btn bg-[#0f1e36] hover:bg-[#1a3258] text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Edit Product">
+                ✏️ Edit
               </button>
-              <button data-id="${p.id}" class="prod-delete-trigger-btn text-slate-300 hover:text-red-500 bg-transparent border-0 cursor-pointer p-1" title="Delete Product">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <button data-id="${p.id}" class="prod-delete-trigger-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Delete Product">
+                🗑️ Delete
               </button>
             </div>
           </td>
@@ -1687,7 +1687,7 @@ function getAdminConsoleViewHtml() {
                 <th class="py-2.5 px-2 w-28">Stock</th>
                 <th class="py-2.5 px-2 w-24">Status</th>
                 <th class="py-2.5 px-2 w-24">Date Created</th>
-                <th class="py-2.5 px-2 w-28 text-right">Actions</th>
+                <th class="py-2.5 px-2 w-56 text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -3165,11 +3165,143 @@ function setupAccountListeners(user) {
     });
   });
 
+  // Professional Delete Confirmation Dialog Helper
+  const showProfessionalDeleteDialog = (productName, onDeleteConfirm) => {
+    // Create overlay container
+    const dialogOverlay = document.createElement('div');
+    dialogOverlay.id = 'custom-delete-confirm-modal';
+    dialogOverlay.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-9999 animate-in fade-in duration-200';
+    
+    dialogOverlay.innerHTML = `
+      <div class="bg-white rounded-2xl border-2 border-[#0f1e36] shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-all animate-in zoom-in-95 duration-200 text-left">
+        <!-- Modal Header -->
+        <div class="bg-[#0f1e36] text-white px-5 py-4 flex items-center gap-2">
+          <span class="text-[#f68b1e] text-lg">⚠️</span>
+          <h4 class="font-bold text-[11px] uppercase tracking-wider">Confirm Permanent Deletion</h4>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+          <p class="text-xs font-bold text-slate-900 mb-2">
+            Are you sure you want to permanently delete this product?
+          </p>
+          <div class="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50 border p-3 rounded-lg">
+            Product: <strong class="text-slate-800 font-extrabold font-mono">${productName}</strong><br>
+            This will permanently delete the product document from Firestore, remove all associated images from Cloudinary/Storage, and take it down from the customer storefront immediately.
+          </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button id="modal-cancel-btn" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-[10px] font-bold uppercase transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border-0 rounded-xl text-[10px] font-bold uppercase transition-colors cursor-pointer flex items-center gap-1 shadow-sm">
+            🗑️ Delete Product
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(dialogOverlay);
+    
+    // Prevent scrolling
+    document.body.style.overflow = 'hidden';
+    
+    const closeModal = () => {
+      dialogOverlay.remove();
+      document.body.style.overflow = '';
+    };
+    
+    dialogOverlay.querySelector('#modal-cancel-btn').addEventListener('click', closeModal);
+    
+    dialogOverlay.querySelector('#modal-confirm-btn').addEventListener('click', async () => {
+      const confirmBtn = dialogOverlay.querySelector('#modal-confirm-btn');
+      const cancelBtn = dialogOverlay.querySelector('#modal-cancel-btn');
+      
+      confirmBtn.disabled = true;
+      cancelBtn.disabled = true;
+      confirmBtn.innerHTML = `<span class="flex items-center gap-1"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Deleting...</span>`;
+      if (window.lucide) window.lucide.createIcons();
+      
+      try {
+        await onDeleteConfirm();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        closeModal();
+      }
+    });
+  };
+
+  // Product Preview Dialog Helper
+  const showProductPreviewDialog = (pId) => {
+    const dialogOverlay = document.createElement('div');
+    dialogOverlay.id = 'custom-product-preview-modal';
+    dialogOverlay.className = 'fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-2 md:p-6 z-9999 animate-in fade-in duration-200';
+    
+    dialogOverlay.innerHTML = `
+      <div class="bg-white rounded-2xl border-2 border-[#0f1e36] shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-all animate-in zoom-in-95 duration-200 text-left">
+        <!-- Header -->
+        <div class="bg-[#0f1e36] text-white px-5 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-[#f68b1e] text-base">👁️</span>
+            <h4 class="font-bold text-[10px] uppercase tracking-wider">Product Preview (Read-Only)</h4>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <a href="product.html?id=${pId}" target="_blank" class="bg-brand-orange hover:bg-brand-orange-dark text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer no-underline border-0 shadow-xs">
+              Open In New Tab ↗
+            </a>
+            <button id="preview-modal-close-btn" class="text-slate-400 hover:text-white bg-transparent border-0 cursor-pointer p-1">
+              ✕
+            </button>
+          </div>
+        </div>
+        
+        <!-- Body (Customer View IFrame) -->
+        <div class="flex-1 bg-slate-50 relative">
+          <iframe src="product.html?id=${pId}" class="w-full h-full border-0"></iframe>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(dialogOverlay);
+    
+    // Prevent body scrolling
+    document.body.style.overflow = 'hidden';
+    
+    const closePreview = () => {
+      dialogOverlay.remove();
+      document.body.style.overflow = '';
+    };
+    
+    dialogOverlay.querySelector('#preview-modal-close-btn').addEventListener('click', closePreview);
+    
+    // Close on background click
+    dialogOverlay.addEventListener('click', (e) => {
+      if (e.target === dialogOverlay) {
+        closePreview();
+      }
+    });
+  };
+
+  // View Product Trigger
+  document.querySelectorAll('.prod-view-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pId = btn.getAttribute('data-id');
+      showProductPreviewDialog(pId);
+    });
+  });
+
   // Delete Product Trigger
   document.querySelectorAll('.prod-delete-trigger-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const pId = btn.getAttribute('data-id');
-      if (confirm("Are you sure you want to permanently delete this product and its stored images from Firebase Storage? This action is irreversible.")) {
+      const products = getMockProducts() || [];
+      const p = products.find(prod => prod.id === pId);
+      const name = p ? p.name : 'Selected Product';
+      
+      showProfessionalDeleteDialog(name, async () => {
         try {
           await window.deleteProductFromCatalog(pId);
           showNotification("Product and associated images permanently deleted successfully.", "success");
@@ -3177,7 +3309,7 @@ function setupAccountListeners(user) {
         } catch (err) {
           showNotification(err.message, "danger");
         }
-      }
+      });
     });
   });
 
@@ -3193,6 +3325,7 @@ function setupAccountListeners(user) {
         container.innerHTML = getInlineEditProductFormHtml(null);
         container.classList.remove('hidden');
         setupEditProductFormListeners(false);
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   }
@@ -3212,6 +3345,7 @@ function setupAccountListeners(user) {
         container.innerHTML = getInlineEditProductFormHtml(p);
         container.classList.remove('hidden');
         setupEditProductFormListeners(true, p);
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   });
