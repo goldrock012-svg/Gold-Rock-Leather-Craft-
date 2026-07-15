@@ -209,17 +209,23 @@ function getActiveTabContentHtml(user) {
 }
 
 function getAuthLockedHtml() {
+  const isAdminContext = activeTab === 'admin-console' || activeTab === 'admin-dashboard';
   return `
     <div class="text-center py-6 flex flex-col items-center justify-center max-w-sm mx-auto animate-in fade-in duration-300">
       <div class="w-12 h-12 bg-amber-50 text-brand-orange border border-amber-100 rounded-full flex items-center justify-center mb-3">
-        <i data-lucide="lock" class="w-5 h-5 text-brand-orange"></i>
+        <i data-lucide="${isAdminContext ? 'shield-alert' : 'lock'}" class="w-5 h-5 text-brand-orange"></i>
       </div>
-      <h3 class="font-sans font-bold text-slate-800 text-sm">Account Sign In Required</h3>
+      <h3 class="font-sans font-bold text-slate-800 text-sm">
+        ${isAdminContext ? 'Administrator Sign In Required' : 'Account Sign In Required'}
+      </h3>
       <p class="text-[11px] text-slate-400 font-light mt-1 mb-5 leading-normal text-center">
-        To view your order status, payment logs, saved addresses, or settings, please sign in or register below.
+        ${isAdminContext 
+          ? 'To access the CEO control panel and verify database transactions, please sign in using your admin credentials.' 
+          : 'To view your order status, payment logs, saved addresses, or settings, please sign in or register below.'}
       </p>
 
       <div class="w-full bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+        ${authTab !== 'forgot-password' ? `
         <div class="flex border-b">
           <button id="lock-btn-signin" class="flex-1 py-3 text-center font-sans font-bold text-[10px] tracking-wider uppercase cursor-pointer transition-colors ${
             authTab === 'signin' ? 'text-brand-orange bg-white border-b-2 border-brand-orange' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'
@@ -232,8 +238,9 @@ function getAuthLockedHtml() {
             Register
           </button>
         </div>
+        ` : ''}
         <div class="p-5 text-left">
-          ${authTab === 'signin' ? getSignInFormHtml() : getRegisterFormHtml()}
+          ${authTab === 'signin' ? getSignInFormHtml() : (authTab === 'register' ? getRegisterFormHtml() : getForgotPasswordFormHtml())}
         </div>
       </div>
     </div>
@@ -248,12 +255,40 @@ function getSignInFormHtml() {
         <input type="email" id="signin-email" required placeholder="example@gmail.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password *</label>
+        <div class="flex justify-between items-center mb-0.5">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password *</label>
+          <button type="button" id="signin-forgot-password-link" class="text-[10px] font-bold text-brand-orange hover:text-brand-orange-dark uppercase tracking-wider bg-transparent border-0 cursor-pointer p-0 transition-colors">Forgot Password?</button>
+        </div>
         <input type="password" id="signin-password" required placeholder="••••••••" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
       </div>
       <button type="submit" id="signin-submit-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer mt-2 flex items-center justify-center gap-1.5 border-0">
         Sign In
       </button>
+    </form>
+  `;
+}
+
+function getForgotPasswordFormHtml() {
+  return `
+    <form id="auth-forgot-password-form" class="flex flex-col gap-4 animate-in fade-in duration-300">
+      <div class="text-center mb-1">
+        <h4 class="font-sans font-extrabold text-slate-800 text-xs uppercase tracking-wider">Reset Password</h4>
+        <p class="text-[10px] text-slate-400 mt-1 font-light leading-relaxed">
+          Enter your registered email address below and we'll send you an official link to reset your password.
+        </p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address *</label>
+        <input type="email" id="forgot-email" required placeholder="example@gmail.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-orange">
+      </div>
+      <button type="submit" id="forgot-submit-btn" class="w-full bg-[#0f1e36] hover:bg-[#1a3258] text-white py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors uppercase cursor-pointer flex items-center justify-center gap-1.5 border-0">
+        Send Reset Link
+      </button>
+      <div class="text-center mt-1">
+        <button type="button" id="forgot-back-to-login-btn" class="text-slate-400 hover:text-brand-orange font-bold text-[10px] uppercase tracking-wider bg-transparent border-0 cursor-pointer p-0">
+          Back to Sign In
+        </button>
+      </div>
     </form>
   `;
 }
@@ -3786,6 +3821,71 @@ function setupAccountListeners(user) {
         }
       } catch (err) {
         showNotification(err.message, 'danger');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHTML;
+        }
+      }
+    });
+  }
+
+  const forgotPasswordLink = document.getElementById('signin-forgot-password-link');
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener('click', () => {
+      authTab = 'forgot-password';
+      renderAccountView();
+    });
+  }
+
+  const backToLoginBtn = document.getElementById('forgot-back-to-login-btn');
+  if (backToLoginBtn) {
+    backToLoginBtn.addEventListener('click', () => {
+      authTab = 'signin';
+      renderAccountView();
+    });
+  }
+
+  const forgotForm = document.getElementById('auth-forgot-password-form');
+  if (forgotForm) {
+    forgotForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showNotification("Please enter a valid email address.", "danger");
+        return;
+      }
+
+      const submitBtn = document.getElementById('forgot-submit-btn');
+      const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span>Sending...</span>
+        `;
+      }
+
+      try {
+        await window.sendMockPasswordResetEmail(email);
+        showNotification("Password reset email sent successfully. Please check your inbox and spam folder.", "success");
+        authTab = 'signin';
+        renderAccountView();
+      } catch (err) {
+        console.error("Password reset error:", err);
+        const code = err.code;
+        if (code === 'auth/user-not-found' || err.message.includes('user-not-found')) {
+          showNotification("No account was found with this email address.", "danger");
+        } else if (code === 'auth/invalid-email' || err.message.includes('invalid-email')) {
+          showNotification("Please enter a valid email address.", "danger");
+        } else {
+          showNotification(err.message || "Failed to send password reset email.", "danger");
+        }
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalHTML;

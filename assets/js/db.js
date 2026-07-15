@@ -20,6 +20,7 @@ import {
   onAuthStateChanged,
   updateProfile,
   updatePassword,
+  sendPasswordResetEmail,
   ref,
   uploadBytes,
   getDownloadURL,
@@ -670,6 +671,14 @@ const logoutMockUser = async () => {
     await signOut(auth);
   } catch (err) {
     console.error("Error signing out:", err);
+  }
+};
+
+const sendMockPasswordResetEmail = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -1482,6 +1491,7 @@ window.loginMockUser = loginMockUser;
 window.registerMockUser = registerMockUser;
 window.updateMockUserProfile = updateMockUserProfile;
 window.logoutMockUser = logoutMockUser;
+window.sendMockPasswordResetEmail = sendMockPasswordResetEmail;
 window.getMockOrders = getMockOrders;
 window.placeMockOrder = placeMockOrder;
 window.generateWhatsAppOrderLink = generateWhatsAppOrderLink;
@@ -1530,6 +1540,7 @@ export {
   registerMockUser,
   updateMockUserProfile,
   logoutMockUser,
+  sendMockPasswordResetEmail,
   getMockOrders,
   placeMockOrder,
   generateWhatsAppOrderLink,
