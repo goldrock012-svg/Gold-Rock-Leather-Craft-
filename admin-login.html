@@ -84,7 +84,14 @@
         </div>
       </div>
 
-      <button type="submit" id="login-submit-btn" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer mt-4 flex items-center justify-center gap-2 border-0 shadow-lg shadow-brand-orange/20">
+      <!-- Requirement 1: Forgot Password link -->
+      <div class="flex justify-end -mt-1">
+        <button type="button" id="forgot-password-trigger" class="text-[11px] font-bold text-slate-400 hover:text-brand-orange transition-all cursor-pointer bg-transparent border-0 outline-none p-1 flex items-center gap-1">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Forgot Password?
+        </button>
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer mt-2 flex items-center justify-center gap-2 border-0 shadow-lg shadow-brand-orange/20">
         <i data-lucide="key" class="w-4 h-4"></i> Authenticate Workspace
       </button>
     </form>
@@ -96,6 +103,78 @@
       </a>
     </div>
 
+  </div>
+
+  <!-- Requirement 2: Forgot Password professional dialog -->
+  <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <!-- Backdrop with blur -->
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="modal-backdrop"></div>
+    
+    <!-- Modal Content Card -->
+    <div class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-3xl p-8 shadow-2xl relative z-10 animate-in fade-in zoom-in duration-300">
+      
+      <!-- Close Button -->
+      <button id="close-modal-btn" type="button" class="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors cursor-pointer bg-transparent border-0 outline-none p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div id="modal-header-container" class="text-center mb-6">
+        <div class="inline-flex w-14 h-14 rounded-full bg-brand-orange/10 border border-brand-orange/30 items-center justify-center text-brand-orange mb-3 shadow-inner">
+          <i data-lucide="key-round" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-white tracking-widest uppercase font-display">
+          Reset Password
+        </h3>
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+          Artisan Credentials Recovery
+        </p>
+      </div>
+
+      <!-- Alert placeholder for modal errors -->
+      <div id="reset-error-banner" class="hidden mb-4 p-4 bg-red-950/50 border border-red-800/40 text-red-400 text-xs rounded-xl flex items-start gap-2.5 animate-in slide-in-from-top-2 duration-300">
+        <i data-lucide="alert-octagon" class="w-5 h-5 shrink-0 text-red-400"></i>
+        <div class="flex-1">
+          <strong class="font-extrabold uppercase text-[10px] tracking-wider block">Recovery Error</strong>
+          <span id="reset-error-message">Error resetting password.</span>
+        </div>
+      </div>
+
+      <!-- Success Screen -->
+      <div id="reset-success-screen" class="hidden text-center py-4 flex flex-col items-center gap-4 animate-in fade-in duration-300">
+        <div class="w-16 h-16 bg-emerald-950/50 text-emerald-400 border border-emerald-800/30 rounded-full flex items-center justify-center mb-1">
+          <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider">Transmission Sent</h4>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            Password reset email has been sent successfully.<br>
+            Please check your inbox and spam folder.
+          </p>
+        </div>
+        <button id="reset-done-btn" type="button" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors mt-2 cursor-pointer">
+          Done
+        </button>
+      </div>
+
+      <!-- Form for requesting recovery link -->
+      <form id="forgot-password-form" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Administrator Email Address *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+            </span>
+            <input type="email" id="reset-email" required placeholder="admin@goldrock.com" class="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-brand-orange font-medium transition-colors">
+          </div>
+        </div>
+
+        <button type="submit" id="reset-submit-btn" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all cursor-pointer mt-2 flex items-center justify-center gap-2 border-0 shadow-lg shadow-brand-orange/20">
+          <i data-lucide="send" class="w-4 h-4"></i> Send Recovery Link
+        </button>
+      </form>
+
+    </div>
   </div>
 
   <!-- Lucide script -->
@@ -118,6 +197,20 @@
       const errorMessage = document.getElementById('error-message');
       const submitBtn = document.getElementById('login-submit-btn');
 
+      // Forgot Password Modal DOM references
+      const forgotPasswordTrigger = document.getElementById('forgot-password-trigger');
+      const forgotPasswordModal = document.getElementById('forgot-password-modal');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const modalBackdrop = document.getElementById('modal-backdrop');
+      const forgotPasswordForm = document.getElementById('forgot-password-form');
+      const resetEmailInput = document.getElementById('reset-email');
+      const resetErrorBanner = document.getElementById('reset-error-banner');
+      const resetErrorMessage = document.getElementById('reset-error-message');
+      const resetSuccessScreen = document.getElementById('reset-success-screen');
+      const resetSubmitBtn = document.getElementById('reset-submit-btn');
+      const resetDoneBtn = document.getElementById('reset-done-btn');
+
+      // Login handler
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorBanner.classList.add('hidden');
@@ -134,7 +227,7 @@
         const email = emailInput.value.trim();
         const password = passwordInput.value;
 
-        // Requirement 4: Protect the Admin Dashboard. Only allow email goldrock012@gmail.com to access it.
+        // Requirement 5: Protect the Admin Dashboard. Only allow email goldrock012@gmail.com to access it.
         if (email.toLowerCase() !== 'goldrock012@gmail.com') {
           showDenied("Access Denied: Only goldrock012@gmail.com has administrative access.");
           submitBtn.disabled = false;
@@ -175,6 +268,84 @@
       function showDenied(msg) {
         errorMessage.innerText = msg;
         errorBanner.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      // Forgot Password Modal UI interactions
+      const openModal = () => {
+        forgotPasswordModal.classList.remove('hidden');
+        resetEmailInput.value = emailInput.value.trim(); // Pre-populate with what they typed in the login form
+        forgotPasswordForm.classList.remove('hidden');
+        resetSuccessScreen.classList.add('hidden');
+        resetErrorBanner.classList.add('hidden');
+        resetSubmitBtn.disabled = false;
+        if (window.lucide) window.lucide.createIcons();
+      };
+
+      const closeModal = () => {
+        forgotPasswordModal.classList.add('hidden');
+      };
+
+      forgotPasswordTrigger.addEventListener('click', openModal);
+      closeModalBtn.addEventListener('click', closeModal);
+      modalBackdrop.addEventListener('click', closeModal);
+      resetDoneBtn.addEventListener('click', closeModal);
+
+      // Forgot password form submission handler
+      forgotPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resetErrorBanner.classList.add('hidden');
+        resetSubmitBtn.disabled = true;
+        const originalResetBtnHTML = resetSubmitBtn.innerHTML;
+        resetSubmitBtn.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="tracking-widest uppercase font-sans">Transmitting...</span>
+        `;
+
+        const email = resetEmailInput.value.trim();
+
+        // Requirement 4: Email validation format check
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showResetError("Please enter a valid email address.");
+          resetSubmitBtn.disabled = false;
+          resetSubmitBtn.innerHTML = originalResetBtnHTML;
+          return;
+        }
+
+        // Requirement 4 & 5: Only goldrock012@gmail.com is allowed. Any other is "not found"
+        if (email.toLowerCase() !== 'goldrock012@gmail.com') {
+          showResetError("No administrator account exists with this email.");
+          resetSubmitBtn.disabled = false;
+          resetSubmitBtn.innerHTML = originalResetBtnHTML;
+          return;
+        }
+
+        try {
+          if (typeof window.sendMockPasswordResetEmail === 'function') {
+            await window.sendMockPasswordResetEmail(email);
+            
+            // Show custom success screen with requested text
+            forgotPasswordForm.classList.add('hidden');
+            resetSuccessScreen.classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+          } else {
+            throw new Error("Core database layer not loaded completely yet.");
+          }
+        } catch (err) {
+          console.error("Password reset error:", err);
+          showResetError(err.message || "Failed to transmit recovery link. Please try again.");
+          resetSubmitBtn.disabled = false;
+          resetSubmitBtn.innerHTML = originalResetBtnHTML;
+        }
+      });
+
+      function showResetError(msg) {
+        resetErrorMessage.innerText = msg;
+        resetErrorBanner.classList.remove('hidden');
         if (window.lucide) window.lucide.createIcons();
       }
     });
