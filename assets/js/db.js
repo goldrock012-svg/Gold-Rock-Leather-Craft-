@@ -1493,6 +1493,30 @@ const editProductInCatalog = async (productId, productData, imageFileOrFiles, on
   }
 };
 
+const getPublicIdFromUrl = (url) => {
+  if (!url || !url.includes('cloudinary.com')) return null;
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length < 2) return null;
+    let path = parts[1];
+    const firstSlash = path.indexOf('/');
+    if (firstSlash !== -1) {
+      const segment = path.substring(0, firstSlash);
+      if (/^v\d+$/.test(segment)) {
+        path = path.substring(firstSlash + 1);
+      }
+    }
+    const dotIndex = path.lastIndexOf('.');
+    if (dotIndex !== -1) {
+      path = path.substring(0, dotIndex);
+    }
+    return path;
+  } catch (e) {
+    console.error("Error parsing Cloudinary public ID:", e);
+    return null;
+  }
+};
+
 const deleteProductFromCatalog = async (productId) => {
   if (!auth.currentUser || auth.currentUser.email !== "goldrock012@gmail.com") {
     throw new Error("Administrative permission required.");
@@ -1510,6 +1534,22 @@ const deleteProductFromCatalog = async (productId) => {
             await deleteObject(imgRef);
           } catch (e) {
             console.error("Error deleting product image from storage:", e);
+          }
+        } else if (imgUrl && imgUrl.includes('cloudinary.com')) {
+          try {
+            const publicId = getPublicIdFromUrl(imgUrl);
+            if (publicId) {
+              console.log(`Attempting to delete Cloudinary image: ${publicId}`);
+              const cloudName = 'dhirznlm';
+              // Perform a request to Cloudinary's destroy API, catching any restrictions gracefully
+              await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ public_id: publicId })
+              }).catch(err => console.warn("Cloudinary fetch error:", err));
+            }
+          } catch (e) {
+            console.error("Error deleting Cloudinary image:", e);
           }
         }
       }

@@ -1648,15 +1648,15 @@ function getAdminConsoleViewHtml() {
           <td class="py-2.5 px-2 font-mono text-slate-400 text-[10px]">${dateString}</td>
           <td class="py-2.5 px-2 text-right">
             <div class="flex items-center justify-end gap-1 flex-wrap sm:flex-nowrap">
-              <button data-id="${p.id}" class="prod-view-trigger-btn bg-brand-orange hover:bg-brand-orange-dark text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="View Preview">
-                👁️ View
+              <button data-id="${p.id}" class="prod-edit-trigger-btn bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Edit Product">
+                🟢 Edit
               </button>
-              <button data-id="${p.id}" class="prod-edit-trigger-btn bg-[#0f1e36] hover:bg-[#1a3258] text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Edit Product">
-                ✏️ Edit
+              <button data-id="${p.id}" class="prod-delete-trigger-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1.5 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Delete Product">
+                🔴 Delete
               </button>
-              <button data-id="${p.id}" class="prod-delete-trigger-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0" title="Delete Product">
-                🗑️ Delete
-              </button>
+              <a href="product.html?id=${p.id}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 text-[9px] md:text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1 shrink-0 uppercase tracking-wide shadow-xs border-0 no-underline" title="View Customer Page">
+                🔵 View
+              </a>
             </div>
           </td>
         </tr>
@@ -3177,17 +3177,17 @@ function setupAccountListeners(user) {
         <!-- Modal Header -->
         <div class="bg-[#0f1e36] text-white px-5 py-4 flex items-center gap-2">
           <span class="text-[#f68b1e] text-lg">⚠️</span>
-          <h4 class="font-bold text-[11px] uppercase tracking-wider">Confirm Permanent Deletion</h4>
+          <h4 class="font-bold text-[11px] uppercase tracking-wider">Confirm Deletion</h4>
         </div>
         
         <!-- Modal Body -->
         <div class="p-6">
           <p class="text-xs font-bold text-slate-900 mb-2">
-            Are you sure you want to permanently delete this product?
+            Are you sure you want to delete this product?
           </p>
           <div class="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50 border p-3 rounded-lg">
             Product: <strong class="text-slate-800 font-extrabold font-mono">${productName}</strong><br>
-            This will permanently delete the product document from Firestore, remove all associated images from Cloudinary/Storage, and take it down from the customer storefront immediately.
+            This will permanently remove the product from the storefront and database.
           </div>
         </div>
         
@@ -3285,14 +3285,6 @@ function setupAccountListeners(user) {
     });
   };
 
-  // View Product Trigger
-  document.querySelectorAll('.prod-view-trigger-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pId = btn.getAttribute('data-id');
-      showProductPreviewDialog(pId);
-    });
-  });
-
   // Delete Product Trigger
   document.querySelectorAll('.prod-delete-trigger-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3304,7 +3296,7 @@ function setupAccountListeners(user) {
       showProfessionalDeleteDialog(name, async () => {
         try {
           await window.deleteProductFromCatalog(pId);
-          showNotification("Product and associated images permanently deleted successfully.", "success");
+          showNotification("Product deleted successfully.", "success");
           renderAccountView();
         } catch (err) {
           showNotification(err.message, "danger");
